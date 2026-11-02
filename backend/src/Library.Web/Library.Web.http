@@ -1,0 +1,24 @@
+@Library.Web_HostAddress = http://localhost:8081
+
+### Register
+POST {{Library.Web_HostAddress}}/api/identity/register
+Content-Type: application/json
+
+{
+  "username": "reader1",
+  "password": "Password@123",
+  "fullName": "Nguyen Van A",
+  "email": "reader1@example.com",
+  "phoneNumber": "0912345678"
+}
+
+### Login
+POST {{Library.Web_HostAddress}}/api/identity/login
+Content-Type: application/json
+
+{
+  "username": "reader1",
+  "password": "Password@123"
+}
+
+###

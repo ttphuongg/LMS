@@ -1,0 +1,53 @@
+## Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+**/[Bb]in/
+**/[Oo]bj/
+
+## Visual Studio & IDEs
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+.idea/
+*.sln.iml
+.vscode/
+
+## Publish and Packages
+*.nupkg
+*.snupkg
+**/Properties/launchSettings.json
+project.lock.json
+project.assets.json
+
+## Test Results
+TestResults/
+[Tt]est[Rr]esult*/
+
+## Environment & Secrets
+.env
+.env.*
+!.env.example
+
+## OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
