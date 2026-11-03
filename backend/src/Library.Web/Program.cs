@@ -144,4 +144,19 @@ Library.Modules.Core.Catalog.Features.ManageLocations.ManageLocationsEndpoint.Ma
 Library.Modules.Core.Catalog.Features.SearchBook.SearchBookEndpoint.Map(app);
 Library.Modules.Core.Catalog.Features.UpdateBook.UpdateBookEndpoint.Map(app);
 
+// ── Circulation ───────────────────────────────────────────────────────────────
+BorrowBookEndpoint.Map(app);
+ReturnBookEndpoint.Map(app);
+ReserveBookEndpoint.Map(app);
+RequestRenewalEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.ApproveRenewal.ApproveRenewalEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.GetMyLoans.GetMyLoansEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.CancelReservation.CancelReservationEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.ReportIncident.ReportIncidentEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.GetAllLoans.GetAllLoansEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.GetAllReservations.GetAllReservationsEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.GetLoanDetail.GetLoanDetailEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.GetAllRenewals.GetAllRenewalsEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.GetMyReservations.GetMyReservationsEndpoint.Map(app);
+
 app.Run();
