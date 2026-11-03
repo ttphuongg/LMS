@@ -1,5 +1,5 @@
-using MediatR;
 using Library.Modules.Core.Circulation.Data;
+using MediatR;
 
 namespace Library.Modules.Core.Shared.Events;
 
@@ -9,5 +9,6 @@ public record IncidentReportedEvent(
     int? LibrarianId,
     IncidentType IncidentType,
     IncidentSeverity Severity,
-    decimal CompensationAmount
+    decimal? CompensationAmount
 ) : INotification;
+
