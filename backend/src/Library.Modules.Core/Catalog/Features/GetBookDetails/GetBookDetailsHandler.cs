@@ -1,4 +1,4 @@
-using Library.Modules.Core.Shared;
+﻿using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +17,7 @@ public sealed class GetBookDetailsHandler : IRequestHandler<GetBookDetailsReques
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == request.BookId, ct);
 
-        if (book == null) return ApiResponse<BookDetailResult>.Fail("S�ch kh�ng t?n t?i.");
+        if (book == null) return ApiResponse<BookDetailResult>.Fail("Sách không tồn tại.");
 
         var result = new BookDetailResult(
             book.Id, book.Title, book.Isbn, book.Description,
