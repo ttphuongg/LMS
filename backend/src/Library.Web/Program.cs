@@ -134,4 +134,14 @@ Library.Modules.Core.Identity.Features.RefreshToken.RefreshTokenEndpoint.Map(app
 Library.Modules.Core.Identity.Features.Logout.LogoutEndpoint.Map(app);
 Library.Modules.Core.Identity.Features.GetMyProfile.GetMyProfileEndpoint.Map(app);
 
+// ── Catalog Endpoints ─────────────────────────────────────────────────────────
+Library.Modules.Core.Catalog.Features.AddBook.AddBookEndpoint.Map(app);
+Library.Modules.Core.Catalog.Features.GetBookDetails.GetBookDetailsEndpoint.Map(app);
+Library.Modules.Core.Catalog.Features.ManageAuthors.ManageAuthorsEndpoint.Map(app);
+Library.Modules.Core.Catalog.Features.ManageCategories.ManageCategoriesEndpoint.Map(app);
+Library.Modules.Core.Catalog.Features.ManageCopies.ManageCopiesEndpoint.Map(app);
+Library.Modules.Core.Catalog.Features.ManageLocations.ManageLocationsEndpoint.Map(app);
+Library.Modules.Core.Catalog.Features.SearchBook.SearchBookEndpoint.Map(app);
+Library.Modules.Core.Catalog.Features.UpdateBook.UpdateBookEndpoint.Map(app);
+
 app.Run();
