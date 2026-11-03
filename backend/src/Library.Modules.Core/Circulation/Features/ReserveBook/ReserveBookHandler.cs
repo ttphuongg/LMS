@@ -1,6 +1,7 @@
 using FluentValidation;
 using Library.Modules.Core.Catalog.Data;
 using Library.Modules.Core.Circulation.Data;
+using Library.Modules.Core.Identity.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -24,32 +25,70 @@ public sealed class ReserveBookHandler : IRequestHandler<ReserveBookRequest, Api
         if (!validation.IsValid)
             return ApiResponse<long>.Fail(string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)));
 
-        var accountExists = await _db.Accounts.AnyAsync(a => a.Id == request.AccountId, ct);
-        if (!accountExists)
+        var account = await _db.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId, ct);
+        if (account is null)
             return ApiResponse<long>.Fail("Tài khoản không tồn tại.");
 
-        var bookExists = await _db.Books.AnyAsync(b => b.Id == request.BookId, ct);
-        if (!bookExists)
+        if (account.Status != AccountStatus.Active)
+            return ApiResponse<long>.Fail("Tài khoản đang bị khóa hoặc vô hiệu hóa, không thể đặt trước sách.");
+
+        var hasOverdueLoans = await _db.LoanSlips
+            .AnyAsync(l => l.AccountId == request.AccountId && l.Status == LoanStatus.Overdue, ct);
+        if (hasOverdueLoans)
+            return ApiResponse<long>.Fail("Độc giả có sách quá hạn chưa hoàn trả, không thể đặt trước.");
+
+        var book = await _db.Books.FirstOrDefaultAsync(b => b.Id == request.BookId, ct);
+        if (book is null)
             return ApiResponse<long>.Fail("Sách không tồn tại.");
+
+        if (book.Status != BookStatus.Active)
+            return ApiResponse<long>.Fail("Sách hiện ngưng phục vụ.");
+
+        // Check if reader already has an active reservation for this book
+        var alreadyReserved = await _db.Reservations
+            .AnyAsync(r => r.AccountId == request.AccountId &&
+                           r.BookId == request.BookId &&
+                           (r.Status == ReservationStatus.Waiting || r.Status == ReservationStatus.Ready), ct);
+        if (alreadyReserved)
+            return ApiResponse<long>.Fail("Bạn đã có một yêu cầu đặt trước đang chờ hoặc sẵn sàng cho cuốn sách này.");
+
+        BookCopy? assignedCopy = null;
 
         if (request.BookCopyId.HasValue)
         {
-            var copy = await _db.BookCopies.FirstOrDefaultAsync(c => c.Id == request.BookCopyId.Value, ct);
-            if (copy == null || copy.BookId != request.BookId)
+            assignedCopy = await _db.BookCopies.FirstOrDefaultAsync(c => c.Id == request.BookCopyId.Value, ct);
+            if (assignedCopy == null || assignedCopy.BookId != request.BookId)
                 return ApiResponse<long>.Fail("Bản sao sách không tồn tại hoặc không thuộc về cuốn sách này.");
             
-            if (copy.Status != CopyStatus.Available)
+            if (assignedCopy.Status != CopyStatus.Available)
                 return ApiResponse<long>.Fail("Bản sao sách không sẵn sàng để đặt trước.");
-                
-            copy.Status = CopyStatus.Reserved;
+        }
+        else
+        {
+            // Auto-assign first available copy if one exists
+            assignedCopy = await _db.BookCopies
+                .FirstOrDefaultAsync(c => c.BookId == request.BookId && c.Status == CopyStatus.Available, ct);
+        }
+
+        DateTime? expiresAt = null;
+        var status = ReservationStatus.Waiting;
+
+        if (assignedCopy != null)
+        {
+            assignedCopy.Status = CopyStatus.Reserved;
+            assignedCopy.UpdatedAt = DateTime.UtcNow;
+            status = ReservationStatus.Ready;
+            expiresAt = DateTime.UtcNow.AddDays(3); // Giữ chỗ tối đa 3 ngày
         }
 
         var reservation = new Reservation
         {
             AccountId = request.AccountId,
             BookId = request.BookId,
-            BookCopyId = request.BookCopyId,
-            Status = request.BookCopyId.HasValue ? ReservationStatus.Ready : ReservationStatus.Waiting
+            BookCopyId = assignedCopy?.Id,
+            ReservedAt = DateTime.UtcNow,
+            ExpiresAt = expiresAt,
+            Status = status
         };
 
         _db.Reservations.Add(reservation);
