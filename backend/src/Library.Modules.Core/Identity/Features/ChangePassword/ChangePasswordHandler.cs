@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -22,12 +22,15 @@ public sealed class ChangePasswordHandler : IRequestHandler<ChangePasswordReques
         if (!val.IsValid) return ApiResponse<bool>.Fail(string.Join("; ", val.Errors.Select(e => e.ErrorMessage)));
 
         var account = await _db.Accounts.FindAsync(new object[] { request.AccountId }, ct);
-        if (account == null) return ApiResponse<bool>.Fail("T�i kho?n kh�ng t?n t?i.");
+        if (account == null) return ApiResponse<bool>.Fail("Tài khoản không tồn tại.");
 
         if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, account.PasswordHash))
-            return ApiResponse<bool>.Fail("M?t kh?u hi?n t?i kh�ng ��ng.");
+            return ApiResponse<bool>.Fail("Mật khẩu hiện tại không đúng.");
 
         account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        account.UpdatedAt = DateTime.UtcNow;
+        account.UpdatedBy = request.AccountId;
+
         await _db.SaveChangesAsync(ct);
         return ApiResponse<bool>.Ok(true);
     }

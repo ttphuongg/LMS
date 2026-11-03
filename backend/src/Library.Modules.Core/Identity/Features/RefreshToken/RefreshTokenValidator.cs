@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace Library.Modules.Core.Identity.Features.RefreshToken;
 
@@ -6,6 +6,6 @@ public class RefreshTokenValidator : AbstractValidator<RefreshTokenRequest>
 {
     public RefreshTokenValidator()
     {
-        RuleFor(x => x.RefreshToken).NotEmpty().WithMessage("Refresh token kh�ng h?p l?.");
+        RuleFor(x => x.RefreshToken).NotEmpty().WithMessage("Refresh token không hợp lệ.");
     }
 }
