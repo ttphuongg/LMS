@@ -1,0 +1,44 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: thuvien_sqlserver
+    user: root
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      - MSSQL_PID=Developer
+    ports:
+      - "${SQL_PORT:-1434}:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q 'SELECT 1' 2>/dev/null || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q 'SELECT 1' 2>/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: thuvien_api
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Default=Server=sqlserver,1433;Database=${DB_NAME:-LibraryManagementDB};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
+      - JwtSettings__SecretKey=${JWT_SECRET_KEY:-LibrarySystem_SuperSecretKey_ChangeInProduction_MinLength32!}
+      - AdminSeed__Username=${ADMIN_USERNAME}
+      - AdminSeed__Password=${ADMIN_PASSWORD}
+      - AdminSeed__Email=${ADMIN_EMAIL}
+      - AdminSeed__FullName=${ADMIN_FULLNAME}
+    ports:
+      - "${API_PORT:-8081}:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+volumes:
+  sqlserver_data:
+    name: thuvien_sqlserver_data
