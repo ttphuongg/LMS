@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -17,6 +17,9 @@ public sealed class JwtTokenService
 
     public JwtTokenService(IConfiguration config) => _config = config;
 
+    public int GetAccessTokenExpiryMinutes() =>
+        int.Parse(_config["JwtSettings:AccessTokenExpiryMinutes"] ?? "60");
+
     /// <summary>
     /// Creates a signed JWT access token containing user claims (sub, name, email, role).
     /// </summary>
@@ -27,7 +30,7 @@ public sealed class JwtTokenService
 
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var expiryMinutes = int.Parse(_config["JwtSettings:AccessTokenExpiryMinutes"] ?? "60");
+        var expiryMinutes = GetAccessTokenExpiryMinutes();
 
         var claims = new[]
         {

@@ -33,7 +33,8 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, ApiResponse<Log
         var account = await _db.Accounts
             .FirstOrDefaultAsync(a => a.Username == normalizedUsername, ct);
 
-        if (account is null)
+        // ── Verify password first (prevent account enumeration & status snooping) ───
+        if (account is null || !BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash))
             return ApiResponse<LoginResponse>.Fail("Tên đăng nhập hoặc mật khẩu không đúng.");
 
         // ── Check status ──────────────────────────────────────────────────────
@@ -43,20 +44,16 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, ApiResponse<Log
         if (account.Status == AccountStatus.Inactive)
             return ApiResponse<LoginResponse>.Fail("Tài khoản đã bị vô hiệu hóa.");
 
-        // ── Verify password ───────────────────────────────────────────────────
-        if (!BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash))
-            return ApiResponse<LoginResponse>.Fail("Tên đăng nhập hoặc mật khẩu không đúng.");
-
         // ── Generate tokens ───────────────────────────────────────────────────
         var accessToken = _jwt.GenerateAccessToken(account);
-        var refreshToken = _jwt.GenerateRefreshToken();
+        var refreshTokenSecret = _jwt.GenerateRefreshToken();
         var refreshExpiry = _jwt.GetRefreshTokenExpiry();
 
         // ── Persist login session ─────────────────────────────────────────────
         var session = new LoginSession
         {
             AccountId = account.Id,
-            RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken),
+            RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(refreshTokenSecret),
             LoggedInAt = DateTime.UtcNow,
             ExpiresAt = refreshExpiry
         };
@@ -68,8 +65,11 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, ApiResponse<Log
 
         await _db.SaveChangesAsync(ct);
 
+        // Composite refresh token format: {sessionId}.{secret} for O(1) lookup
+        var clientRefreshToken = $"{session.Id}.{refreshTokenSecret}";
+
         // ── Build response ────────────────────────────────────────────────────
-        var accessExpiryMinutes = 60; // matches JwtSettings:AccessTokenExpiryMinutes default
+        var accessExpiryMinutes = _jwt.GetAccessTokenExpiryMinutes();
         var response = new LoginResponse(
             AccountId: account.Id,
             Username: account.Username,
@@ -77,7 +77,7 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, ApiResponse<Log
             Email: account.Email,
             Role: account.Role.ToString(),
             AccessToken: accessToken,
-            RefreshToken: refreshToken,
+            RefreshToken: clientRefreshToken,
             AccessTokenExpiresAt: DateTime.UtcNow.AddMinutes(accessExpiryMinutes)
         );
 

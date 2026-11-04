@@ -58,7 +58,20 @@ public sealed class ManageUsersHandler :
         var account = await _db.Accounts.FindAsync(new object[] { request.AccountId }, ct);
         if (account == null) return ApiResponse<bool>.Fail("Tài khoản không tồn tại.");
 
+        if (account.Role == AccountRole.Admin && request.NewRole != AccountRole.Admin)
+        {
+            var activeAdminCount = await _db.Accounts
+                .CountAsync(a => a.Role == AccountRole.Admin && a.Status == AccountStatus.Active, ct);
+
+            if (activeAdminCount <= 1)
+                return ApiResponse<bool>.Fail("Không thể hạ quyền Admin cuối cùng đang hoạt động trong hệ thống.");
+        }
+
         account.Role = request.NewRole;
+        account.UpdatedAt = DateTime.UtcNow;
+        if (request.CurrentAdminId > 0)
+            account.UpdatedBy = request.CurrentAdminId;
+
         await _db.SaveChangesAsync(ct);
         return ApiResponse<bool>.Ok(true);
     }
@@ -71,6 +84,15 @@ public sealed class ManageUsersHandler :
         var account = await _db.Accounts.FindAsync(new object[] { request.AccountId }, ct);
         if (account == null) return ApiResponse<bool>.Fail("Tài khoản không tồn tại.");
 
+        if (account.Role == AccountRole.Admin && (request.NewStatus == AccountStatus.Inactive || request.NewStatus == AccountStatus.Locked))
+        {
+            var activeAdminCount = await _db.Accounts
+                .CountAsync(a => a.Role == AccountRole.Admin && a.Status == AccountStatus.Active && a.Id != account.Id, ct);
+
+            if (activeAdminCount == 0)
+                return ApiResponse<bool>.Fail("Không thể khóa hoặc vô hiệu hóa Admin duy nhất đang hoạt động trong hệ thống.");
+        }
+
         account.Status = request.NewStatus;
         if (request.NewStatus == AccountStatus.Inactive || request.NewStatus == AccountStatus.Locked)
         {
@@ -80,6 +102,10 @@ public sealed class ManageUsersHandler :
         {
             account.DeactivatedAt = null;
         }
+
+        account.UpdatedAt = DateTime.UtcNow;
+        if (request.CurrentAdminId > 0)
+            account.UpdatedBy = request.CurrentAdminId;
 
         await _db.SaveChangesAsync(ct);
         return ApiResponse<bool>.Ok(true);

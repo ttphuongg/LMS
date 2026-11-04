@@ -1,5 +1,6 @@
 using FluentValidation;
 using Library.Modules.Core.Catalog.Data;
+using Library.Modules.Core.Circulation.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -36,13 +37,18 @@ public sealed class ManageCopiesHandler : IRequestHandler<AddCopyRequest, ApiRes
         if (await _db.BookCopies.AnyAsync(c => c.Barcode == barcode, ct))
             return ApiResponse<int>.Fail($"Mã vạch '{barcode}' đã tồn tại trong hệ thống.");
 
-        // ── Verify location exists (if provided) ─────────────────────────────
+        // ── Verify location exists and capacity (if provided) ───────────────────
         if (request.LocationId.HasValue)
         {
-            var locationExists = await _db.Locations.AnyAsync(
-                l => l.Id == request.LocationId.Value && l.IsActive, ct);
-            if (!locationExists)
+            var location = await _db.Locations
+                .Include(l => l.BookCopies)
+                .FirstOrDefaultAsync(l => l.Id == request.LocationId.Value, ct);
+
+            if (location is null || !location.IsActive)
                 return ApiResponse<int>.Fail($"Vị trí với Id = {request.LocationId.Value} không tồn tại hoặc đã bị vô hiệu hóa.");
+
+            if (location.MaxCapacity.HasValue && location.BookCopies.Count >= location.MaxCapacity.Value)
+                return ApiResponse<int>.Fail($"Vị trí ({location.Aisle} - {location.Shelf} - Tầng {location.RowLevel}) đã đạt sức chứa tối đa ({location.MaxCapacity.Value} bản sao).");
         }
 
         // ── Create BookCopy entity ────────────────────────────────────────────
@@ -53,7 +59,8 @@ public sealed class ManageCopiesHandler : IRequestHandler<AddCopyRequest, ApiRes
             LocationId = request.LocationId,
             AcquiredDate = request.AcquiredDate ?? DateOnly.FromDateTime(DateTime.Today),
             Condition = request.Condition,
-            Status = CopyStatus.Available
+            Status = CopyStatus.Available,
+            CreatedAt = DateTime.UtcNow
         };
 
         _db.BookCopies.Add(copy);
@@ -113,8 +120,23 @@ public sealed class UpdateCopyStatusHandler : IRequestHandler<UpdateCopyStatusRe
         if (!Enum.IsDefined(request.NewStatus))
             return ApiResponse<bool>.Fail("Trạng thái bản sao không hợp lệ.");
 
+        // ── Guard transitions ────────────────────────────────────────────────
+        if (copy.Status == CopyStatus.Borrowed && request.NewStatus != CopyStatus.Borrowed)
+        {
+            return ApiResponse<bool>.Fail("Bản sao này hiện đang cho mượn. Vui lòng ghi nhận trả sách hoặc báo sự cố thay vì đổi trực tiếp trạng thái.");
+        }
+
+        if (request.NewStatus == CopyStatus.Available)
+        {
+            var isCurrentlyBorrowing = await _db.LoanSlipDetails
+                .AnyAsync(d => d.BookCopyId == copy.Id && d.Status == LoanDetailStatus.Borrowing, ct);
+            if (isCurrentlyBorrowing)
+                return ApiResponse<bool>.Fail("Không thể chuyển sang Available vì bản sao này đang nằm trong một phiếu mượn chưa hoàn tất.");
+        }
+
         // ── Update status ─────────────────────────────────────────────────────
         copy.Status = request.NewStatus;
+        copy.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
         return ApiResponse<bool>.Ok(true);

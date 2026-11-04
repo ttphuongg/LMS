@@ -84,6 +84,14 @@ public sealed class UpdateLocationHandler : IRequestHandler<UpdateLocationReques
                     $"Tọa độ ({aisle}, {shelf}, Tầng {request.RowLevel}) đã tồn tại.");
         }
 
+        // Check capacity against currently stored copies
+        var currentCopiesCount = await _db.BookCopies.CountAsync(c => c.LocationId == location.Id, ct);
+        if (request.MaxCapacity.HasValue && currentCopiesCount > request.MaxCapacity.Value)
+            return ApiResponse<bool>.Fail($"Không thể giảm sức chứa xuống {request.MaxCapacity.Value} vì vị trí này đang chứa {currentCopiesCount} bản sao.");
+
+        if (!request.IsActive && currentCopiesCount > 0)
+            return ApiResponse<bool>.Fail($"Không thể vô hiệu hóa vị trí này vì đang có {currentCopiesCount} bản sao được xếp tại đây.");
+
         location.Aisle = aisle;
         location.Shelf = shelf;
         location.RowLevel = request.RowLevel;
@@ -153,4 +161,3 @@ public sealed class GetLocationByIdHandler : IRequestHandler<GetLocationByIdRequ
         return ApiResponse<LocationDetail>.Ok(location);
     }
 }
-

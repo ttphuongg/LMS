@@ -9,3 +9,4 @@ public record FineIssuedEvent(
     decimal Amount,
     FineType FineType
 ) : INotification;
+

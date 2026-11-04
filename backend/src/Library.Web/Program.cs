@@ -145,10 +145,10 @@ Library.Modules.Core.Catalog.Features.SearchBook.SearchBookEndpoint.Map(app);
 Library.Modules.Core.Catalog.Features.UpdateBook.UpdateBookEndpoint.Map(app);
 
 // ── Circulation ───────────────────────────────────────────────────────────────
-BorrowBookEndpoint.Map(app);
-ReturnBookEndpoint.Map(app);
-ReserveBookEndpoint.Map(app);
-RequestRenewalEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.BorrowBook.BorrowBookEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.ReturnBook.ReturnBookEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.ReserveBook.ReserveBookEndpoint.Map(app);
+Library.Modules.Core.Circulation.Features.RequestRenewal.RequestRenewalEndpoint.Map(app);
 Library.Modules.Core.Circulation.Features.ApproveRenewal.ApproveRenewalEndpoint.Map(app);
 Library.Modules.Core.Circulation.Features.GetMyLoans.GetMyLoansEndpoint.Map(app);
 Library.Modules.Core.Circulation.Features.CancelReservation.CancelReservationEndpoint.Map(app);

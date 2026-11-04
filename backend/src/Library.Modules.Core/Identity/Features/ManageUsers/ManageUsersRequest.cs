@@ -8,5 +8,5 @@ public record GetUsersRequest(string? Keyword, int? Role, int Page = 1, int Page
 public record GetUsersResult(List<UserSummary> Items, int TotalCount);
 public record UserSummary(int Id, string Username, string FullName, string Email, string Role, string Status);
 
-public record ChangeRoleRequest(int AccountId, AccountRole NewRole) : IRequest<ApiResponse<bool>>;
-public record ChangeStatusRequest(int AccountId, AccountStatus NewStatus) : IRequest<ApiResponse<bool>>;
+public record ChangeRoleRequest(int AccountId, AccountRole NewRole, int CurrentAdminId = 0) : IRequest<ApiResponse<bool>>;
+public record ChangeStatusRequest(int AccountId, AccountStatus NewStatus, int CurrentAdminId = 0) : IRequest<ApiResponse<bool>>;

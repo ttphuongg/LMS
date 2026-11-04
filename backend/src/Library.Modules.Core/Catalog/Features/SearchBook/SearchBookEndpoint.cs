@@ -13,8 +13,8 @@ public static class SearchBookEndpoint
             async (
                 string? keyword, int? authorId, int? categoryId,
                 string? language, short? publishedYear,
-                int page, int pageSize,
-                IMediator mediator, CancellationToken ct) =>
+                int page = 1, int pageSize = 20,
+                IMediator mediator = default!, CancellationToken ct = default) =>
             {
                 var req = new SearchBookRequest(keyword, authorId, categoryId, language, publishedYear, page, pageSize);
                 return Results.Ok(await mediator.Send(req, ct));
