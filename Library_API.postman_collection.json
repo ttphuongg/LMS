@@ -1,466 +1,1652 @@
 {
-	"info": {
-		"_postman_id": "8a3e7b1a-c102-4c28-98e3-librarysystem",
-		"name": "Library System API (Da_ucpmc)",
-		"description": "Bộ API kiểm thử hệ thống Quản lý thư viện cho Postman",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "1. Auth & Reader",
-			"item": [
-				{
-					"name": "1.1 Đăng ký độc giả mới (Register)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"username\": \"docgia01\",\n  \"password\": \"MatKhau@123\",\n  \"fullName\": \"Nguyen Van A\",\n  \"email\": \"docgia01@example.com\",\n  \"phoneNumber\": \"0987654321\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/identity/register",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"identity",
-								"register"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "1.2 Đăng nhập Độc giả (Login)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var jsonData = pm.response.json();",
-									"if (jsonData.success && jsonData.data) {",
-									"    pm.environment.set(\"readerToken\", jsonData.data.accessToken);",
-									"    pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
-									"    pm.collectionVariables.set(\"readerToken\", jsonData.data.accessToken);",
-									"    pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
-									"    console.log(\"Saved readerToken & refreshToken\");",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"username\": \"docgia01\",\n  \"password\": \"MatKhau@123\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/identity/login",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"identity",
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "1.3 Xem hồ sơ cá nhân (Get Profile)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{readerToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/identity/profile",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"identity",
-								"profile"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "1.4 Cập nhật hồ sơ (Update Profile)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{readerToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"fullName\": \"Nguyen Van A Updated\",\n  \"phoneNumber\": \"0987654322\",\n  \"address\": \"123 Nguyen Trai, Q5, TP.HCM\",\n  \"dateOfBirth\": \"2000-01-15\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/identity/profile",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"identity",
-								"profile"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "1.5 Đổi mật khẩu (Change Password)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{readerToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"currentPassword\": \"MatKhau@123\",\n  \"newPassword\": \"MatKhauMoi@456\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/identity/password",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"identity",
-								"password"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "1.6 Làm mới Access Token (Refresh Token)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var jsonData = pm.response.json();",
-									"if (jsonData.success && jsonData.data) {",
-									"    pm.environment.set(\"readerToken\", jsonData.data.accessToken);",
-									"    pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);",
-									"    pm.collectionVariables.set(\"readerToken\", jsonData.data.accessToken);",
-									"    pm.collectionVariables.set(\"refreshToken\", jsonData.data.refreshToken);",
-									"    console.log(\"Refreshed tokens\");",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/identity/refresh",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"identity",
-								"refresh"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "1.7 Đăng xuất (Logout)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{readerToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/identity/logout",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"identity",
-								"logout"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "2. Admin Management",
-			"item": [
-				{
-					"name": "2.1 Đăng nhập Admin mặc định",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var jsonData = pm.response.json();",
-									"if (jsonData.success && jsonData.data) {",
-									"    pm.environment.set(\"adminToken\", jsonData.data.accessToken);",
-									"    pm.collectionVariables.set(\"adminToken\", jsonData.data.accessToken);",
-									"    console.log(\"Saved adminToken\");",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin@123456\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/identity/login",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"identity",
-								"login"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "2.2 Danh sách người dùng (Get Users - Admin)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{adminToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/identity/users?page=1&pageSize=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"identity",
-								"users"
-							],
-							"query": [
-								{
-									"key": "keyword",
-									"value": "",
-									"disabled": true
-								},
-								{
-									"key": "role",
-									"value": "0",
-									"description": "0: Reader, 1: Librarian, 2: Admin",
-									"disabled": true
-								},
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "pageSize",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "2.3 Phân quyền người dùng (Change Role - Admin)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{adminToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"role\": \"Librarian\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/identity/users/2/role",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"identity",
-								"users",
-								"2",
-								"role"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "2.4 Đổi trạng thái tài khoản (Change Status - Admin)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{adminToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"status\": \"Locked\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/identity/users/2/status",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"identity",
-								"users",
-								"2",
-								"status"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		}
-	],
-	"variable": [
-		{
-			"key": "baseUrl",
-			"value": "http://localhost:8081"
-		},
-		{
-			"key": "readerToken",
-			"value": ""
-		},
-		{
-			"key": "refreshToken",
-			"value": ""
-		},
-		{
-			"key": "adminToken",
-			"value": ""
-		}
-	]
+  "info": {
+    "_postman_id": "8a3e7b1a-c102-4c28-98e3-librarysystem",
+    "name": "Library System API (Full Da_ucpmc)",
+    "description": "Bộ Postman API Collection hoàn chỉnh cho toàn bộ các chức năng hiện có của hệ thống Thư viện (Identity, Catalog, Circulation). Tích hợp sẵn Script tự động lưu Token và ID các thực thể để kiểm thử theo luồng.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5217"
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "readerToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "createdUserId",
+      "value": "2"
+    },
+    {
+      "key": "createdAuthorId",
+      "value": "1"
+    },
+    {
+      "key": "createdCategoryId",
+      "value": "1"
+    },
+    {
+      "key": "createdLocationId",
+      "value": "1"
+    },
+    {
+      "key": "createdBookId",
+      "value": "1"
+    },
+    {
+      "key": "createdCopyId",
+      "value": "1"
+    },
+    {
+      "key": "createdLoanSlipId",
+      "value": "1"
+    },
+    {
+      "key": "createdDetailId",
+      "value": "1"
+    },
+    {
+      "key": "createdReservationId",
+      "value": "1"
+    },
+    {
+      "key": "createdRenewalId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Identity - Xác thực & Cá nhân",
+      "description": "Các chức năng Đăng ký, Đăng nhập, Quản lý phiên và Thông tin cá nhân",
+      "item": [
+        {
+          "name": "1.1 Đăng ký Độc giả mới (Register)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('createdUserId', res.data);",
+                  "    console.log('Saved createdUserId: ' + res.data);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"reader01\",\n  \"password\": \"Password@123\",\n  \"fullName\": \"Nguyen Van A\",\n  \"email\": \"reader01@example.com\",\n  \"phoneNumber\": \"0912345678\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "identity",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.2 Đăng nhập Độc giả (Login Reader)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('readerToken', res.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', res.data.refreshToken);",
+                  "    pm.collectionVariables.set('createdUserId', res.data.accountId);",
+                  "    console.log('Saved readerToken & refreshToken for: ' + res.data.username);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"reader01\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "identity",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.3 Đăng nhập Admin mặc định (Login Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('adminToken', res.data.accessToken);",
+                  "    console.log('Saved adminToken');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "identity",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.4 Xem hồ sơ cá nhân (Get My Profile)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{readerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "identity",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.5 Cập nhật hồ sơ cá nhân (Update Profile)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{readerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyen Van A (Cap Nhat)\",\n  \"phoneNumber\": \"0987654321\",\n  \"address\": \"123 \\u0110\\u01b0\\u1eddng S\\u00e1ch, Q.1, TP.HCM\",\n  \"dateOfBirth\": \"1998-05-20\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "identity",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.6 Đổi mật khẩu (Change Password)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{readerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Password@123\",\n  \"newPassword\": \"NewPassword@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "identity",
+                "password"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.7 Làm mới Token (Refresh Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('readerToken', res.data.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', res.data.refreshToken);",
+                  "    console.log('Rotated readerToken & refreshToken');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "identity",
+                "refresh"
+              ]
+            }
+          }
+        },
+        {
+          "name": "1.8 Đăng xuất (Logout)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{readerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "identity",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Identity - Quản trị người dùng (Admin)",
+      "description": "Các chức năng quản lý tài khoản độc giả và nhân viên thư viện",
+      "item": [
+        {
+          "name": "2.1 Danh sách người dùng (Get Users - Admin/Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/users?page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "identity",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "reader",
+                  "disabled": true
+                },
+                {
+                  "key": "role",
+                  "value": "0",
+                  "description": "0: Reader, 1: Librarian, 2: Admin",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2.2 Phân quyền người dùng (Change Role - Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newRole\": \"Librarian\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/users/{{createdUserId}}/role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "identity",
+                "users",
+                "{{createdUserId}}",
+                "role"
+              ]
+            }
+          }
+        },
+        {
+          "name": "2.3 Đổi trạng thái tài khoản (Change Status - Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newStatus\": \"Active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/users/{{createdUserId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "identity",
+                "users",
+                "{{createdUserId}}",
+                "status"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Catalog - Tác giả & Thể loại",
+      "description": "Quản lý dữ liệu tham chiếu danh mục sách",
+      "item": [
+        {
+          "name": "3.1 Thêm tác giả mới (Add Author - Staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('createdAuthorId', res.data);",
+                  "    console.log('Saved createdAuthorId: ' + res.data);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nguy\\u1ec5n Nh\\u1eadt \\u00c1nh\",\n  \"biography\": \"Nh\\u00e0 v\\u0103n Vi\\u1ec7t Nam n\\u1ed5i ti\\u1ebfng v\\u1edbi c\\u00e1c t\\u00e1c ph\\u1ea9m d\\u00e0nh cho l\\u1ee9a tu\\u1ed5i thanh thi\\u1ebfu ni\\u00ean.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/authors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "authors"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.2 Danh sách / Tìm tác giả (Search Authors)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/authors?keyword=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "authors"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.3 Thêm thể loại mới (Add Category - Staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('createdCategoryId', res.data);",
+                  "    console.log('Saved createdCategoryId: ' + res.data);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"V\\u0103n h\\u1ecdc thi\\u1ebfu nhi\",\n  \"description\": \"S\\u00e1ch truy\\u1ec7n thi\\u1ebfu nhi v\\u00e0 v\\u0103n h\\u1ecdc tu\\u1ed5i m\\u1edbi l\\u1edbn\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "categories"
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.4 Danh sách thể loại (List Categories)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "categories"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Catalog - Vị trí kệ sách (Locations)",
+      "description": "Quản lý tọa độ Dãy - Kệ - Tầng và sức chứa của kho sách",
+      "item": [
+        {
+          "name": "4.1 Thêm vị trí kệ mới (Add Location - Staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('createdLocationId', res.data);",
+                  "    console.log('Saved createdLocationId: ' + res.data);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aisle\": \"A\",\n  \"shelf\": \"01\",\n  \"rowLevel\": 1,\n  \"maxCapacity\": 50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/locations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "locations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.2 Cập nhật vị trí kệ (Update Location - Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aisle\": \"A\",\n  \"shelf\": \"01\",\n  \"rowLevel\": 1,\n  \"maxCapacity\": 60,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/locations/{{createdLocationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "locations",
+                "{{createdLocationId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.3 Danh sách vị trí kệ (Get Locations - Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/locations?activeOnly=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "locations"
+              ],
+              "query": [
+                {
+                  "key": "activeOnly",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.4 Chi tiết vị trí kệ (Get Location by ID - Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/locations/{{createdLocationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "locations",
+                "{{createdLocationId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Catalog - Sách & Bản sao (Books & Copies)",
+      "description": "Quản lý đầu sách, tìm kiếm sách và các bản sao vật lý trên kệ",
+      "item": [
+        {
+          "name": "5.1 Thêm đầu sách mới (Add Book - Staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('createdBookId', res.data);",
+                  "    console.log('Saved createdBookId: ' + res.data);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Cho T\\u00f4i Xin M\\u1ed9t V\\u00e9 \\u0110i Tu\\u1ed5i Th\\u01a1\",\n  \"isbn\": \"9786041000123\",\n  \"description\": \"M\\u1ed9t trong nh\\u1eefng t\\u00e1c ph\\u1ea9m xu\\u1ea5t s\\u1eafc nh\\u1ea5t c\\u1ee7a nh\\u00e0 v\\u0103n Nguy\\u1ec5n Nh\\u1eadt \\u00c1nh.\",\n  \"publishedYear\": 2008,\n  \"publisher\": \"NXB Tr\\u1ebb\",\n  \"language\": \"Ti\\u1ebfng Vi\\u1ec7t\",\n  \"pageCount\": 216,\n  \"bookValue\": 85000,\n  \"coverImageUrl\": \"https://example.com/books/tuoitho.jpg\",\n  \"authorIds\": [\n    1\n  ],\n  \"categoryIds\": [\n    1\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "books"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.2 Tìm kiếm / Duyệt danh mục sách (Search Books - Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/books?page=1&pageSize=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "Tuổi Thơ",
+                  "disabled": true
+                },
+                {
+                  "key": "authorId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "categoryId",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "language",
+                  "value": "Tiếng Việt",
+                  "disabled": true
+                },
+                {
+                  "key": "publishedYear",
+                  "value": "2008",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.3 Xem chi tiết sách (Get Book Details - Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/books/{{createdBookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "books",
+                "{{createdBookId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.4 Cập nhật thông tin sách (Update Book - Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Cho T\\u00f4i Xin M\\u1ed9t V\\u00e9 \\u0110i Tu\\u1ed5i Th\\u01a1 (T\\u00e1i B\\u1ea3n)\",\n  \"isbn\": \"9786041000123\",\n  \"description\": \"T\\u00e1c ph\\u1ea9m t\\u00e1i b\\u1ea3n b\\u00eca c\\u1ee9ng \\u0111\\u1eb7c bi\\u1ec7t.\",\n  \"publishedYear\": 2024,\n  \"publisher\": \"NXB Tr\\u1ebb\",\n  \"language\": \"Ti\\u1ebfng Vi\\u1ec7t\",\n  \"pageCount\": 230,\n  \"bookValue\": 95000,\n  \"coverImageUrl\": \"https://example.com/books/tuoitho_new.jpg\",\n  \"authorIds\": [\n    1\n  ],\n  \"categoryIds\": [\n    1\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/books/{{createdBookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "books",
+                "{{createdBookId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.5 Thêm bản sao vật lý (Add Book Copy - Staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('createdCopyId', res.data);",
+                  "    console.log('Saved createdCopyId: ' + res.data);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"barcode\": \"BC-2026-0001\",\n  \"locationId\": 1,\n  \"acquiredDate\": \"2026-11-04\",\n  \"condition\": \"Good\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/books/{{createdBookId}}/copies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "books",
+                "{{createdBookId}}",
+                "copies"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.6 Danh sách bản sao của sách (Get Copies - Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/books/{{createdBookId}}/copies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "books",
+                "{{createdBookId}}",
+                "copies"
+              ]
+            }
+          }
+        },
+        {
+          "name": "5.7 Cập nhật trạng thái bản sao (Update Copy Status - Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newStatus\": \"Available\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/catalog/copies/{{createdCopyId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "catalog",
+                "copies",
+                "{{createdCopyId}}",
+                "status"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Circulation - Mượn & Trả sách (Loans & Returns)",
+      "description": "Nghiệp vụ cốt lõi: tạo phiếu mượn, tra cứu phiếu mượn, trả sách",
+      "item": [
+        {
+          "name": "6.1 Lập phiếu mượn sách (Borrow Books - Staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('createdLoanSlipId', res.data);",
+                  "    console.log('Saved createdLoanSlipId: ' + res.data);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": 1,\n  \"dueDate\": \"2026-11-18\",\n  \"bookCopyIds\": [\n    1\n  ],\n  \"notes\": \"M\\u01b0\\u1ee3n ph\\u1ee5c v\\u1ee5 nghi\\u00ean c\\u1ee9u\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/loans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "loans"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6.2 Danh sách tất cả phiếu mượn (Get All Loans - Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/loans?page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "loans"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "1",
+                  "description": "1: Borrowing, 2: Returned, 3: Overdue",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "6.3 Chi tiết phiếu mượn (Get Loan Detail - Staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data && res.data.details && res.data.details.length > 0) {",
+                  "    pm.collectionVariables.set('createdDetailId', res.data.details[0].id);",
+                  "    console.log('Saved createdDetailId: ' + res.data.details[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/loans/{{createdLoanSlipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "loans",
+                "{{createdLoanSlipId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6.4 Lịch sử mượn của độc giả (Get My Loans - Reader)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{readerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/my-loans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "my-loans"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6.5 Trả sách (Return Books - Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"returnedCopies\": [\n    {\n      \"loanSlipDetailId\": 1,\n      \"notes\": \"S\\u00e1ch nguy\\u00ean v\\u1eb9n, tr\\u1ea3 \\u0111\\u00fang h\\u1ea1n\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/loans/{{createdLoanSlipId}}/return",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "loans",
+                "{{createdLoanSlipId}}",
+                "return"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Circulation - Đặt trước sách (Reservations)",
+      "description": "Nghiệp vụ giữ chỗ sách: đặt trước, danh sách chờ, hủy đặt trước",
+      "item": [
+        {
+          "name": "7.1 Đặt trước đầu sách (Reserve Book - Reader/Staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('createdReservationId', res.data);",
+                  "    console.log('Saved createdReservationId: ' + res.data);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{readerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookId\": 1,\n  \"accountId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "reservations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "7.2 Danh sách đặt trước của tôi (Get My Reservations - Reader)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{readerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/my-reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "my-reservations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "7.3 Tất cả yêu cầu đặt trước (Get All Reservations - Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/reservations?page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "reservations"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "0",
+                  "description": "0: Waiting, 1: Ready, 2: Completed, 3: Cancelled, 4: Expired",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "7.4 Hủy đặt trước sách (Cancel Reservation)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{readerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/reservations/{{createdReservationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "reservations",
+                "{{createdReservationId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Circulation - Gia hạn & Báo sự cố (Renewals & Incidents)",
+      "description": "Yêu cầu gia hạn hạn trả sách và ghi nhận sự cố hư hỏng / mất sách",
+      "item": [
+        {
+          "name": "8.1 Yêu cầu gia hạn mượn sách (Request Renewal - Reader)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.success && res.data) {",
+                  "    pm.collectionVariables.set('createdRenewalId', res.data);",
+                  "    console.log('Saved createdRenewalId: ' + res.data);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{readerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newDueDate\": \"2026-11-25\",\n  \"reason\": \"C\\u1ea7n th\\u00eam th\\u1eddi gian ho\\u00e0n th\\u00e0nh b\\u00e0i ti\\u1ec3u lu\\u1eadn\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/loan-details/{{createdDetailId}}/renewals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "loan-details",
+                "{{createdDetailId}}",
+                "renewals"
+              ]
+            }
+          }
+        },
+        {
+          "name": "8.2 Danh sách yêu cầu gia hạn (Get All Renewals - Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/renewals?page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "renewals"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "0",
+                  "description": "0: Pending, 1: Approved, 2: Rejected, 3: Cancelled",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "8.3 Duyệt / Từ chối gia hạn (Approve/Reject Renewal - Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Approved\",\n  \"reason\": \"Ch\\u1ea5p thu\\u1eadn gia h\\u1ea1n th\\u00eam 7 ng\\u00e0y\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/renewals/{{createdRenewalId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "renewals",
+                "{{createdRenewalId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "8.4 Báo sự cố hỏng / mất sách (Report Incident - Staff)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanSlipDetailId\": 1,\n  \"incidentType\": \"Damaged\",\n  \"severity\": \"Minor\",\n  \"description\": \"R\\u00e1ch b\\u00eca sau v\\u00e0 nh\\u0103n m\\u1ed9t v\\u00e0i trang s\\u00e1ch\",\n  \"compensationAmount\": 20000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/circulation/incidents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "circulation",
+                "incidents"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
 }
