@@ -1,3 +1,4 @@
+using Library.Modules.Core.Catalog.Contracts;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,13 @@ namespace Library.Modules.Core.Circulation.Features.GetMyReservations;
 public sealed class GetMyReservationsHandler : IRequestHandler<GetMyReservationsRequest, ApiResponse<List<MyReservationDto>>>
 {
     private readonly AppDbContext _db;
-    public GetMyReservationsHandler(AppDbContext db) => _db = db;
+    private readonly ISender _sender;
+
+    public GetMyReservationsHandler(AppDbContext db, ISender sender)
+    {
+        _db = db;
+        _sender = sender;
+    }
 
     public async Task<ApiResponse<List<MyReservationDto>>> Handle(GetMyReservationsRequest request, CancellationToken ct)
     {
@@ -18,32 +25,26 @@ public sealed class GetMyReservationsHandler : IRequestHandler<GetMyReservations
             .ToListAsync(ct);
 
         var bookIds = reservations.Select(r => r.BookId).Distinct().ToList();
-        var titles = await _db.Books
-            .AsNoTracking()
-            .Where(b => bookIds.Contains(b.Id))
-            .ToDictionaryAsync(b => b.Id, b => b.Title, ct);
+        var bookDict = await _sender.Send(new GetBookInfosQuery(bookIds), ct);
 
         var copyIds = reservations
             .Where(r => r.BookCopyId.HasValue)
             .Select(r => r.BookCopyId!.Value)
             .Distinct()
             .ToList();
-        var barcodes = await _db.BookCopies
-            .AsNoTracking()
-            .Where(c => copyIds.Contains(c.Id))
-            .ToDictionaryAsync(c => c.Id, c => c.Barcode, ct);
+        var copyDict = await _sender.Send(new GetCopyInfosQuery(copyIds), ct);
 
         var result = reservations.Select(r =>
         {
-            titles.TryGetValue(r.BookId, out var title);
+            bookDict.TryGetValue(r.BookId, out var book);
             string? barcode = null;
-            if (r.BookCopyId.HasValue && barcodes.TryGetValue(r.BookCopyId.Value, out var bc))
-                barcode = bc;
+            if (r.BookCopyId.HasValue && copyDict.TryGetValue(r.BookCopyId.Value, out var copy))
+                barcode = copy.Barcode;
 
             return new MyReservationDto(
                 r.Id,
                 r.BookId,
-                title,
+                book?.Title,
                 r.BookCopyId,
                 barcode,
                 r.Status.ToString(),

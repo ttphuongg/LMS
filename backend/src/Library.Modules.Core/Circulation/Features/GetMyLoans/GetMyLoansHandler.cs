@@ -1,4 +1,5 @@
-﻿using Library.Modules.Core.Circulation.Data;
+using Library.Modules.Core.Catalog.Contracts;
+using Library.Modules.Core.Circulation.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,13 @@ namespace Library.Modules.Core.Circulation.Features.GetMyLoans;
 public sealed class GetMyLoansHandler : IRequestHandler<GetMyLoansRequest, ApiResponse<List<LoanDto>>>
 {
     private readonly AppDbContext _db;
-    public GetMyLoansHandler(AppDbContext db) => _db = db;
+    private readonly ISender _sender;
+
+    public GetMyLoansHandler(AppDbContext db, ISender sender)
+    {
+        _db = db;
+        _sender = sender;
+    }
 
     public async Task<ApiResponse<List<LoanDto>>> Handle(GetMyLoansRequest request, CancellationToken ct)
     {
@@ -21,12 +28,7 @@ public sealed class GetMyLoansHandler : IRequestHandler<GetMyLoansRequest, ApiRe
 
         // Book titles and barcodes for the copies on these loans
         var copyIds = loans.SelectMany(l => l.Details).Select(d => d.BookCopyId).Distinct().ToList();
-        var copies = await _db.BookCopies
-            .AsNoTracking()
-            .Where(c => copyIds.Contains(c.Id))
-            .Select(c => new { c.Id, c.Barcode, c.Book.Title })
-            .ToListAsync(ct);
-        var copyMap = copies.ToDictionary(c => c.Id);
+        var copyMap = await _sender.Send(new GetCopyInfosQuery(copyIds), ct);
 
         var result = loans.Select(l => new LoanDto(
             l.Id,
@@ -37,7 +39,7 @@ public sealed class GetMyLoansHandler : IRequestHandler<GetMyLoansRequest, ApiRe
                 copyMap.TryGetValue(d.BookCopyId, out var copy);
                 return new LoanDetailDto(
                     d.Id, d.BookCopyId, l.DueDate, d.ActualReturnDate, d.Status.ToString(), d.Renewals.Count,
-                    copy?.Title, copy?.Barcode);
+                    copy?.BookTitle, copy?.Barcode);
             }).ToList()
         )).ToList();
 

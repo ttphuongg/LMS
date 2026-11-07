@@ -1,12 +1,12 @@
 using System.Text;
-using BCrypt.Net;
 using FluentValidation;
-using Library.Modules.Core.Identity.Data;
 using Library.Modules.Core.Identity.Services;
 using Library.Modules.Core.Shared;
 using Library.Modules.Core.Identity.Features.Register;
 using Library.Modules.Core.Identity.Features.Login;
 using Library.Modules.Core.Identity.Features.UpdateProfile;
+using Library.Web.Endpoints;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -84,29 +84,8 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
 
-    // Tạo tài khoản Admin mặc định nếu chưa có Admin nào trong DB
-    if (!db.Accounts.Any(a => a.Role == AccountRole.Admin))
-    {
-        var cfg = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-        var adminUsername = cfg["AdminSeed:Username"] ?? "admin";
-        var adminPassword = cfg["AdminSeed:Password"] ?? "Admin@123456";
-        var adminEmail = cfg["AdminSeed:Email"] ?? "admin@library.vn";
-        var adminFullName = cfg["AdminSeed:FullName"] ?? "System Administrator";
-
-        db.Accounts.Add(new Account
-        {
-            Username = adminUsername.Trim().ToLowerInvariant(),
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
-            FullName = adminFullName,
-            Email = adminEmail.Trim().ToLowerInvariant(),
-            Role = AccountRole.Admin,
-            Status = AccountStatus.Active,
-            CreatedAt = DateTime.UtcNow
-        });
-        db.SaveChanges();
-
-        Console.WriteLine($"[Seed] Admin account created: username='{adminUsername}'");
-    }
+    var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+    await sender.Send(new Library.Modules.Core.Identity.Contracts.SeedDefaultAdminCommand());
 }
 
 // Bật Swagger ở mọi môi trường để có thể test khi chạy Docker
@@ -145,18 +124,6 @@ Library.Modules.Core.Catalog.Features.SearchBook.SearchBookEndpoint.Map(app);
 Library.Modules.Core.Catalog.Features.UpdateBook.UpdateBookEndpoint.Map(app);
 
 // ── Circulation ───────────────────────────────────────────────────────────────
-Library.Modules.Core.Circulation.Features.BorrowBook.BorrowBookEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.ReturnBook.ReturnBookEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.ReserveBook.ReserveBookEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.RequestRenewal.RequestRenewalEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.ApproveRenewal.ApproveRenewalEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.GetMyLoans.GetMyLoansEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.CancelReservation.CancelReservationEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.ReportIncident.ReportIncidentEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.GetAllLoans.GetAllLoansEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.GetAllReservations.GetAllReservationsEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.GetLoanDetail.GetLoanDetailEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.GetAllRenewals.GetAllRenewalsEndpoint.Map(app);
-Library.Modules.Core.Circulation.Features.GetMyReservations.GetMyReservationsEndpoint.Map(app);
+app.MapCirculationEndpoints();
 
 app.Run();

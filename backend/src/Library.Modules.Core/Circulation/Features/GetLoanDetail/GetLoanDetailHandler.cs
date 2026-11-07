@@ -1,3 +1,5 @@
+using Library.Modules.Core.Catalog.Contracts;
+using Library.Modules.Core.Identity.Contracts;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +9,13 @@ namespace Library.Modules.Core.Circulation.Features.GetLoanDetail;
 public sealed class GetLoanDetailHandler : IRequestHandler<GetLoanDetailRequest, ApiResponse<LoanSlipDetailResult>>
 {
     private readonly AppDbContext _db;
-    public GetLoanDetailHandler(AppDbContext db) => _db = db;
+    private readonly ISender _sender;
+
+    public GetLoanDetailHandler(AppDbContext db, ISender sender)
+    {
+        _db = db;
+        _sender = sender;
+    }
 
     public async Task<ApiResponse<LoanSlipDetailResult>> Handle(GetLoanDetailRequest request, CancellationToken ct)
     {
@@ -20,20 +28,11 @@ public sealed class GetLoanDetailHandler : IRequestHandler<GetLoanDetailRequest,
             return ApiResponse<LoanSlipDetailResult>.Fail("Phiếu mượn không tồn tại.");
 
         // Reader (Identity context has no navigation from Circulation, so look it up by id)
-        var reader = await _db.Accounts
-            .AsNoTracking()
-            .Where(a => a.Id == slip.AccountId)
-            .Select(a => new { a.FullName, a.Username })
-            .FirstOrDefaultAsync(ct);
+        var reader = await _sender.Send(new GetAccountSummaryQuery(slip.AccountId), ct);
 
         // Book copies + titles (Catalog context)
         var copyIds = slip.Details.Select(d => d.BookCopyId).Distinct().ToList();
-        var copies = await _db.BookCopies
-            .AsNoTracking()
-            .Where(c => copyIds.Contains(c.Id))
-            .Select(c => new { c.Id, c.Barcode, c.BookId, c.Book.Title })
-            .ToListAsync(ct);
-        var copyMap = copies.ToDictionary(c => c.Id);
+        var copyMap = await _sender.Send(new GetCopyInfosQuery(copyIds), ct);
 
         var items = slip.Details
             .OrderBy(d => d.Id)
@@ -45,7 +44,7 @@ public sealed class GetLoanDetailHandler : IRequestHandler<GetLoanDetailRequest,
                     d.BookCopyId,
                     copy?.Barcode,
                     copy?.BookId,
-                    copy?.Title,
+                    copy?.BookTitle,
                     d.Status.ToString(),
                     d.ActualReturnDate,
                     d.Notes,

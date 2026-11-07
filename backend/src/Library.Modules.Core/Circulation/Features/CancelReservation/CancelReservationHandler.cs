@@ -1,5 +1,6 @@
 using FluentValidation;
-using Library.Modules.Core.Catalog.Data;
+using Library.Modules.Core.Catalog.Contracts;
+using Library.Modules.Core.Circulation.Contracts;
 using Library.Modules.Core.Circulation.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
@@ -11,11 +12,13 @@ public sealed class CancelReservationHandler : IRequestHandler<CancelReservation
 {
     private readonly AppDbContext _db;
     private readonly IValidator<CancelReservationRequest> _validator;
+    private readonly ISender _sender;
 
-    public CancelReservationHandler(AppDbContext db, IValidator<CancelReservationRequest> validator)
+    public CancelReservationHandler(AppDbContext db, IValidator<CancelReservationRequest> validator, ISender sender)
     {
         _db = db;
         _validator = validator;
+        _sender = sender;
     }
 
     public async Task<ApiResponse<bool>> Handle(CancelReservationRequest request, CancellationToken ct)
@@ -38,25 +41,11 @@ public sealed class CancelReservationHandler : IRequestHandler<CancelReservation
         // Release or reassign reserved copy
         if (res.BookCopyId.HasValue)
         {
-            var copy = await _db.BookCopies.FindAsync(new object[] { res.BookCopyId.Value }, ct);
-            if (copy != null && copy.Status == CopyStatus.Reserved)
+            var copyDict = await _sender.Send(new GetCopyInfosQuery([res.BookCopyId.Value]), ct);
+            if (copyDict.TryGetValue(res.BookCopyId.Value, out var copy) && copy.Status == CopyStatus.Reserved)
             {
-                var nextWaiting = await _db.Reservations
-                    .Where(r => r.BookId == res.BookId && r.Status == ReservationStatus.Waiting && r.Id != res.Id)
-                    .OrderBy(r => r.ReservedAt)
-                    .FirstOrDefaultAsync(ct);
-
-                if (nextWaiting != null)
-                {
-                    nextWaiting.BookCopyId = copy.Id;
-                    nextWaiting.Status = ReservationStatus.Ready;
-                    nextWaiting.ExpiresAt = DateTime.UtcNow.AddDays(3);
-                }
-                else
-                {
-                    copy.Status = CopyStatus.Available;
-                }
-                copy.UpdatedAt = DateTime.UtcNow;
+                var newStatus = await _sender.Send(new ReleaseCopyCommand(res.BookId, copy.CopyId, res.Id), ct);
+                await _sender.Send(new SetCopyStatusCommand(copy.CopyId, null, newStatus, copy.Condition), ct);
             }
         }
 

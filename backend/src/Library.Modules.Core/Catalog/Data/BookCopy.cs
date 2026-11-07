@@ -1,3 +1,5 @@
+using Library.Modules.Core.Catalog.Contracts;
+
 namespace Library.Modules.Core.Catalog.Data;
 
 /// <summary>
@@ -27,9 +29,3 @@ public class BookCopy
     public int? UpdatedBy { get; set; }
     public byte[] RowVersion { get; set; } = default!;
 }
-
-/// <summary>TOT → Good | HONG_NHE → MinorDamage | HONG_NANG → MajorDamage | MAT → Lost</summary>
-public enum CopyCondition { Good, MinorDamage, MajorDamage, Lost }
-
-/// <summary>Physical availability status of a single copy.</summary>
-public enum CopyStatus { Available, Reserved, Borrowed, Maintenance, Lost, Inactive }

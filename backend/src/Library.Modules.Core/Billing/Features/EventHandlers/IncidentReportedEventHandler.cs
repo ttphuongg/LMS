@@ -1,4 +1,4 @@
-using Library.Modules.Core.Billing.Data;
+using Library.Modules.Core.Billing.Contracts;
 using Library.Modules.Core.Billing.Features.IssueFine;
 using Library.Modules.Core.Shared.Events;
 using MediatR;
@@ -7,11 +7,11 @@ namespace Library.Modules.Core.Billing.Features.EventHandlers;
 
 public class IncidentReportedEventHandler : INotificationHandler<IncidentReportedEvent>
 {
-    private readonly IMediator _mediator;
+    private readonly ISender _sender;
 
-    public IncidentReportedEventHandler(IMediator mediator)
+    public IncidentReportedEventHandler(ISender sender)
     {
-        _mediator = mediator;
+        _sender = sender;
     }
 
     public async Task Handle(IncidentReportedEvent notification, CancellationToken ct)
@@ -19,8 +19,7 @@ public class IncidentReportedEventHandler : INotificationHandler<IncidentReporte
         if (notification.CompensationAmount > 0)
         {
             var issueFineReq = new IssueFineRequest(
-                1, // We actually need AccountId. But IncidentReportedEvent doesn't have it directly.
-                   // Wait, AccountId is needed for IssueFine. Let's assume the handler will fetch it or we can just pass it later.
+                notification.AccountId,
                 notification.LoanSlipDetailId,
                 notification.IncidentId,
                 FineType.Compensation,
@@ -28,9 +27,7 @@ public class IncidentReportedEventHandler : INotificationHandler<IncidentReporte
                 DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7))
             );
 
-            // Since we need AccountId, let's just let IssueFine handle it or we fetch it here.
-            // For now, let's leave AccountId = 1, we will fix this manually next.
-            await _mediator.Send(issueFineReq, ct);
+            await _sender.Send(issueFineReq, ct);
         }
     }
 }

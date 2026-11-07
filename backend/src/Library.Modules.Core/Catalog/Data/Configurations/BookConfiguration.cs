@@ -1,3 +1,4 @@
+using Library.Modules.Core.Catalog.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

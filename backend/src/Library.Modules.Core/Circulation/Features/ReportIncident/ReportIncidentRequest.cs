@@ -1,3 +1,4 @@
+using Library.Modules.Core.Circulation.Contracts;
 using Library.Modules.Core.Circulation.Data;
 using Library.Modules.Core.Shared;
 using MediatR;

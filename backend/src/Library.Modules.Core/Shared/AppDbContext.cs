@@ -43,5 +43,60 @@ public class AppDbContext : DbContext
     public DbSet<SearchHistory> SearchHistories => Set<SearchHistory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-        => modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // Cross-module foreign keys configured centrally in AppDbContext to preserve module boundaries
+        modelBuilder.Entity<Incident>()
+            .HasOne<Account>()
+            .WithMany()
+            .HasForeignKey(i => i.LibrarianId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+
+        modelBuilder.Entity<LoanSlip>()
+            .HasOne<Account>()
+            .WithMany()
+            .HasForeignKey(ls => ls.AccountId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<LoanSlip>()
+            .HasOne<Account>()
+            .WithMany()
+            .HasForeignKey(ls => ls.LibrarianId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+
+        modelBuilder.Entity<LoanSlipDetail>()
+            .HasOne<BookCopy>()
+            .WithMany()
+            .HasForeignKey(d => d.BookCopyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Renewal>()
+            .HasOne<Account>()
+            .WithMany()
+            .HasForeignKey(r => r.LibrarianId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+
+        modelBuilder.Entity<Reservation>()
+            .HasOne<Account>()
+            .WithMany()
+            .HasForeignKey(r => r.AccountId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Reservation>()
+            .HasOne<Book>()
+            .WithMany()
+            .HasForeignKey(r => r.BookId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Reservation>()
+            .HasOne<BookCopy>()
+            .WithMany()
+            .HasForeignKey(r => r.BookCopyId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+    }
 }

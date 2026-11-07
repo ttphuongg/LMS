@@ -1,4 +1,3 @@
-using Library.Modules.Core.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -37,12 +36,5 @@ public class RenewalConfiguration : IEntityTypeConfiguration<Renewal>
             .WithMany(d => d.Renewals)
             .HasForeignKey(r => r.LoanSlipDetailId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        // Cross-context FK → Identity.Account (librarian)
-        builder.HasOne<Account>()
-            .WithMany()
-            .HasForeignKey(r => r.LibrarianId)
-            .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired(false);
     }
 }

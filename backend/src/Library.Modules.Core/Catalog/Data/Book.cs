@@ -1,3 +1,5 @@
+using Library.Modules.Core.Catalog.Contracts;
+
 namespace Library.Modules.Core.Catalog.Data;
 
 public class Book
@@ -25,6 +27,3 @@ public class Book
     public ICollection<BookCategory> BookCategories { get; set; } = [];
     public ICollection<BookCopy> Copies { get; set; } = [];
 }
-
-/// <summary>ACTIVE → Active | INACTIVE → Inactive</summary>
-public enum BookStatus { Active, Inactive }
