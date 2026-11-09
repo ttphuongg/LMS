@@ -28,7 +28,15 @@ public sealed class SetCopyStatusHandler : IRequestHandler<SetCopyStatusCommand,
 
         copy.UpdatedAt = DateTime.UtcNow;
 
-        await _db.SaveChangesAsync(ct);
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return false;
+        }
+
         return true;
     }
 }

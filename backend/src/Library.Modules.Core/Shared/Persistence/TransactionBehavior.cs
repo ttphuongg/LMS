@@ -42,6 +42,17 @@ public sealed class TransactionBehavior<TRequest, TResponse> : IPipelineBehavior
         }
         finally
         {
+            foreach (var ctx in _contexts)
+            {
+                try
+                {
+                    await ctx.Database.UseTransactionAsync(null, CancellationToken.None);
+                }
+                catch
+                {
+                    // Ignore context disposal or transaction detach issues in cleanup
+                }
+            }
             _uow.Current = null;
         }
     }
