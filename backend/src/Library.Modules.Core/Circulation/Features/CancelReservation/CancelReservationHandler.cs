@@ -10,11 +10,11 @@ namespace Library.Modules.Core.Circulation.Features.CancelReservation;
 
 public sealed class CancelReservationHandler : IRequestHandler<CancelReservationRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly IValidator<CancelReservationRequest> _validator;
     private readonly ISender _sender;
 
-    public CancelReservationHandler(AppDbContext db, IValidator<CancelReservationRequest> validator, ISender sender)
+    public CancelReservationHandler(CirculationDbContext db, IValidator<CancelReservationRequest> validator, ISender sender)
     {
         _db = db;
         _validator = validator;

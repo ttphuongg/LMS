@@ -1,4 +1,5 @@
 using FluentValidation;
+using Library.Modules.Core.Identity.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,10 +8,10 @@ namespace Library.Modules.Core.Identity.Features.UpdateProfile;
 
 public sealed class UpdateProfileHandler : IRequestHandler<UpdateProfileRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly IdentityDbContext _db;
     private readonly IValidator<UpdateProfileRequest> _validator;
 
-    public UpdateProfileHandler(AppDbContext db, IValidator<UpdateProfileRequest> validator)
+    public UpdateProfileHandler(IdentityDbContext db, IValidator<UpdateProfileRequest> validator)
     {
         _db = db;
         _validator = validator;

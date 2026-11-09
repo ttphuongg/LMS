@@ -9,10 +9,10 @@ namespace Library.Modules.Core.Catalog.Features.AddBook;
 
 public sealed class AddBookHandler : IRequestHandler<AddBookRequest, ApiResponse<int>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
     private readonly IValidator<AddBookRequest> _validator;
 
-    public AddBookHandler(AppDbContext db, IValidator<AddBookRequest> validator)
+    public AddBookHandler(CatalogDbContext db, IValidator<AddBookRequest> validator)
     {
         _db = db;
         _validator = validator;

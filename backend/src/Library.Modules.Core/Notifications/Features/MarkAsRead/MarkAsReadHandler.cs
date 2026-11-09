@@ -7,10 +7,10 @@ namespace Library.Modules.Core.Notifications.Features.MarkAsRead;
 
 public sealed class MarkAsReadHandler : IRequestHandler<MarkAsReadRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly NotificationsDbContext _db;
     private readonly IValidator<MarkAsReadRequest> _validator;
 
-    public MarkAsReadHandler(AppDbContext db, IValidator<MarkAsReadRequest> validator)
+    public MarkAsReadHandler(NotificationsDbContext db, IValidator<MarkAsReadRequest> validator)
     {
         _db = db;
         _validator = validator;

@@ -8,10 +8,10 @@ namespace Library.Modules.Core.Circulation.Features.GetMyLoans;
 
 public sealed class GetMyLoansHandler : IRequestHandler<GetMyLoansRequest, ApiResponse<List<LoanDto>>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly ISender _sender;
 
-    public GetMyLoansHandler(AppDbContext db, ISender sender)
+    public GetMyLoansHandler(CirculationDbContext db, ISender sender)
     {
         _db = db;
         _sender = sender;

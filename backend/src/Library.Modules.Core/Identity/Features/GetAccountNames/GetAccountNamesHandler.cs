@@ -1,5 +1,5 @@
 using Library.Modules.Core.Identity.Contracts;
-using Library.Modules.Core.Shared;
+using Library.Modules.Core.Identity.Data;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,9 +7,9 @@ namespace Library.Modules.Core.Identity.Features.GetAccountNames;
 
 public sealed class GetAccountNamesHandler : IRequestHandler<GetAccountNamesQuery, IReadOnlyDictionary<int, string>>
 {
-    private readonly AppDbContext _db;
+    private readonly IdentityDbContext _db;
 
-    public GetAccountNamesHandler(AppDbContext db) => _db = db;
+    public GetAccountNamesHandler(IdentityDbContext db) => _db = db;
 
     public async Task<IReadOnlyDictionary<int, string>> Handle(GetAccountNamesQuery request, CancellationToken ct)
     {

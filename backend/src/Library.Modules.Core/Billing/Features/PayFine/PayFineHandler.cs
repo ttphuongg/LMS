@@ -8,10 +8,10 @@ namespace Library.Modules.Core.Billing.Features.PayFine;
 
 public sealed class PayFineHandler : IRequestHandler<PayFineRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly BillingDbContext _db;
     private readonly IValidator<PayFineRequest> _validator;
 
-    public PayFineHandler(AppDbContext db, IValidator<PayFineRequest> validator)
+    public PayFineHandler(BillingDbContext db, IValidator<PayFineRequest> validator)
     {
         _db = db;
         _validator = validator;
@@ -26,13 +26,13 @@ public sealed class PayFineHandler : IRequestHandler<PayFineRequest, ApiResponse
             .Include(f => f.Payments)
             .FirstOrDefaultAsync(f => f.Id == request.FineId, ct);
 
-        if (fine == null) return ApiResponse<bool>.Fail("Phi?u ph?t không t?n t?i.");
+        if (fine == null) return ApiResponse<bool>.Fail("Phi?u ph?t khï¿½ng t?n t?i.");
         if (fine.Status == FineStatus.Paid || fine.Status == FineStatus.Cancelled)
-            return ApiResponse<bool>.Fail("Phi?u ph?t ð? ðý?c thanh toán ho?c h?y.");
+            return ApiResponse<bool>.Fail("Phi?u ph?t ï¿½? ï¿½ï¿½?c thanh toï¿½n ho?c h?y.");
 
         var totalPaid = fine.Payments.Sum(p => p.Amount) + request.Amount;
         if (totalPaid > fine.Amount)
-            return ApiResponse<bool>.Fail("S? ti?n thanh toán vý?t quá s? ti?n ph?t.");
+            return ApiResponse<bool>.Fail("S? ti?n thanh toï¿½n vï¿½?t quï¿½ s? ti?n ph?t.");
 
         var payment = new FinePayment
         {

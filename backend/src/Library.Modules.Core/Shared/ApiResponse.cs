@@ -1,9 +1,11 @@
+using Library.Modules.Core.Shared.Persistence;
+
 namespace Library.Modules.Core.Shared;
 
 /// <summary>
 /// Generic wrapper for all API responses, ensuring a consistent response envelope.
 /// </summary>
-public sealed class ApiResponse<T>
+public sealed class ApiResponse<T> : IApiResult
 {
     public bool Success { get; init; }
     public T? Data { get; init; }
@@ -21,7 +23,7 @@ public sealed class ApiResponse<T>
 /// <summary>
 /// Non-generic variant for operations that return no data (e.g. delete, mark-as-read).
 /// </summary>
-public sealed class ApiResponse
+public sealed class ApiResponse : IApiResult
 {
     public bool Success { get; init; }
     public string? Error { get; init; }

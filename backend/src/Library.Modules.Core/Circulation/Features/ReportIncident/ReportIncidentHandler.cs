@@ -9,11 +9,11 @@ namespace Library.Modules.Core.Circulation.Features.ReportIncident;
 
 public sealed class ReportIncidentHandler : IRequestHandler<ReportIncidentRequest, ApiResponse<long>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly IValidator<ReportIncidentRequest> _validator;
     private readonly IMediator _mediator;
 
-    public ReportIncidentHandler(AppDbContext db, IValidator<ReportIncidentRequest> validator, IMediator mediator)
+    public ReportIncidentHandler(CirculationDbContext db, IValidator<ReportIncidentRequest> validator, IMediator mediator)
     {
         _db = db;
         _validator = validator;

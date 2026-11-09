@@ -1,4 +1,5 @@
 using Library.Modules.Core.Catalog.Contracts;
+using Library.Modules.Core.Circulation.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,10 +8,10 @@ namespace Library.Modules.Core.Circulation.Features.GetMyReservations;
 
 public sealed class GetMyReservationsHandler : IRequestHandler<GetMyReservationsRequest, ApiResponse<List<MyReservationDto>>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly ISender _sender;
 
-    public GetMyReservationsHandler(AppDbContext db, ISender sender)
+    public GetMyReservationsHandler(CirculationDbContext db, ISender sender)
     {
         _db = db;
         _sender = sender;

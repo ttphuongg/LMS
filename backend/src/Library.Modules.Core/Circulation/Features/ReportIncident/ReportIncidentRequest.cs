@@ -1,6 +1,7 @@
 using Library.Modules.Core.Circulation.Contracts;
 using Library.Modules.Core.Circulation.Data;
 using Library.Modules.Core.Shared;
+using Library.Modules.Core.Shared.Persistence;
 using MediatR;
 
 namespace Library.Modules.Core.Circulation.Features.ReportIncident;
@@ -12,4 +13,4 @@ public record ReportIncidentRequest(
     IncidentSeverity Severity,
     string? Description,
     decimal CompensationAmount
-) : IRequest<ApiResponse<long>>;
+) : IRequest<ApiResponse<long>>, ITransactionalCommand;

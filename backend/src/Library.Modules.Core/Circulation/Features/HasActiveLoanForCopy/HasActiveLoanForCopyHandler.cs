@@ -1,6 +1,5 @@
 using Library.Modules.Core.Circulation.Contracts;
 using Library.Modules.Core.Circulation.Data;
-using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,9 +7,9 @@ namespace Library.Modules.Core.Circulation.Features.HasActiveLoanForCopy;
 
 public sealed class HasActiveLoanForCopyHandler : IRequestHandler<HasActiveLoanForCopyQuery, bool>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
 
-    public HasActiveLoanForCopyHandler(AppDbContext db) => _db = db;
+    public HasActiveLoanForCopyHandler(CirculationDbContext db) => _db = db;
 
     public async Task<bool> Handle(HasActiveLoanForCopyQuery request, CancellationToken ct)
     {

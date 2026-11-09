@@ -1,10 +1,17 @@
 using System.Text;
 using FluentValidation;
-using Library.Modules.Core.Identity.Services;
-using Library.Modules.Core.Shared;
-using Library.Modules.Core.Identity.Features.Register;
+using Library.Modules.Core.Billing.Data;
+using Library.Modules.Core.Catalog.Data;
+using Library.Modules.Core.Circulation.Data;
+using Library.Modules.Core.Identity.Data;
 using Library.Modules.Core.Identity.Features.Login;
+using Library.Modules.Core.Identity.Features.Register;
 using Library.Modules.Core.Identity.Features.UpdateProfile;
+using Library.Modules.Core.Identity.Services;
+using Library.Modules.Core.Notifications.Data;
+using Library.Modules.Core.Search.Data;
+using Library.Modules.Core.Shared;
+using Library.Modules.Core.Shared.Persistence;
 using Library.Web.Endpoints;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,15 +21,25 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ──────────────────────────────────────────────────────────────────
-builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+var connectionString = builder.Configuration.GetConnectionString("Default")
+    ?? throw new InvalidOperationException("Connection string 'Default' not found.");
+builder.Services.AddSharedPersistence(connectionString);
+builder.Services.AddModuleDbContext<IdentityDbContext>();
+builder.Services.AddModuleDbContext<CatalogDbContext>();
+builder.Services.AddModuleDbContext<CirculationDbContext>();
+builder.Services.AddModuleDbContext<BillingDbContext>();
+builder.Services.AddModuleDbContext<NotificationsDbContext>();
+builder.Services.AddModuleDbContext<SearchDbContext>();
 
 // ── MediatR — scan toàn bộ assembly của Library.Modules.Core ──────────────────
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(AppDbContext).Assembly));
+{
+    cfg.RegisterServicesFromAssembly(typeof(UnitOfWork).Assembly);
+    cfg.AddOpenBehavior(typeof(TransactionBehavior<,>));
+});
 
 // ── FluentValidation — auto-register tất cả validators từ Core assembly ───────
-builder.Services.AddValidatorsFromAssembly(typeof(AppDbContext).Assembly);
+builder.Services.AddValidatorsFromAssembly(typeof(UnitOfWork).Assembly);
 
 // ── Identity Services ─────────────────────────────────────────────────────────
 builder.Services.AddSingleton<JwtTokenService>();
@@ -81,8 +98,12 @@ var app = builder.Build();
 // ── Auto-migrate + Admin Seeder ───────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    scope.ServiceProvider.GetRequiredService<IdentityDbContext>().Database.Migrate();
+    scope.ServiceProvider.GetRequiredService<CatalogDbContext>().Database.Migrate();
+    scope.ServiceProvider.GetRequiredService<CirculationDbContext>().Database.Migrate();
+    scope.ServiceProvider.GetRequiredService<BillingDbContext>().Database.Migrate();
+    scope.ServiceProvider.GetRequiredService<NotificationsDbContext>().Database.Migrate();
+    scope.ServiceProvider.GetRequiredService<SearchDbContext>().Database.Migrate();
 
     var sender = scope.ServiceProvider.GetRequiredService<ISender>();
     await sender.Send(new Library.Modules.Core.Identity.Contracts.SeedDefaultAdminCommand());

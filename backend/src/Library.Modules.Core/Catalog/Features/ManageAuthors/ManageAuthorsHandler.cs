@@ -10,10 +10,10 @@ public sealed class ManageAuthorsHandler :
     IRequestHandler<AddAuthorRequest, ApiResponse<int>>,
     IRequestHandler<GetAuthorsRequest, ApiResponse<List<AuthorDto>>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
     private readonly IValidator<AddAuthorRequest> _addValidator;
 
-    public ManageAuthorsHandler(AppDbContext db, IValidator<AddAuthorRequest> addValidator)
+    public ManageAuthorsHandler(CatalogDbContext db, IValidator<AddAuthorRequest> addValidator)
     {
         _db = db;
         _addValidator = addValidator;

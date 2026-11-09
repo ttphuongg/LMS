@@ -1,5 +1,5 @@
 using Library.Modules.Core.Catalog.Contracts;
-using Library.Modules.Core.Shared;
+using Library.Modules.Core.Catalog.Data;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,9 +7,9 @@ namespace Library.Modules.Core.Catalog.Features.GetBookInfos;
 
 public sealed class GetBookInfosHandler : IRequestHandler<GetBookInfosQuery, IReadOnlyDictionary<int, BookInfo>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
 
-    public GetBookInfosHandler(AppDbContext db) => _db = db;
+    public GetBookInfosHandler(CatalogDbContext db) => _db = db;
 
     public async Task<IReadOnlyDictionary<int, BookInfo>> Handle(GetBookInfosQuery request, CancellationToken ct)
     {

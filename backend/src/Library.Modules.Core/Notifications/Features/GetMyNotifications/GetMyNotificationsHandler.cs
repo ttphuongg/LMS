@@ -7,8 +7,8 @@ namespace Library.Modules.Core.Notifications.Features.GetMyNotifications;
 
 public sealed class GetMyNotificationsHandler : IRequestHandler<GetMyNotificationsRequest, ApiResponse<List<NotificationDto>>>
 {
-    private readonly AppDbContext _db;
-    public GetMyNotificationsHandler(AppDbContext db) => _db = db;
+    private readonly NotificationsDbContext _db;
+    public GetMyNotificationsHandler(NotificationsDbContext db) => _db = db;
 
     public async Task<ApiResponse<List<NotificationDto>>> Handle(GetMyNotificationsRequest request, CancellationToken ct)
     {

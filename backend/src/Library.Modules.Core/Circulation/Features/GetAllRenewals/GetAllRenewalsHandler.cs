@@ -9,10 +9,10 @@ namespace Library.Modules.Core.Circulation.Features.GetAllRenewals;
 
 public sealed class GetAllRenewalsHandler : IRequestHandler<GetAllRenewalsRequest, ApiResponse<GetAllRenewalsResult>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly ISender _sender;
 
-    public GetAllRenewalsHandler(AppDbContext db, ISender sender)
+    public GetAllRenewalsHandler(CirculationDbContext db, ISender sender)
     {
         _db = db;
         _sender = sender;

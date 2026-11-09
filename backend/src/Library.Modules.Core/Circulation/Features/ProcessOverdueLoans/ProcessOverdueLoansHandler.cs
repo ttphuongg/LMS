@@ -10,11 +10,11 @@ namespace Library.Modules.Core.Circulation.Features.ProcessOverdueLoans;
 
 public sealed class ProcessOverdueLoansHandler : IRequestHandler<ProcessOverdueLoansCommand, int>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly IPublisher _publisher;
     private readonly ILogger<ProcessOverdueLoansHandler> _logger;
 
-    public ProcessOverdueLoansHandler(AppDbContext db, IPublisher publisher, ILogger<ProcessOverdueLoansHandler> logger)
+    public ProcessOverdueLoansHandler(CirculationDbContext db, IPublisher publisher, ILogger<ProcessOverdueLoansHandler> logger)
     {
         _db = db;
         _publisher = publisher;

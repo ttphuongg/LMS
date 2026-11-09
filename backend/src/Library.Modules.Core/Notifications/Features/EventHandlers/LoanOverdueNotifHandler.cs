@@ -1,5 +1,4 @@
-﻿using Library.Modules.Core.Notifications.Data;
-using Library.Modules.Core.Shared;
+using Library.Modules.Core.Notifications.Data;
 using Library.Modules.Core.Shared.Events;
 using MediatR;
 
@@ -7,9 +6,9 @@ namespace Library.Modules.Core.Notifications.Features.EventHandlers;
 
 public class LoanOverdueNotifHandler : INotificationHandler<LoanOverdueEvent>
 {
-    private readonly AppDbContext _db;
+    private readonly NotificationsDbContext _db;
 
-    public LoanOverdueNotifHandler(AppDbContext db) => _db = db;
+    public LoanOverdueNotifHandler(NotificationsDbContext db) => _db = db;
 
     public async Task Handle(LoanOverdueEvent notification, CancellationToken ct)
     {

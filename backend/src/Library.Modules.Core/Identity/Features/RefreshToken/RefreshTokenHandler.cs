@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Library.Modules.Core.Identity.Data;
 using Library.Modules.Core.Identity.Features.Login;
 using Library.Modules.Core.Identity.Services;
@@ -10,11 +10,11 @@ namespace Library.Modules.Core.Identity.Features.RefreshToken;
 
 public sealed class RefreshTokenHandler : IRequestHandler<RefreshTokenRequest, ApiResponse<LoginResponse>>
 {
-    private readonly AppDbContext _db;
+    private readonly IdentityDbContext _db;
     private readonly IValidator<RefreshTokenRequest> _validator;
     private readonly JwtTokenService _jwt;
 
-    public RefreshTokenHandler(AppDbContext db, IValidator<RefreshTokenRequest> validator, JwtTokenService jwt)
+    public RefreshTokenHandler(IdentityDbContext db, IValidator<RefreshTokenRequest> validator, JwtTokenService jwt)
     {
         _db = db;
         _validator = validator;

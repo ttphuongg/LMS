@@ -8,10 +8,10 @@ namespace Library.Modules.Core.Catalog.Features.UpdateBook;
 
 public sealed class UpdateBookHandler : IRequestHandler<UpdateBookRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
     private readonly IValidator<UpdateBookRequest> _validator;
 
-    public UpdateBookHandler(AppDbContext db, IValidator<UpdateBookRequest> validator)
+    public UpdateBookHandler(CatalogDbContext db, IValidator<UpdateBookRequest> validator)
     {
         _db = db;
         _validator = validator;

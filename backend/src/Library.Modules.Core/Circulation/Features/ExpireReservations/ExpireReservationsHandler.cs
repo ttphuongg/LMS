@@ -9,10 +9,10 @@ namespace Library.Modules.Core.Circulation.Features.ExpireReservations;
 
 public sealed class ExpireReservationsHandler : IRequestHandler<ExpireReservationsCommand, int>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly ISender _sender;
 
-    public ExpireReservationsHandler(AppDbContext db, ISender sender)
+    public ExpireReservationsHandler(CirculationDbContext db, ISender sender)
     {
         _db = db;
         _sender = sender;

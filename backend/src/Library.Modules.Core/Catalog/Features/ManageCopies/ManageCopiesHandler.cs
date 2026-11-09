@@ -11,10 +11,10 @@ namespace Library.Modules.Core.Catalog.Features.ManageCopies;
 /// <summary>Handles adding a new physical copy (BookCopy) to an existing book.</summary>
 public sealed class ManageCopiesHandler : IRequestHandler<AddCopyRequest, ApiResponse<int>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
     private readonly IValidator<AddCopyRequest> _validator;
 
-    public ManageCopiesHandler(AppDbContext db, IValidator<AddCopyRequest> validator)
+    public ManageCopiesHandler(CatalogDbContext db, IValidator<AddCopyRequest> validator)
     {
         _db = db;
         _validator = validator;
@@ -74,8 +74,8 @@ public sealed class ManageCopiesHandler : IRequestHandler<AddCopyRequest, ApiRes
 /// <summary>Handles retrieving all physical copies of a given book.</summary>
 public sealed class GetCopiesHandler : IRequestHandler<GetCopiesRequest, ApiResponse<List<CopyDetail>>>
 {
-    private readonly AppDbContext _db;
-    public GetCopiesHandler(AppDbContext db) => _db = db;
+    private readonly CatalogDbContext _db;
+    public GetCopiesHandler(CatalogDbContext db) => _db = db;
 
     public async Task<ApiResponse<List<CopyDetail>>> Handle(GetCopiesRequest request, CancellationToken ct)
     {
@@ -107,10 +107,10 @@ public sealed class GetCopiesHandler : IRequestHandler<GetCopiesRequest, ApiResp
 /// <summary>Handles updating the status of a specific book copy.</summary>
 public sealed class UpdateCopyStatusHandler : IRequestHandler<UpdateCopyStatusRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
     private readonly ISender _sender;
 
-    public UpdateCopyStatusHandler(AppDbContext db, ISender sender)
+    public UpdateCopyStatusHandler(CatalogDbContext db, ISender sender)
     {
         _db = db;
         _sender = sender;

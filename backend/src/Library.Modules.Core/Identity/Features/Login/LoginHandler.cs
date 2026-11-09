@@ -9,11 +9,11 @@ namespace Library.Modules.Core.Identity.Features.Login;
 
 public sealed class LoginHandler : IRequestHandler<LoginRequest, ApiResponse<LoginResponse>>
 {
-    private readonly AppDbContext _db;
+    private readonly IdentityDbContext _db;
     private readonly IValidator<LoginRequest> _validator;
     private readonly JwtTokenService _jwt;
 
-    public LoginHandler(AppDbContext db, IValidator<LoginRequest> validator, JwtTokenService jwt)
+    public LoginHandler(IdentityDbContext db, IValidator<LoginRequest> validator, JwtTokenService jwt)
     {
         _db = db;
         _validator = validator;

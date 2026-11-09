@@ -1,4 +1,3 @@
-using Library.Modules.Core.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -31,12 +30,5 @@ public class FinePaymentConfiguration : IEntityTypeConfiguration<FinePayment>
             .WithMany(f => f.Payments)
             .HasForeignKey(p => p.FineId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // Cross-context FK → Identity.Account (librarian)
-        builder.HasOne<Account>()
-            .WithMany()
-            .HasForeignKey(p => p.LibrarianId)
-            .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired(false);
     }
 }

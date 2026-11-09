@@ -1,5 +1,5 @@
 using Library.Modules.Core.Catalog.Contracts;
-using Library.Modules.Core.Shared;
+using Library.Modules.Core.Catalog.Data;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,9 +7,9 @@ namespace Library.Modules.Core.Catalog.Features.FindAvailableCopy;
 
 public sealed class FindAvailableCopyHandler : IRequestHandler<FindAvailableCopyQuery, CopyInfo?>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
 
-    public FindAvailableCopyHandler(AppDbContext db) => _db = db;
+    public FindAvailableCopyHandler(CatalogDbContext db) => _db = db;
 
     public async Task<CopyInfo?> Handle(FindAvailableCopyQuery request, CancellationToken ct)
     {

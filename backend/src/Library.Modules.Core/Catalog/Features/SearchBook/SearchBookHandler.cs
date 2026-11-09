@@ -9,10 +9,10 @@ namespace Library.Modules.Core.Catalog.Features.SearchBook;
 
 public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiResponse<SearchBookResult>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
     private readonly IValidator<SearchBookRequest> _validator;
 
-    public SearchBookHandler(AppDbContext db, IValidator<SearchBookRequest> validator)
+    public SearchBookHandler(CatalogDbContext db, IValidator<SearchBookRequest> validator)
     {
         _db = db;
         _validator = validator;

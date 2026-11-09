@@ -1,5 +1,4 @@
-﻿using Library.Modules.Core.Notifications.Data;
-using Library.Modules.Core.Shared;
+using Library.Modules.Core.Notifications.Data;
 using Library.Modules.Core.Shared.Events;
 using MediatR;
 
@@ -7,9 +6,9 @@ namespace Library.Modules.Core.Notifications.Features.EventHandlers;
 
 public class FineIssuedEventHandler : INotificationHandler<FineIssuedEvent>
 {
-    private readonly AppDbContext _db;
+    private readonly NotificationsDbContext _db;
 
-    public FineIssuedEventHandler(AppDbContext db)
+    public FineIssuedEventHandler(NotificationsDbContext db)
     {
         _db = db;
     }

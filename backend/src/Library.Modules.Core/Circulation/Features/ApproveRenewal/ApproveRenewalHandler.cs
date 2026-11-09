@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Library.Modules.Core.Circulation.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
@@ -8,10 +8,10 @@ namespace Library.Modules.Core.Circulation.Features.ApproveRenewal;
 
 public sealed class ApproveRenewalHandler : IRequestHandler<ApproveRenewalRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly IValidator<ApproveRenewalRequest> _validator;
 
-    public ApproveRenewalHandler(AppDbContext db, IValidator<ApproveRenewalRequest> validator)
+    public ApproveRenewalHandler(CirculationDbContext db, IValidator<ApproveRenewalRequest> validator)
     {
         _db = db;
         _validator = validator;

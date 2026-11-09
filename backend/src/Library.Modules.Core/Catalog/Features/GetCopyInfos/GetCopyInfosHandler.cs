@@ -1,5 +1,5 @@
 using Library.Modules.Core.Catalog.Contracts;
-using Library.Modules.Core.Shared;
+using Library.Modules.Core.Catalog.Data;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,9 +7,9 @@ namespace Library.Modules.Core.Catalog.Features.GetCopyInfos;
 
 public sealed class GetCopyInfosHandler : IRequestHandler<GetCopyInfosQuery, IReadOnlyDictionary<int, CopyInfo>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
 
-    public GetCopyInfosHandler(AppDbContext db) => _db = db;
+    public GetCopyInfosHandler(CatalogDbContext db) => _db = db;
 
     public async Task<IReadOnlyDictionary<int, CopyInfo>> Handle(GetCopyInfosQuery request, CancellationToken ct)
     {

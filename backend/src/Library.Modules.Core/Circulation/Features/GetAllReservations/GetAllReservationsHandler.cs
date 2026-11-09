@@ -9,10 +9,10 @@ namespace Library.Modules.Core.Circulation.Features.GetAllReservations;
 
 public sealed class GetAllReservationsHandler : IRequestHandler<GetAllReservationsRequest, ApiResponse<GetAllReservationsResult>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly ISender _sender;
 
-    public GetAllReservationsHandler(AppDbContext db, ISender sender)
+    public GetAllReservationsHandler(CirculationDbContext db, ISender sender)
     {
         _db = db;
         _sender = sender;

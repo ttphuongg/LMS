@@ -11,11 +11,11 @@ public sealed class ManageUsersHandler :
     IRequestHandler<ChangeRoleRequest, ApiResponse<bool>>,
     IRequestHandler<ChangeStatusRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly IdentityDbContext _db;
     private readonly IValidator<ChangeRoleRequest> _roleValidator;
     private readonly IValidator<ChangeStatusRequest> _statusValidator;
 
-    public ManageUsersHandler(AppDbContext db, IValidator<ChangeRoleRequest> roleValidator, IValidator<ChangeStatusRequest> statusValidator)
+    public ManageUsersHandler(IdentityDbContext db, IValidator<ChangeRoleRequest> roleValidator, IValidator<ChangeStatusRequest> statusValidator)
     {
         _db = db;
         _roleValidator = roleValidator;

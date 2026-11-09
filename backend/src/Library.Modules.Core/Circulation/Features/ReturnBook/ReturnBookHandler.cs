@@ -10,11 +10,11 @@ namespace Library.Modules.Core.Circulation.Features.ReturnBook;
 
 public sealed class ReturnBookHandler : IRequestHandler<ReturnBookRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly IValidator<ReturnBookRequest> _validator;
     private readonly ISender _sender;
 
-    public ReturnBookHandler(AppDbContext db, IValidator<ReturnBookRequest> validator, ISender sender)
+    public ReturnBookHandler(CirculationDbContext db, IValidator<ReturnBookRequest> validator, ISender sender)
     {
         _db = db;
         _validator = validator;

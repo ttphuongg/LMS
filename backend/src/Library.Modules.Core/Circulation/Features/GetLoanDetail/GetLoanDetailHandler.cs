@@ -1,4 +1,5 @@
 using Library.Modules.Core.Catalog.Contracts;
+using Library.Modules.Core.Circulation.Data;
 using Library.Modules.Core.Identity.Contracts;
 using Library.Modules.Core.Shared;
 using MediatR;
@@ -8,10 +9,10 @@ namespace Library.Modules.Core.Circulation.Features.GetLoanDetail;
 
 public sealed class GetLoanDetailHandler : IRequestHandler<GetLoanDetailRequest, ApiResponse<LoanSlipDetailResult>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly ISender _sender;
 
-    public GetLoanDetailHandler(AppDbContext db, ISender sender)
+    public GetLoanDetailHandler(CirculationDbContext db, ISender sender)
     {
         _db = db;
         _sender = sender;

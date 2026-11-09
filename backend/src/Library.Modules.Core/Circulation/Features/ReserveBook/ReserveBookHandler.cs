@@ -10,11 +10,11 @@ namespace Library.Modules.Core.Circulation.Features.ReserveBook;
 
 public sealed class ReserveBookHandler : IRequestHandler<ReserveBookRequest, ApiResponse<long>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly IValidator<ReserveBookRequest> _validator;
     private readonly ISender _sender;
 
-    public ReserveBookHandler(AppDbContext db, IValidator<ReserveBookRequest> validator, ISender sender)
+    public ReserveBookHandler(CirculationDbContext db, IValidator<ReserveBookRequest> validator, ISender sender)
     {
         _db = db;
         _validator = validator;

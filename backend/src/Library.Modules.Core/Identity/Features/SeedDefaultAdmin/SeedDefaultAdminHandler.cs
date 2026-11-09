@@ -1,6 +1,5 @@
 using Library.Modules.Core.Identity.Contracts;
 using Library.Modules.Core.Identity.Data;
-using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -9,10 +8,10 @@ namespace Library.Modules.Core.Identity.Features.SeedDefaultAdmin;
 
 public sealed class SeedDefaultAdminHandler : IRequestHandler<SeedDefaultAdminCommand, bool>
 {
-    private readonly AppDbContext _db;
+    private readonly IdentityDbContext _db;
     private readonly IConfiguration _cfg;
 
-    public SeedDefaultAdminHandler(AppDbContext db, IConfiguration cfg)
+    public SeedDefaultAdminHandler(IdentityDbContext db, IConfiguration cfg)
     {
         _db = db;
         _cfg = cfg;

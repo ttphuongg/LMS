@@ -10,10 +10,10 @@ public sealed class ManageCategoriesHandler :
     IRequestHandler<AddCategoryRequest, ApiResponse<int>>,
     IRequestHandler<GetCategoriesRequest, ApiResponse<List<CategoryDto>>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
     private readonly IValidator<AddCategoryRequest> _addValidator;
 
-    public ManageCategoriesHandler(AppDbContext db, IValidator<AddCategoryRequest> addValidator)
+    public ManageCategoriesHandler(CatalogDbContext db, IValidator<AddCategoryRequest> addValidator)
     {
         _db = db;
         _addValidator = addValidator;
