@@ -22,7 +22,7 @@ public sealed class PayFineHandler : IRequestHandler<PayFineRequest, ApiResponse
         var val = await _validator.ValidateAsync(request, ct);
         if (!val.IsValid) return ApiResponse<bool>.Fail(string.Join("; ", val.Errors.Select(e => e.ErrorMessage)));
 
-        var fine = await _db.Set<Fine>()
+        var fine = await _db.Fines
             .Include(f => f.Payments)
             .FirstOrDefaultAsync(f => f.Id == request.FineId, ct);
 
@@ -34,19 +34,22 @@ public sealed class PayFineHandler : IRequestHandler<PayFineRequest, ApiResponse
         if (totalPaid > fine.Amount)
             return ApiResponse<bool>.Fail("S? ti?n thanh to�n v�?t qu� s? ti?n ph?t.");
 
+        // Thanh toán trực tiếp trọn gói 1 lần: Tự động quyết toán đúng 100% số tiền phạt
         var payment = new FinePayment
         {
-            FineId = request.FineId,
+            FineId = fine.Id,
             LibrarianId = request.LibrarianId,
-            Amount = request.Amount,
+            Amount = fine.Amount, // Tự động lấy đủ số tiền phạt
             PaymentMethod = request.PaymentMethod,
-            Notes = request.Notes,
+            Notes = string.IsNullOrWhiteSpace(request.Notes) ? "Thanh toán trực tiếp tại quầy" : request.Notes,
             PaidAt = DateTime.UtcNow
         };
 
-        _db.Set<FinePayment>().Add(payment);
+        _db.FinePayments.Add(payment);
 
-        fine.Status = totalPaid == fine.Amount ? FineStatus.Paid : FineStatus.PartiallyPaid;
+        fine.Status = FineStatus.Paid;
+        fine.UpdatedAt = DateTime.UtcNow;
+        fine.UpdatedBy = request.LibrarianId;
 
         await _db.SaveChangesAsync(ct);
         return ApiResponse<bool>.Ok(true);
