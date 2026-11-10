@@ -101,7 +101,7 @@ export const Bay5LibrarianDesk: React.FC = () => {
                   <EnvironmentOutlined />
                   Địa Điểm Quầy
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--foreground)', fontWeight: 600 }}>Tầng 1 — Sảnh Trung tâm Trí Tri</div>
+                <div style={{ fontSize: 12, color: 'var(--foreground)', fontWeight: 600 }}>Tầng 1 — Sảnh Trung tâm Libri</div>
                 <div style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>Trực tiếp hỗ trợ tra cứu & mượn trả</div>
               </div>
             </div>

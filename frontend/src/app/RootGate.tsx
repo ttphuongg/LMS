@@ -3,8 +3,6 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/identity'
 import { LoadingState } from '@/shared/components/LoadingState'
 
-// Tải lười: người đã đăng nhập không phải tải gói landing (three.js nặng),
-// còn khách chưa đăng nhập không phải tải trang chủ.
 const LandingPage = lazy(() => import('@/features/landing').then((m) => ({ default: m.LandingPage })))
 const HomePage = lazy(() => import('@/features/home').then((m) => ({ default: m.HomePage })))
 

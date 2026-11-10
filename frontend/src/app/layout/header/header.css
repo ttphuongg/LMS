@@ -1,0 +1,73 @@
+/* Nhãn menu + hiệu ứng gạch chân vàng */
+.nav-hover-underline {
+  color: #FBF7EC;
+  display: inline-block;
+  position: relative;
+  padding-bottom: 2px;
+  transition: color 0.2s ease;
+}
+.nav-hover-underline::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: #B08D3C; /* Màu vàng đồng */
+  transition: width 0.3s ease;
+}
+
+/* Hover/active tính theo cả item (kể cả phần padding quanh chữ) */
+.library-nav-desktop .ant-menu-item:hover .nav-hover-underline,
+.library-nav-desktop .ant-menu-item-selected .nav-hover-underline {
+  color: #B08D3C;
+}
+.library-nav-desktop .ant-menu-item:hover .nav-hover-underline::after,
+.library-nav-desktop .ant-menu-item-selected .nav-hover-underline::after {
+  width: 100%;
+}
+
+/* Bỏ gạch chân + nền mặc định của antd (theme dark) để không bị chồng với gạch vàng */
+.library-nav-desktop .ant-menu-item::after {
+  display: none !important;
+}
+.library-nav-desktop .ant-menu-dark.ant-menu-horizontal > .ant-menu-item:hover,
+.library-nav-desktop .ant-menu-dark.ant-menu-horizontal > .ant-menu-item-selected,
+.library-nav-desktop .ant-menu-dark.ant-menu-horizontal > .ant-menu-item-active {
+  background: transparent !important;
+}
+
+/* ── Responsive Mobile Rules (RESP-001) ─────────────────────────────────── */
+@media (max-width: 767px) {
+  .library-header {
+    padding: 0 12px !important;
+    gap: 6px !important;
+  }
+  .library-nav-desktop {
+    display: none !important;
+  }
+  .library-header-mobile-trigger {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  .library-brand-subtitle {
+    display: none !important;
+  }
+  .library-brand-title {
+    font-size: 15px !important;
+  }
+  .library-brand-logo {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .guest-auth-register-btn {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .library-header-mobile-trigger {
+    display: none !important;
+  }
+}
