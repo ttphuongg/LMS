@@ -24,7 +24,7 @@ public class IncidentReportedEventHandler : INotificationHandler<IncidentReporte
                 notification.LoanSlipDetailId,
                 notification.IncidentId,
                 FineType.Compensation,
-                notification.CompensationAmount,
+                notification.CompensationAmount.Value,
                 DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7))
             );
 

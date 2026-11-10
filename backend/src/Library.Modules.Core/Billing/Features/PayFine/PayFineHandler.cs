@@ -22,31 +22,32 @@ public sealed class PayFineHandler : IRequestHandler<PayFineRequest, ApiResponse
         var val = await _validator.ValidateAsync(request, ct);
         if (!val.IsValid) return ApiResponse<bool>.Fail(string.Join("; ", val.Errors.Select(e => e.ErrorMessage)));
 
-        var fine = await _db.Set<Fine>()
+        var fine = await _db.Fines
             .Include(f => f.Payments)
             .FirstOrDefaultAsync(f => f.Id == request.FineId, ct);
 
-        if (fine == null) return ApiResponse<bool>.Fail("Phi?u ph?t kh�ng t?n t?i.");
-        if (fine.Status == FineStatus.Paid || fine.Status == FineStatus.Cancelled)
-            return ApiResponse<bool>.Fail("Phi?u ph?t �? ��?c thanh to�n ho?c h?y.");
+        if (fine == null) return ApiResponse<bool>.Fail("Phiếu phạt không tồn tại.");
+        if (fine.Status == FineStatus.Paid)
+            return ApiResponse<bool>.Fail("Phiếu phạt này đã được thanh toán hoàn tất trước đó.");
+        if (fine.Status == FineStatus.Cancelled)
+            return ApiResponse<bool>.Fail("Phiếu phạt này đã bị hủy, không thể thu tiền.");
 
-        var totalPaid = fine.Payments.Sum(p => p.Amount) + request.Amount;
-        if (totalPaid > fine.Amount)
-            return ApiResponse<bool>.Fail("S? ti?n thanh to�n v�?t qu� s? ti?n ph?t.");
-
+        // Thanh toán trực tiếp trọn gói 1 lần: Tự động quyết toán đúng 100% số tiền phạt
         var payment = new FinePayment
         {
-            FineId = request.FineId,
+            FineId = fine.Id,
             LibrarianId = request.LibrarianId,
-            Amount = request.Amount,
+            Amount = fine.Amount, // Tự động lấy đủ số tiền phạt
             PaymentMethod = request.PaymentMethod,
-            Notes = request.Notes,
+            Notes = string.IsNullOrWhiteSpace(request.Notes) ? "Thanh toán trực tiếp tại quầy" : request.Notes,
             PaidAt = DateTime.UtcNow
         };
 
-        _db.Set<FinePayment>().Add(payment);
+        _db.FinePayments.Add(payment);
 
-        fine.Status = totalPaid == fine.Amount ? FineStatus.Paid : FineStatus.PartiallyPaid;
+        fine.Status = FineStatus.Paid;
+        fine.UpdatedAt = DateTime.UtcNow;
+        fine.UpdatedBy = request.LibrarianId;
 
         await _db.SaveChangesAsync(ct);
         return ApiResponse<bool>.Ok(true);
