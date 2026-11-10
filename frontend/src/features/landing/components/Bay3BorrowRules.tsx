@@ -150,7 +150,7 @@ export const Bay3BorrowRules: React.FC = () => {
                     letterSpacing: '0.02em',
                   }}
                 >
-                  Điều lệ lưu thông Thư Viện Trí Tri
+                  Điều lệ lưu thông Libri
                 </div>
               </div>
             ))}

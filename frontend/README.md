@@ -1,4 +1,4 @@
-# Thư Viện Trí Tri — Hệ Thống Quản Lý Thư Viện (Frontend)
+# Libri — Hệ Thống Quản Lý Thư Viện (Frontend)
 
 Dự án Frontend được xây dựng theo kiến trúc **MONOLITH + VERTICAL SLICE** bằng công nghệ:
 - **React 19 + Vite + TypeScript (Strict)**

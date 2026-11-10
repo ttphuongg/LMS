@@ -77,7 +77,7 @@ export const HeroSection: React.FC = () => {
             textShadow: '0 4px 12px rgba(0,0,0,0.3)', // Đổ bóng chữ nhẹ
           }}
         >
-          THƯ VIỆN TRÍ TRI
+          DOMUS LIBRI
         </h1>
 
         {/* Đoạn giới thiệu */}
@@ -91,7 +91,7 @@ export const HeroSection: React.FC = () => {
             textShadow: '0 2px 4px rgba(0,0,0,0.5)',
           }}
         >
-          Mỗi cuốn sách là một cánh cửa; người đọc càng sâu, thế giới càng rộng.
+          Where Every Story Begins.
         </p>
 
         {/* Nút hành động */}

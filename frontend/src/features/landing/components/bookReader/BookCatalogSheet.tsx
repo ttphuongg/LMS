@@ -51,7 +51,7 @@ export const BookCatalogSheet: React.FC<BookCatalogSheetProps> = ({ book, palett
               textTransform: 'uppercase',
             }}
           >
-            Thư Viện Trí Tri
+            Libri
           </span>
         </div>
         <span
@@ -167,7 +167,7 @@ export const BookCatalogSheet: React.FC<BookCatalogSheetProps> = ({ book, palett
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <BarcodeOutlined style={{ fontSize: 18 }} />
-        <span style={{ fontFamily: 'monospace' }}>TRITRI-LIB-{book.id.replace(/\D/g, '') || '001'}</span>
+        <span style={{ fontFamily: 'monospace' }}>LIBRI-{book.id.replace(/\D/g, '') || '001'}</span>
       </div>
       <span>ẤN BẢN TIÊU CHUẨN</span>
     </div>

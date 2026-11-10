@@ -91,7 +91,7 @@ export const IntroSection: React.FC = () => {
           Thư viện của tất cả mọi người
         </h2>
         <p className="intro-desc">
-          Trí Tri là thư viện công cộng, nơi bạn có thể đọc, học và tìm hiểu
+          Libri là thư viện công cộng, nơi bạn có thể đọc, học và tìm hiểu
           bất cứ điều gì mình quan tâm, theo nhịp của riêng mình.
         </p>
 
