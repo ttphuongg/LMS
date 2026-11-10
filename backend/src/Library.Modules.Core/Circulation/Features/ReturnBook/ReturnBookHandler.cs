@@ -1,5 +1,6 @@
 using FluentValidation;
-using Library.Modules.Core.Catalog.Data;
+using Library.Modules.Core.Catalog.Contracts;
+using Library.Modules.Core.Circulation.Contracts;
 using Library.Modules.Core.Circulation.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
@@ -9,13 +10,15 @@ namespace Library.Modules.Core.Circulation.Features.ReturnBook;
 
 public sealed class ReturnBookHandler : IRequestHandler<ReturnBookRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly IValidator<ReturnBookRequest> _validator;
+    private readonly ISender _sender;
 
-    public ReturnBookHandler(AppDbContext db, IValidator<ReturnBookRequest> validator)
+    public ReturnBookHandler(CirculationDbContext db, IValidator<ReturnBookRequest> validator, ISender sender)
     {
         _db = db;
         _validator = validator;
+        _sender = sender;
     }
 
     public async Task<ApiResponse<bool>> Handle(ReturnBookRequest request, CancellationToken ct)
@@ -45,9 +48,7 @@ public sealed class ReturnBookHandler : IRequestHandler<ReturnBookRequest, ApiRe
             return ApiResponse<bool>.Fail("Các sách được chọn đều đã được trả hoặc xử lý trước đó.");
 
         var copyIdsToUpdate = activeBorrowingDetails.Select(d => d.BookCopyId).ToList();
-        var bookCopies = await _db.BookCopies
-            .Where(c => copyIdsToUpdate.Contains(c.Id))
-            .ToListAsync(ct);
+        var copyMap = await _sender.Send(new GetCopyInfosQuery(copyIdsToUpdate), ct);
 
         foreach (var detail in activeBorrowingDetails)
         {
@@ -58,33 +59,16 @@ public sealed class ReturnBookHandler : IRequestHandler<ReturnBookRequest, ApiRe
             detail.UpdatedAt = DateTime.UtcNow;
             detail.UpdatedBy = request.LibrarianId;
 
-            var copy = bookCopies.FirstOrDefault(c => c.Id == detail.BookCopyId);
-            if (copy != null)
+            if (copyMap.TryGetValue(detail.BookCopyId, out var copy))
             {
-                copy.UpdatedAt = DateTime.UtcNow;
                 if (copy.Condition == CopyCondition.MajorDamage)
                 {
-                    copy.Status = CopyStatus.Maintenance;
+                    await _sender.Send(new SetCopyStatusCommand(copy.CopyId, null, CopyStatus.Maintenance, copy.Condition), ct);
                 }
                 else
                 {
-                    // Check if another reader is waiting for this book (FIFO)
-                    var nextReservation = await _db.Reservations
-                        .Where(r => r.BookId == copy.BookId && r.Status == ReservationStatus.Waiting)
-                        .OrderBy(r => r.ReservedAt)
-                        .FirstOrDefaultAsync(ct);
-
-                    if (nextReservation != null)
-                    {
-                        nextReservation.BookCopyId = copy.Id;
-                        nextReservation.Status = ReservationStatus.Ready;
-                        nextReservation.ExpiresAt = DateTime.UtcNow.AddDays(3);
-                        copy.Status = CopyStatus.Reserved;
-                    }
-                    else
-                    {
-                        copy.Status = CopyStatus.Available;
-                    }
+                    var newStatus = await _sender.Send(new ReleaseCopyCommand(copy.BookId, copy.CopyId, null), ct);
+                    await _sender.Send(new SetCopyStatusCommand(copy.CopyId, null, newStatus, copy.Condition), ct);
                 }
             }
         }

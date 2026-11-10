@@ -8,10 +8,10 @@ namespace Library.Modules.Core.Identity.Features.Register;
 
 public sealed class RegisterHandler : IRequestHandler<RegisterRequest, ApiResponse<int>>
 {
-    private readonly AppDbContext _db;
+    private readonly IdentityDbContext _db;
     private readonly IValidator<RegisterRequest> _validator;
 
-    public RegisterHandler(AppDbContext db, IValidator<RegisterRequest> validator)
+    public RegisterHandler(IdentityDbContext db, IValidator<RegisterRequest> validator)
     {
         _db = db;
         _validator = validator;

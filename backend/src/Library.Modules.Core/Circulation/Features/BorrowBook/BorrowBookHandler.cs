@@ -1,7 +1,7 @@
 using FluentValidation;
-using Library.Modules.Core.Catalog.Data;
+using Library.Modules.Core.Catalog.Contracts;
 using Library.Modules.Core.Circulation.Data;
-using Library.Modules.Core.Identity.Data;
+using Library.Modules.Core.Identity.Contracts;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -10,13 +10,15 @@ namespace Library.Modules.Core.Circulation.Features.BorrowBook;
 
 public sealed class BorrowBookHandler : IRequestHandler<BorrowBookRequest, ApiResponse<long>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly IValidator<BorrowBookRequest> _validator;
+    private readonly ISender _sender;
 
-    public BorrowBookHandler(AppDbContext db, IValidator<BorrowBookRequest> validator)
+    public BorrowBookHandler(CirculationDbContext db, IValidator<BorrowBookRequest> validator, ISender sender)
     {
         _db = db;
         _validator = validator;
+        _sender = sender;
     }
 
     public async Task<ApiResponse<long>> Handle(BorrowBookRequest request, CancellationToken ct)
@@ -28,11 +30,11 @@ public sealed class BorrowBookHandler : IRequestHandler<BorrowBookRequest, ApiRe
                 string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)));
 
         // ── Verify account exists and is active ───────────────────────────────
-        var account = await _db.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId, ct);
+        var account = await _sender.Send(new GetAccountSummaryQuery(request.AccountId), ct);
         if (account is null)
             return ApiResponse<long>.Fail($"Tài khoản với Id = {request.AccountId} không tồn tại.");
 
-        if (account.Status != AccountStatus.Active)
+        if (!account.IsActive)
             return ApiResponse<long>.Fail("Tài khoản của độc giả đang bị khóa hoặc vô hiệu hóa, không thể mượn sách.");
 
         // ── Check if account has any overdue loans ───────────────────────────
@@ -51,25 +53,24 @@ public sealed class BorrowBookHandler : IRequestHandler<BorrowBookRequest, ApiRe
             return ApiResponse<long>.Fail($"Độc giả đang mượn {currentBorrowingCount} cuốn. Mượn thêm {distinctCopyIds.Count} cuốn sẽ vượt giới hạn tối đa ({maxBorrowLimit} cuốn).");
 
         // ── Check book copies ─────────────────────────────────────────────────
-        var copies = await _db.BookCopies
-            .Include(c => c.Book)
-            .Where(c => distinctCopyIds.Contains(c.Id))
-            .ToListAsync(ct);
+        var copyDict = await _sender.Send(new GetCopyInfosQuery(distinctCopyIds), ct);
 
-        if (copies.Count != distinctCopyIds.Count)
+        if (copyDict.Count != distinctCopyIds.Count)
             return ApiResponse<long>.Fail("Một hoặc nhiều bản sao sách không tồn tại.");
+
+        var copies = copyDict.Values.ToList();
 
         foreach (var copy in copies)
         {
-            if (copy.Book.Status != BookStatus.Active)
-                return ApiResponse<long>.Fail($"Đầu sách '{copy.Book.Title}' hiện ngưng phục vụ.");
+            if (!copy.BookIsActive)
+                return ApiResponse<long>.Fail($"Đầu sách '{copy.BookTitle}' hiện ngưng phục vụ.");
 
             if (copy.Condition == CopyCondition.Lost || copy.Condition == CopyCondition.MajorDamage)
                 return ApiResponse<long>.Fail($"Bản sao '{copy.Barcode}' không đủ điều kiện cho mượn do hư hại hoặc mất ({copy.Condition}).");
         }
 
         // ── Check availability & reservation matching ─────────────────────────
-        var reservedCopyIds = copies.Where(c => c.Status == CopyStatus.Reserved).Select(c => c.Id).ToList();
+        var reservedCopyIds = copies.Where(c => c.Status == CopyStatus.Reserved).Select(c => c.CopyId).ToList();
         var matchingReservations = new List<Reservation>();
 
         if (reservedCopyIds.Count > 0)
@@ -97,7 +98,7 @@ public sealed class BorrowBookHandler : IRequestHandler<BorrowBookRequest, ApiRe
 
         if (unavailableCopies.Count > 0)
         {
-            var unavailableIds = string.Join(", ", unavailableCopies.Select(c => c.Id));
+            var unavailableIds = string.Join(", ", unavailableCopies.Select(c => c.CopyId));
             return ApiResponse<long>.Fail($"Các bản sao sách sau không sẵn sàng để mượn: {unavailableIds}");
         }
 
@@ -114,12 +115,14 @@ public sealed class BorrowBookHandler : IRequestHandler<BorrowBookRequest, ApiRe
 
         foreach (var copy in copies)
         {
-            copy.Status = CopyStatus.Borrowed;
-            copy.UpdatedAt = DateTime.UtcNow;
+            var expectedStatus = copy.Status == CopyStatus.Reserved ? CopyStatus.Reserved : CopyStatus.Available;
+            var setSuccess = await _sender.Send(new SetCopyStatusCommand(copy.CopyId, expectedStatus, CopyStatus.Borrowed), ct);
+            if (!setSuccess)
+                return ApiResponse<long>.Fail("bản sao không còn sẵn sàng");
 
             loanSlip.Details.Add(new LoanSlipDetail
             {
-                BookCopyId = copy.Id,
+                BookCopyId = copy.CopyId,
                 Status = LoanDetailStatus.Borrowing
             });
         }

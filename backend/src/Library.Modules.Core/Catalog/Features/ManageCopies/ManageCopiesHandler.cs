@@ -1,6 +1,7 @@
 using FluentValidation;
+using Library.Modules.Core.Catalog.Contracts;
 using Library.Modules.Core.Catalog.Data;
-using Library.Modules.Core.Circulation.Data;
+using Library.Modules.Core.Circulation.Contracts;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -10,10 +11,10 @@ namespace Library.Modules.Core.Catalog.Features.ManageCopies;
 /// <summary>Handles adding a new physical copy (BookCopy) to an existing book.</summary>
 public sealed class ManageCopiesHandler : IRequestHandler<AddCopyRequest, ApiResponse<int>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
     private readonly IValidator<AddCopyRequest> _validator;
 
-    public ManageCopiesHandler(AppDbContext db, IValidator<AddCopyRequest> validator)
+    public ManageCopiesHandler(CatalogDbContext db, IValidator<AddCopyRequest> validator)
     {
         _db = db;
         _validator = validator;
@@ -73,8 +74,8 @@ public sealed class ManageCopiesHandler : IRequestHandler<AddCopyRequest, ApiRes
 /// <summary>Handles retrieving all physical copies of a given book.</summary>
 public sealed class GetCopiesHandler : IRequestHandler<GetCopiesRequest, ApiResponse<List<CopyDetail>>>
 {
-    private readonly AppDbContext _db;
-    public GetCopiesHandler(AppDbContext db) => _db = db;
+    private readonly CatalogDbContext _db;
+    public GetCopiesHandler(CatalogDbContext db) => _db = db;
 
     public async Task<ApiResponse<List<CopyDetail>>> Handle(GetCopiesRequest request, CancellationToken ct)
     {
@@ -106,8 +107,14 @@ public sealed class GetCopiesHandler : IRequestHandler<GetCopiesRequest, ApiResp
 /// <summary>Handles updating the status of a specific book copy.</summary>
 public sealed class UpdateCopyStatusHandler : IRequestHandler<UpdateCopyStatusRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
-    public UpdateCopyStatusHandler(AppDbContext db) => _db = db;
+    private readonly CatalogDbContext _db;
+    private readonly ISender _sender;
+
+    public UpdateCopyStatusHandler(CatalogDbContext db, ISender sender)
+    {
+        _db = db;
+        _sender = sender;
+    }
 
     public async Task<ApiResponse<bool>> Handle(UpdateCopyStatusRequest request, CancellationToken ct)
     {
@@ -128,8 +135,7 @@ public sealed class UpdateCopyStatusHandler : IRequestHandler<UpdateCopyStatusRe
 
         if (request.NewStatus == CopyStatus.Available)
         {
-            var isCurrentlyBorrowing = await _db.LoanSlipDetails
-                .AnyAsync(d => d.BookCopyId == copy.Id && d.Status == LoanDetailStatus.Borrowing, ct);
+            var isCurrentlyBorrowing = await _sender.Send(new HasActiveLoanForCopyQuery(copy.Id), ct);
             if (isCurrentlyBorrowing)
                 return ApiResponse<bool>.Fail("Không thể chuyển sang Available vì bản sao này đang nằm trong một phiếu mượn chưa hoàn tất.");
         }

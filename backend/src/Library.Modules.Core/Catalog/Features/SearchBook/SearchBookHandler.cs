@@ -1,4 +1,5 @@
 using FluentValidation;
+using Library.Modules.Core.Catalog.Contracts;
 using Library.Modules.Core.Catalog.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
@@ -8,10 +9,10 @@ namespace Library.Modules.Core.Catalog.Features.SearchBook;
 
 public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiResponse<SearchBookResult>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
     private readonly IValidator<SearchBookRequest> _validator;
 
-    public SearchBookHandler(AppDbContext db, IValidator<SearchBookRequest> validator)
+    public SearchBookHandler(CatalogDbContext db, IValidator<SearchBookRequest> validator)
     {
         _db = db;
         _validator = validator;
@@ -30,14 +31,15 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
             .Where(b => b.Status == BookStatus.Active)
             .AsNoTracking();
 
-        // ── Apply filters ─────────────────────────────────────────────────────
+        // ── Apply filters (sử dụng EF.Functions.Like để SQL Server dùng được index) ─────
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
-            var keyword = request.Keyword.Trim().ToLower();
+            var keyword = request.Keyword.Trim();
             query = query.Where(b =>
-                b.Title.ToLower().Contains(keyword) ||
-                (b.Isbn != null && b.Isbn.ToLower().Contains(keyword)) ||
-                (b.Description != null && b.Description.ToLower().Contains(keyword)));
+                EF.Functions.Like(b.Title, $"%{keyword}%") ||
+                (b.Isbn != null && EF.Functions.Like(b.Isbn, $"%{keyword}%")) ||
+                (b.Description != null && EF.Functions.Like(b.Description, $"%{keyword}%")) ||
+                b.BookAuthors.Any(ba => EF.Functions.Like(ba.Author.Name, $"%{keyword}%")));
         }
 
         if (request.AuthorId.HasValue)
@@ -54,8 +56,8 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
 
         if (!string.IsNullOrWhiteSpace(request.Language))
         {
-            var lang = request.Language.Trim().ToLower();
-            query = query.Where(b => b.Language != null && b.Language.ToLower() == lang);
+            var lang = request.Language.Trim();
+            query = query.Where(b => b.Language != null && EF.Functions.Like(b.Language, lang));
         }
 
         if (request.PublishedYear.HasValue)
@@ -79,7 +81,11 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
                 b.Publisher,
                 b.PublishedYear,
                 b.CoverImageUrl,
-                b.Copies.Count(c => c.Status == CopyStatus.Available)
+                b.Copies.Count(c => c.Status == CopyStatus.Available),
+                b.Copies.Count(),
+                b.BookAuthors.Select(ba => ba.Author.Name).ToList(),
+                b.BookCategories.Select(bc => bc.Category.Name).ToList(),
+                b.Description
             ))
             .ToListAsync(ct);
 

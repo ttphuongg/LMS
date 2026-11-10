@@ -1,4 +1,3 @@
-using Library.Modules.Core.Catalog.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -25,12 +24,6 @@ public class LoanSlipDetailConfiguration : IEntityTypeConfiguration<LoanSlipDeta
         {
             t.HasCheckConstraint("CK_LoanSlipDetails_Status", "[Status] IN (N'Borrowing', N'Returned', N'Lost', N'Damaged')");
         });
-
-        // Cross-context FK → Catalog.BookCopy
-        builder.HasOne<BookCopy>()
-            .WithMany()
-            .HasForeignKey(d => d.BookCopyId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         // Within Circulation
         builder.HasOne(d => d.LoanSlip)

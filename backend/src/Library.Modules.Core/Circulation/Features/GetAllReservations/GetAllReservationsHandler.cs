@@ -1,4 +1,6 @@
+using Library.Modules.Core.Catalog.Contracts;
 using Library.Modules.Core.Circulation.Data;
+using Library.Modules.Core.Identity.Contracts;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,8 +9,14 @@ namespace Library.Modules.Core.Circulation.Features.GetAllReservations;
 
 public sealed class GetAllReservationsHandler : IRequestHandler<GetAllReservationsRequest, ApiResponse<GetAllReservationsResult>>
 {
-    private readonly AppDbContext _db;
-    public GetAllReservationsHandler(AppDbContext db) => _db = db;
+    private readonly CirculationDbContext _db;
+    private readonly ISender _sender;
+
+    public GetAllReservationsHandler(CirculationDbContext db, ISender sender)
+    {
+        _db = db;
+        _sender = sender;
+    }
 
     public async Task<ApiResponse<GetAllReservationsResult>> Handle(GetAllReservationsRequest request, CancellationToken ct)
     {
@@ -30,21 +38,15 @@ public sealed class GetAllReservationsHandler : IRequestHandler<GetAllReservatio
 
         // Attach reader names and book titles for this page
         var accountIds = items.Select(i => i.AccountId).Distinct().ToList();
-        var names = await _db.Accounts
-            .AsNoTracking()
-            .Where(a => accountIds.Contains(a.Id))
-            .ToDictionaryAsync(a => a.Id, a => a.FullName, ct);
+        var names = await _sender.Send(new GetAccountNamesQuery(accountIds), ct);
 
         var bookIds = items.Select(i => i.BookId).Distinct().ToList();
-        var titles = await _db.Books
-            .AsNoTracking()
-            .Where(b => bookIds.Contains(b.Id))
-            .ToDictionaryAsync(b => b.Id, b => b.Title, ct);
+        var bookDict = await _sender.Send(new GetBookInfosQuery(bookIds), ct);
 
         items = items.Select(i => i with
         {
             ReaderName = names.GetValueOrDefault(i.AccountId),
-            BookTitle = titles.GetValueOrDefault(i.BookId)
+            BookTitle = bookDict.TryGetValue(i.BookId, out var b) ? b.Title : null
         }).ToList();
 
         return ApiResponse<GetAllReservationsResult>.Ok(new GetAllReservationsResult(items, total));

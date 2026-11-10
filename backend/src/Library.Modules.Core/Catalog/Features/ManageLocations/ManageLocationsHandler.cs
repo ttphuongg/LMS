@@ -9,10 +9,10 @@ namespace Library.Modules.Core.Catalog.Features.ManageLocations;
 /// <summary>Handles creating a new shelf location.</summary>
 public sealed class AddLocationHandler : IRequestHandler<AddLocationRequest, ApiResponse<int>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
     private readonly IValidator<AddLocationRequest> _validator;
 
-    public AddLocationHandler(AppDbContext db, IValidator<AddLocationRequest> validator)
+    public AddLocationHandler(CatalogDbContext db, IValidator<AddLocationRequest> validator)
     {
         _db = db;
         _validator = validator;
@@ -52,10 +52,10 @@ public sealed class AddLocationHandler : IRequestHandler<AddLocationRequest, Api
 /// <summary>Handles updating an existing shelf location.</summary>
 public sealed class UpdateLocationHandler : IRequestHandler<UpdateLocationRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly CatalogDbContext _db;
     private readonly IValidator<UpdateLocationRequest> _validator;
 
-    public UpdateLocationHandler(AppDbContext db, IValidator<UpdateLocationRequest> validator)
+    public UpdateLocationHandler(CatalogDbContext db, IValidator<UpdateLocationRequest> validator)
     {
         _db = db;
         _validator = validator;
@@ -107,8 +107,8 @@ public sealed class UpdateLocationHandler : IRequestHandler<UpdateLocationReques
 /// <summary>Handles listing all locations.</summary>
 public sealed class GetAllLocationsHandler : IRequestHandler<GetAllLocationsRequest, ApiResponse<List<LocationDetail>>>
 {
-    private readonly AppDbContext _db;
-    public GetAllLocationsHandler(AppDbContext db) => _db = db;
+    private readonly CatalogDbContext _db;
+    public GetAllLocationsHandler(CatalogDbContext db) => _db = db;
 
     public async Task<ApiResponse<List<LocationDetail>>> Handle(GetAllLocationsRequest request, CancellationToken ct)
     {
@@ -137,8 +137,8 @@ public sealed class GetAllLocationsHandler : IRequestHandler<GetAllLocationsRequ
 /// <summary>Handles getting a single location by Id.</summary>
 public sealed class GetLocationByIdHandler : IRequestHandler<GetLocationByIdRequest, ApiResponse<LocationDetail>>
 {
-    private readonly AppDbContext _db;
-    public GetLocationByIdHandler(AppDbContext db) => _db = db;
+    private readonly CatalogDbContext _db;
+    public GetLocationByIdHandler(CatalogDbContext db) => _db = db;
 
     public async Task<ApiResponse<LocationDetail>> Handle(GetLocationByIdRequest request, CancellationToken ct)
     {

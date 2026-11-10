@@ -8,10 +8,10 @@ namespace Library.Modules.Core.Circulation.Features.RequestRenewal;
 
 public sealed class RequestRenewalHandler : IRequestHandler<RequestRenewalRequest, ApiResponse<long>>
 {
-    private readonly AppDbContext _db;
+    private readonly CirculationDbContext _db;
     private readonly IValidator<RequestRenewalRequest> _validator;
 
-    public RequestRenewalHandler(AppDbContext db, IValidator<RequestRenewalRequest> validator)
+    public RequestRenewalHandler(CirculationDbContext db, IValidator<RequestRenewalRequest> validator)
     {
         _db = db;
         _validator = validator;

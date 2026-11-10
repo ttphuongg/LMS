@@ -1,4 +1,6 @@
+using Library.Modules.Core.Catalog.Contracts;
 using Library.Modules.Core.Circulation.Data;
+using Library.Modules.Core.Identity.Contracts;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,8 +9,14 @@ namespace Library.Modules.Core.Circulation.Features.GetAllRenewals;
 
 public sealed class GetAllRenewalsHandler : IRequestHandler<GetAllRenewalsRequest, ApiResponse<GetAllRenewalsResult>>
 {
-    private readonly AppDbContext _db;
-    public GetAllRenewalsHandler(AppDbContext db) => _db = db;
+    private readonly CirculationDbContext _db;
+    private readonly ISender _sender;
+
+    public GetAllRenewalsHandler(CirculationDbContext db, ISender sender)
+    {
+        _db = db;
+        _sender = sender;
+    }
 
     public async Task<ApiResponse<GetAllRenewalsResult>> Handle(GetAllRenewalsRequest request, CancellationToken ct)
     {
@@ -45,18 +53,10 @@ public sealed class GetAllRenewalsHandler : IRequestHandler<GetAllRenewalsReques
 
         // Look up reader names and book info for just this page
         var accountIds = rows.Select(x => x.AccountId).Distinct().ToList();
-        var names = await _db.Accounts
-            .AsNoTracking()
-            .Where(a => accountIds.Contains(a.Id))
-            .ToDictionaryAsync(a => a.Id, a => a.FullName, ct);
+        var names = await _sender.Send(new GetAccountNamesQuery(accountIds), ct);
 
         var copyIds = rows.Select(x => x.BookCopyId).Distinct().ToList();
-        var copies = await _db.BookCopies
-            .AsNoTracking()
-            .Where(c => copyIds.Contains(c.Id))
-            .Select(c => new { c.Id, c.Barcode, c.Book.Title })
-            .ToListAsync(ct);
-        var copyMap = copies.ToDictionary(c => c.Id);
+        var copyMap = await _sender.Send(new GetCopyInfosQuery(copyIds), ct);
 
         var items = rows.Select(x =>
         {
@@ -70,7 +70,7 @@ public sealed class GetAllRenewalsHandler : IRequestHandler<GetAllRenewalsReques
                 readerName,
                 x.BookCopyId,
                 copy?.Barcode,
-                copy?.Title,
+                copy?.BookTitle,
                 x.RenewalNumber,
                 x.RequestedAt,
                 x.OldDueDate,

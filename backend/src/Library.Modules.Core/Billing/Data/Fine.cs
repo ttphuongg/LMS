@@ -1,3 +1,5 @@
+using Library.Modules.Core.Billing.Contracts;
+
 namespace Library.Modules.Core.Billing.Data;
 
 /// <summary>
@@ -29,6 +31,3 @@ public class Fine
     // Navigation within Billing context
     public ICollection<FinePayment> Payments { get; set; } = [];
 }
-
-public enum FineType { Overdue, Compensation, Other }
-public enum FineStatus { Unpaid, PartiallyPaid, Paid, Cancelled }

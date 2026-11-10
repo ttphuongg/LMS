@@ -1,4 +1,3 @@
-using Library.Modules.Core.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -19,11 +18,5 @@ public class SearchHistoryConfiguration : IEntityTypeConfiguration<SearchHistory
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_SearchHistories_ResultCount",
             "[ResultCount] IS NULL OR [ResultCount] >= 0"));
-
-        // Cross-context FK → Identity.Account (NO ACTION — giữ lịch sử tìm kiếm)
-        builder.HasOne<Account>()
-            .WithMany()
-            .HasForeignKey(sh => sh.AccountId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -1,4 +1,3 @@
-using Library.Modules.Core.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -24,11 +23,5 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         {
             t.HasCheckConstraint("CK_Notifications_NotificationType", "[NotificationType] IN (N'Reserve', N'Borrow', N'Return', N'Fine', N'System')");
         });
-
-        // Cross-context FK → Identity.Account (NO ACTION — giữ thông báo để audit)
-        builder.HasOne<Account>()
-            .WithMany()
-            .HasForeignKey(n => n.AccountId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

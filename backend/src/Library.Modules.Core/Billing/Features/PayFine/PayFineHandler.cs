@@ -8,10 +8,10 @@ namespace Library.Modules.Core.Billing.Features.PayFine;
 
 public sealed class PayFineHandler : IRequestHandler<PayFineRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly BillingDbContext _db;
     private readonly IValidator<PayFineRequest> _validator;
 
-    public PayFineHandler(AppDbContext db, IValidator<PayFineRequest> validator)
+    public PayFineHandler(BillingDbContext db, IValidator<PayFineRequest> validator)
     {
         _db = db;
         _validator = validator;
@@ -26,11 +26,13 @@ public sealed class PayFineHandler : IRequestHandler<PayFineRequest, ApiResponse
             .Include(f => f.Payments)
             .FirstOrDefaultAsync(f => f.Id == request.FineId, ct);
 
-        if (fine == null) return ApiResponse<bool>.Fail("Phiếu phạt không tồn tại.");
-        if (fine.Status == FineStatus.Paid)
-            return ApiResponse<bool>.Fail("Phiếu phạt này đã được thanh toán hoàn tất trước đó.");
-        if (fine.Status == FineStatus.Cancelled)
-            return ApiResponse<bool>.Fail("Phiếu phạt này đã bị hủy, không thể thu tiền.");
+        if (fine == null) return ApiResponse<bool>.Fail("Phi?u ph?t kh�ng t?n t?i.");
+        if (fine.Status == FineStatus.Paid || fine.Status == FineStatus.Cancelled)
+            return ApiResponse<bool>.Fail("Phi?u ph?t �? ��?c thanh to�n ho?c h?y.");
+
+        var totalPaid = fine.Payments.Sum(p => p.Amount) + request.Amount;
+        if (totalPaid > fine.Amount)
+            return ApiResponse<bool>.Fail("S? ti?n thanh to�n v�?t qu� s? ti?n ph?t.");
 
         // Thanh toán trực tiếp trọn gói 1 lần: Tự động quyết toán đúng 100% số tiền phạt
         var payment = new FinePayment

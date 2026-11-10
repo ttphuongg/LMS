@@ -1,4 +1,5 @@
 using Library.Modules.Core.Circulation.Data;
+using Library.Modules.Core.Identity.Contracts;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,8 +8,14 @@ namespace Library.Modules.Core.Circulation.Features.GetAllLoans;
 
 public sealed class GetAllLoansHandler : IRequestHandler<GetAllLoansRequest, ApiResponse<GetAllLoansResult>>
 {
-    private readonly AppDbContext _db;
-    public GetAllLoansHandler(AppDbContext db) => _db = db;
+    private readonly CirculationDbContext _db;
+    private readonly ISender _sender;
+
+    public GetAllLoansHandler(CirculationDbContext db, ISender sender)
+    {
+        _db = db;
+        _sender = sender;
+    }
 
     public async Task<ApiResponse<GetAllLoansResult>> Handle(GetAllLoansRequest request, CancellationToken ct)
     {
@@ -30,10 +37,7 @@ public sealed class GetAllLoansHandler : IRequestHandler<GetAllLoansRequest, Api
 
         // Attach reader names for this page
         var accountIds = items.Select(i => i.AccountId).Distinct().ToList();
-        var names = await _db.Accounts
-            .AsNoTracking()
-            .Where(a => accountIds.Contains(a.Id))
-            .ToDictionaryAsync(a => a.Id, a => a.FullName, ct);
+        var names = await _sender.Send(new GetAccountNamesQuery(accountIds), ct);
         items = items.Select(i => i with { ReaderName = names.GetValueOrDefault(i.AccountId) }).ToList();
 
         return ApiResponse<GetAllLoansResult>.Ok(new GetAllLoansResult(items, total));

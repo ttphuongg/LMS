@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+using FluentValidation;
+using Library.Modules.Core.Identity.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,10 +8,10 @@ namespace Library.Modules.Core.Identity.Features.ChangePassword;
 
 public sealed class ChangePasswordHandler : IRequestHandler<ChangePasswordRequest, ApiResponse<bool>>
 {
-    private readonly AppDbContext _db;
+    private readonly IdentityDbContext _db;
     private readonly IValidator<ChangePasswordRequest> _validator;
 
-    public ChangePasswordHandler(AppDbContext db, IValidator<ChangePasswordRequest> validator)
+    public ChangePasswordHandler(IdentityDbContext db, IValidator<ChangePasswordRequest> validator)
     {
         _db = db;
         _validator = validator;

@@ -8,11 +8,11 @@ namespace Library.Modules.Core.Billing.Features.IssueFine;
 
 public sealed class IssueFineHandler : IRequestHandler<IssueFineRequest, ApiResponse<long>>
 {
-    private readonly AppDbContext _db;
+    private readonly BillingDbContext _db;
     private readonly IValidator<IssueFineRequest> _validator;
     private readonly IMediator _mediator;
 
-    public IssueFineHandler(AppDbContext db, IValidator<IssueFineRequest> validator, IMediator mediator)
+    public IssueFineHandler(BillingDbContext db, IValidator<IssueFineRequest> validator, IMediator mediator)
     {
         _db = db;
         _validator = validator;

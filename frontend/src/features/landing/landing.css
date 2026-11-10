@@ -1,0 +1,432 @@
+/* ==========================================================================
+   LANDING PAGE — "ĐI DỌC KỆ SÁCH" (WALKING ALONG LIBRARY BOOKSHELVES)
+   ========================================================================== */
+
+/* Skip to Content Accessible Link */
+.skip-to-content {
+  position: absolute;
+  top: -60px;
+  left: 20px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: 2px solid var(--border-strong);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 13px;
+  z-index: 9999;
+  transition: top 0.2s ease;
+  text-decoration: none;
+}
+
+.skip-to-content:focus {
+  top: 16px;
+}
+
+/* ==========================================================================
+   SHELF BAY COMMON STRUCTURE
+   ========================================================================== */
+.shelf-bay {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justifyContent: center;
+  align-items: center;
+  position: relative;
+  padding: 4vh 4vw;
+}
+
+.bay-header-wrap {
+  text-align: center;
+  max-width: 780px;
+  margin-bottom: clamp(24px, 3.8vh, 44px);
+  position: relative;
+  z-index: 12;
+}
+
+.bay-ddc-code {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  border-bottom: 2px solid var(--border-strong);
+  padding-bottom: 3px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.bay-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 3.8vw, 3.2rem);
+  font-weight: 700;
+  color: var(--foreground);
+  line-height: 1.15;
+  margin: 0 0 10px;
+  letter-spacing: -0.01em;
+}
+
+.bay-desc {
+  font-size: clamp(13px, 1.1vw, 15px);
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  margin: 0 auto;
+  max-width: 620px;
+}
+
+/* Shelf Stage & Row */
+.bay-shelf-stage {
+  width: 100%;
+  max-width: 1260px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justifyContent: flex-end;
+}
+
+.shelf-books-row {
+  display: flex;
+  justifyContent: center;
+  align-items: flex-end;
+  gap: 16px;
+  padding-bottom: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.shelf-filler-left,
+.shelf-filler-right {
+  display: flex;
+  align-items: flex-end;
+  opacity: 0.95;
+}
+
+/* Solid Wooden Shelf Bar — Rich Classic Library Wood */
+.wooden-shelf-bar {
+  width: 100%;
+  height: 38px;
+  background: linear-gradient(180deg, #4A2E1B 0%, #321D0E 50%, #1F1108 100%);
+  border-top: 3px solid #C49A45;
+  border-bottom: 2px solid #140A04;
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 3px 8px rgba(29, 16, 7, 0.14);
+  position: relative;
+  margin-top: 0;
+}
+
+/* Biển đồng gắn kệ sách — Vintage Engraved Brass Plaque (giảm bóng nhẹ nhàng) */
+.shelf-brass-plaque {
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #EAD085 0%, #B88E36 50%, #8A641A 100%);
+  color: #1A1208;
+  border: 1px solid #D1AF5B;
+  border-bottom: 1.5px solid #6E4D10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
+  border-radius: 3px;
+  padding: 3px 18px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  z-index: 25;
+}
+
+/* ==========================================================================
+   BAY 1 — FEATURED BOOKS INTERACTION
+   ========================================================================== */
+.featured-shelf-book:focus-visible,
+.featured-shelf-book:focus-within {
+  transform: translateY(-24px) rotate(-6deg) !important;
+  z-index: 30 !important;
+}
+
+.featured-shelf-book:hover .interactive-book-jacket {
+  border-color: var(--border-strong) !important;
+}
+
+/* ==========================================================================
+   BAY 2 — STANDING STEP BOOKS
+   ========================================================================== */
+.step-standing-book:hover {
+  transform: translateY(-8px);
+  border-color: var(--border-strong) !important;
+}
+
+/* ==========================================================================
+   BAY 3 & 4 — LEDGER CARDS
+   ========================================================================== */
+.rule-ledger-card:hover,
+.fine-ledger-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--border-strong) !important;
+}
+
+/* ==========================================================================
+   DDC RULER NAVIGATOR (FIXED BOTTOM)
+   ========================================================================== */
+.shelf-ddc-ruler-nav .ruler-bay-btn:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.shelf-ddc-ruler-nav .ruler-bay-btn.active:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+/* ==========================================================================
+   MOBILE & REDUCED MOTION VERTICAL STACK (< 768px)
+   ========================================================================== */
+@media (max-width: 767px) {
+  .hero-fullscreen-section {
+    height: auto !important;
+    min-height: 100svh;
+    padding: 40px 16px 24px;
+    justifyContent: center;
+  }
+
+  .hero-title-massive {
+    font-size: clamp(2.2rem, 10vw, 3.4rem) !important;
+  }
+
+  .hero-search-wrapper {
+    flex-direction: column;
+    padding: 8px;
+  }
+
+  .hero-search-wrapper button {
+    width: 100%;
+  }
+
+  .shelf-mobile-vertical-stack {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: var(--background);
+  }
+
+  .mobile-bay-item {
+    padding: 60px 16px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .shelf-books-row {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .shelf-filler-left,
+  .shelf-filler-right {
+    display: none !important;
+  }
+
+  .step-books-container,
+  .rule-cards-row,
+  .fine-ledgers-container {
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100%;
+  }
+
+  .step-standing-book,
+  .rule-ledger-card,
+  .fine-ledger-card,
+  .librarian-desk-card {
+    width: 100% !important;
+    max-width: 420px;
+    height: auto !important;
+    margin-bottom: 16px;
+  }
+
+  .librarian-desk-card {
+    padding: 24px 16px !important;
+  }
+
+  .shelf-ddc-ruler-nav {
+    display: none !important;
+  }
+
+  .opened-book-spread {
+    flex-direction: column !important;
+    max-height: 85vh;
+    overflow-y: auto !important;
+  }
+  .book-page-left {
+    border-right: none !important;
+    border-bottom: 1px dashed var(--border) !important;
+    padding: 24px 18px !important;
+  }
+  .book-page-right {
+    padding: 24px 18px !important;
+  }
+  .book-modal-close-btn {
+    top: -12px !important;
+    right: -4px !important;
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   CUỘN MƯỢT (chỉ áp dụng khi đang ở trang landing)
+   ========================================================================== */
+html:has(.landing-page-wrapper) {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.landing-page-wrapper) {
+    scroll-behavior: auto;
+  }
+}
+
+/* ==========================================================================
+   INTRO SECTION — GIỚI THIỆU
+   ========================================================================== */
+.intro-section {
+  /* Bù chiều cao thanh nav 64px để tiêu đề không bị che khi nhấn nút nav */
+  scroll-margin-top: 64px;
+  min-height: calc(100svh - 64px);
+  display: grid;
+  /* Trái: ảnh · Phải: nội dung (giống bố cục tham chiếu) */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  background: #1B110A;
+}
+
+/* --- Cột ảnh --- */
+.intro-photo {
+  position: relative;
+  overflow: hidden;
+  min-height: 100%;
+  background: #120B06;
+}
+
+.intro-photo-img {
+  position: absolute;
+  left: 0;
+  top: -6%;
+  width: 100%;
+  height: 112%; /* dư ra để parallax không lộ mép */
+  object-fit: cover;
+  object-position: 50% 58%;
+  will-change: transform;
+}
+
+/* Hòa mép ảnh vào nền tối của cột nội dung */
+.intro-photo-fade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(27, 17, 10, 0) 62%, #1B110A 100%);
+}
+
+/* --- Cột nội dung --- */
+.intro-inner {
+  position: relative;
+  z-index: 10;
+  box-sizing: border-box;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(18px, 3.2vh, 34px);
+  padding: clamp(24px, 4.5vh, 56px) clamp(24px, 4.5vw, 72px) clamp(24px, 4.5vh, 56px) clamp(8px, 1.5vw, 24px);
+  /* ánh sáng hổ phách mờ ở góc, nối tiếp nắng trong ảnh */
+  background:
+    radial-gradient(ellipse 70% 55% at 100% 0%, rgba(176, 141, 60, 0.16), transparent 70%),
+    #1B110A;
+}
+
+.intro-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.7rem, min(3vw, 5vh), 2.7rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: #FBF7EC;
+  margin: 0 0 clamp(10px, 1.8vh, 18px);
+}
+
+.intro-desc {
+  font-size: clamp(14px, min(1.1vw, 2.2vh), 16px);
+  line-height: 1.7;
+  color: #D9CDB3;
+  max-width: 520px;
+  margin: 0;
+}
+
+/* --- Các trường thông tin (kiểu phiếu mục lục) --- */
+.intro-fields {
+  margin: clamp(8px, 2vh, 20px) 0 0;
+  padding: 0;
+  max-width: 560px;
+  border-top: 1px solid rgba(176, 141, 60, 0.45);
+}
+
+.intro-field {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 20px;
+  padding: clamp(12px, 2vh, 18px) 0;
+  border-bottom: 1px solid rgba(176, 141, 60, 0.2);
+}
+
+.intro-field dt {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #D4AF5F;
+}
+
+.intro-field dd {
+  margin: 0;
+  font-size: clamp(13.5px, min(1.05vw, 2.1vh), 15.5px);
+  line-height: 1.7;
+  color: #D9CDB3;
+}
+
+@media (max-width: 900px) {
+  .intro-section {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: clamp(220px, 34vh, 340px) auto;
+  }
+  .intro-photo-fade {
+    background: linear-gradient(180deg, rgba(27, 17, 10, 0) 60%, #1B110A 100%);
+  }
+  .intro-inner {
+    padding: 28px 20px 48px;
+  }
+  .intro-field {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 767px) {
+  .intro-section {
+    min-height: auto;
+  }
+}

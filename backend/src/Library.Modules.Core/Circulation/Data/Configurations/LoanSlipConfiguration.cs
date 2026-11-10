@@ -1,4 +1,3 @@
-using Library.Modules.Core.Identity.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -28,18 +27,6 @@ public class LoanSlipConfiguration : IEntityTypeConfiguration<LoanSlip>
             t.HasCheckConstraint("CK_LoanSlips_DueDate", "[DueDate] >= CAST([BorrowedAt] AS DATE)");
             t.HasCheckConstraint("CK_LoanSlips_Status", "[Status] IN (N'Pending', N'Borrowing', N'Returned', N'Overdue', N'Cancelled')");
         });
-
-        // Cross-context FKs (no nav properties)
-        builder.HasOne<Account>()
-            .WithMany()
-            .HasForeignKey(ls => ls.AccountId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne<Account>()
-            .WithMany()
-            .HasForeignKey(ls => ls.LibrarianId)
-            .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired(false);
 
         // Within Circulation context navigation
         builder.HasMany(ls => ls.Details)

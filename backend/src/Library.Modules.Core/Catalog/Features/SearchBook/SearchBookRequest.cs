@@ -22,5 +22,9 @@ public record BookSummary(
     string? Publisher,
     short? PublishedYear,
     string? CoverImageUrl,
-    int AvailableCopies
+    int AvailableCopies,
+    int TotalCopies = 0,
+    List<string>? Authors = null,
+    List<string>? Categories = null,
+    string? Description = null
 );

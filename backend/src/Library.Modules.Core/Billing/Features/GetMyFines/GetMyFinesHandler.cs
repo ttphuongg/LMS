@@ -7,8 +7,8 @@ namespace Library.Modules.Core.Billing.Features.GetMyFines;
 
 public sealed class GetMyFinesHandler : IRequestHandler<GetMyFinesRequest, ApiResponse<List<FineDto>>>
 {
-    private readonly AppDbContext _db;
-    public GetMyFinesHandler(AppDbContext db) => _db = db;
+    private readonly BillingDbContext _db;
+    public GetMyFinesHandler(BillingDbContext db) => _db = db;
 
     public async Task<ApiResponse<List<FineDto>>> Handle(GetMyFinesRequest request, CancellationToken ct)
     {
