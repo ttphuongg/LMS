@@ -101,7 +101,7 @@ export const Header: React.FC = () => {
           }}
         >
           <NavMenu onHome={scrollToTop} />
-          {isAuthenticated && !isStaff && <HeaderSearch />}
+          {isAuthenticated && <HeaderSearch />}
         </div>
 
         {/* Right: Notifications, User profile & Mobile Hamburger */}
@@ -244,6 +244,7 @@ export const Header: React.FC = () => {
                 onClick={() => {
                   setMobileDrawerOpen(false)
                   logout()
+                  navigate('/')
                 }}
                 style={{ textAlign: 'left', height: 42, fontSize: 15, marginTop: 8 }}
               >

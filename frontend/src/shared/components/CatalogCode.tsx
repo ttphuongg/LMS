@@ -12,7 +12,8 @@ export const CatalogCode: React.FC<CatalogCodeProps> = ({ code, label, className
       className={`catalog-call-number ${className}`}
       title={label ? `${label}: ${code}` : code}
     >
-      {label ? `${label} ` : ''}#{code}
+      {label ? `${label}: ` : ''}
+      {code}
     </span>
   )
 }

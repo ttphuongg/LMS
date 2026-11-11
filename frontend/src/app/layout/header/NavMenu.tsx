@@ -1,7 +1,7 @@
 import React from 'react'
 import { Menu } from 'antd'
 import type { MenuProps } from 'antd'
-import { ReadOutlined, DollarOutlined } from '@ant-design/icons'
+import { ReadOutlined, DollarOutlined, DashboardOutlined } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/features/identity'
 import { HEADER_HEIGHT, ADMIN_HOME_PATH } from './constants'
@@ -15,14 +15,8 @@ const navLabel = (text: string) => <span className="nav-hover-underline">{text}<
 export function useScrollToTop() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isStaff, isAdmin } = useAuth()
 
   return () => {
-    // Thủ thư/admin không có trang chủ độc giả: logo dẫn thẳng vào khu quản trị
-    if (isStaff) {
-      navigate(isAdmin ? ADMIN_HOME_PATH : '/admin/desk')
-      return
-    }
     if (location.pathname === '/') {
       window.scrollTo({ top: 0, behavior: 'auto' })
     } else {
@@ -32,12 +26,12 @@ export function useScrollToTop() {
 }
 
 /** Menu ngang. Toàn bộ điều hướng nằm ở handleNavClick (cấp item của Menu).
- *  Khách: menu giới thiệu (cuộn trong landing). Đã đăng nhập: bỏ Giới thiệu/Liên hệ/Tra cứu,
- *  việc tìm sách do ô tìm kiếm (HeaderSearch) đảm nhiệm. */
+ *  Khách: menu giới thiệu (cuộn trong landing). Đã đăng nhập: Trang chủ và điều hướng nhanh theo vai trò. */
 export const NavMenu: React.FC<{ onHome: () => void }> = ({ onHome }) => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated, isStaff } = useAuth()
+  const { isAuthenticated, isStaff, isAdmin } = useAuth()
+  const staffHomePath = isAdmin ? ADMIN_HOME_PATH : '/admin/desk'
 
   // Hàm nhảy đến phần giới thiệu
   const scrollToAbout = () => {
@@ -64,7 +58,14 @@ export const NavMenu: React.FC<{ onHome: () => void }> = ({ onHome }) => {
 
   const navMenuItems: MenuProps['items'] = isAuthenticated
     ? isStaff
-      ? [] // Thủ thư/admin: không có menu ngang, điều hướng bằng Sidebar
+      ? [
+          { key: 'home', label: navLabel('Trang chủ') },
+          {
+            key: staffHomePath,
+            icon: <DashboardOutlined style={{ color: '#B08D3C' }} />,
+            label: navLabel(isAdmin ? 'Tổng quan quản trị' : 'Bàn làm việc'),
+          },
+        ]
       : [
           { key: 'home', label: navLabel('Trang chủ') },
           {
@@ -97,7 +98,7 @@ export const NavMenu: React.FC<{ onHome: () => void }> = ({ onHome }) => {
         jumpToFooter()
         break
       default:
-        navigate(key) // '/books', '/my-loans', '/my-fines'
+        navigate(key) // '/books', '/my-loans', '/my-fines', '/admin/dashboard', '/admin/desk'
     }
   }
 
@@ -113,7 +114,7 @@ export const NavMenu: React.FC<{ onHome: () => void }> = ({ onHome }) => {
       : path.startsWith('/books')
         ? '/books'
         : path.startsWith('/admin')
-          ? '/admin'
+          ? staffHomePath
           : path
   const selectedKeys = selectedKey ? [selectedKey] : []
 
