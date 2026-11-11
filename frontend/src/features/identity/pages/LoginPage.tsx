@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Form, Input, Button, Card, Alert, Typography } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
-import { useNavigate, useLocation, Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { identityApi } from '../api'
 import { useAuth } from '../authStore'
 import type { LoginRequest } from '../types'
@@ -14,13 +14,10 @@ const { Title, Text } = Typography
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate()
-  const location = useLocation()
   const { setAuth } = useAuth()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/'
 
   const handleSubmit = async (values: LoginRequest) => {
     try {
@@ -36,16 +33,8 @@ export const LoginPage: React.FC = () => {
       }
       setAuth(currentUser, res.accessToken, res.refreshToken)
 
-      // Điều hướng thông minh theo vai trò
-      if (from && from !== '/login' && from !== '/') {
-        navigate(from, { replace: true })
-      } else if (currentUser.role === 'Admin') {
-        navigate('/admin/dashboard', { replace: true })
-      } else if (currentUser.role === 'Librarian') {
-        navigate('/admin/desk', { replace: true })
-      } else {
-        navigate('/', { replace: true })
-      }
+      // Sau khi đăng nhập bất kỳ tài khoản nào, luôn đưa về Trang chủ đầu tiên
+      navigate('/', { replace: true })
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Đăng nhập không thành công'))
     } finally {
