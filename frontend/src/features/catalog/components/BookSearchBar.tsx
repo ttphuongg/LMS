@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Input, Space, Tooltip } from 'antd'
+import { Button, Input, Select, Space, Tooltip } from 'antd'
 import { SearchOutlined, EyeOutlined } from '@ant-design/icons'
 import { mutedText13Style, mutedTextStyle, radiusStyle } from '@/shared/styles/ui'
 
@@ -10,9 +10,11 @@ interface BookSearchBarProps {
   totalCount: number
   selectedCount?: number
   onViewSelected?: () => void
+  statusFilter?: string
+  onStatusFilterChange?: (status: string) => void
 }
 
-/** Thanh tìm kiếm + tổng số tài liệu ở đầu trang quản lý sách. */
+/** Thanh tìm kiếm + lọc trạng thái + tổng số tài liệu ở đầu trang quản lý sách. */
 export const BookSearchBar: React.FC<BookSearchBarProps> = ({
   keyword,
   onKeywordChange,
@@ -20,6 +22,8 @@ export const BookSearchBar: React.FC<BookSearchBarProps> = ({
   totalCount,
   selectedCount = 0,
   onViewSelected,
+  statusFilter,
+  onStatusFilterChange,
 }) => (
   <div
     style={{
@@ -42,8 +46,20 @@ export const BookSearchBar: React.FC<BookSearchBarProps> = ({
         value={keyword}
         onChange={(e) => onKeywordChange(e.target.value)}
         onPressEnter={onSearch}
-        style={{ width: 300, borderRadius: 'var(--radius)' }}
+        style={{ width: 280, borderRadius: 'var(--radius)' }}
       />
+      {onStatusFilterChange && (
+        <Select
+          value={statusFilter ?? 'ALL'}
+          onChange={onStatusFilterChange}
+          style={{ width: 185 }}
+          options={[
+            { label: 'Tất cả trạng thái', value: 'ALL' },
+            { label: 'Đang lưu hành (Active)', value: 'Active' },
+            { label: 'Ngừng lưu hành (Inactive)', value: 'Inactive' },
+          ]}
+        />
+      )}
       <Button onClick={onSearch} style={radiusStyle}>Tìm kiếm</Button>
       {onViewSelected && (
         <Tooltip

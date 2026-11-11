@@ -5,6 +5,7 @@ export { AdminLocationsPage } from './pages/AdminLocationsPage'
 export type {
   BookDto,
   BookCopyDto,
+  BookStatus,
   AuthorDto,
   CategoryDto,
   LocationDto,

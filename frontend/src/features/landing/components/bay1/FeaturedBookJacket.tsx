@@ -67,7 +67,7 @@ export const FeaturedBookJacket: React.FC<FeaturedBookJacketProps> = ({
         }}
       />
 
-      {/* Header: Call number & Click Hint */}
+      {/* Header: ISBN / ID & Click Hint */}
       <div style={{ paddingLeft: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span
           style={{
@@ -78,7 +78,7 @@ export const FeaturedBookJacket: React.FC<FeaturedBookJacketProps> = ({
             fontWeight: 700,
           }}
         >
-          {book.callNumber}
+          {book.isbn ? `ISBN ${book.isbn}` : `#${book.id}`}
         </span>
 
         {/* Subtle click-to-open badge on hover */}
@@ -145,7 +145,11 @@ export const FeaturedBookJacket: React.FC<FeaturedBookJacketProps> = ({
             borderColor: pal.gold,
           }}
         >
-          {book.availableCopies > 0 ? `Sẵn có (${book.availableCopies})` : 'Đang mượn hết'}
+          {book.totalCopies === 0
+            ? 'Chưa có bản sao'
+            : book.availableCopies > 0
+              ? `Sẵn có (${book.availableCopies})`
+              : 'Đang mượn hết'}
         </Tag>
       </div>
     </div>

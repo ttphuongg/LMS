@@ -4,24 +4,30 @@ import { appMessage as message } from '@/shared/utils/appFeedback'
 import { PlusOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { catalogApi } from '../api'
-import type { BookDto } from '../types'
+import type { BookDto, BookStatus } from '../types'
 import { AddCopiesModal } from '../components/AddCopiesModal'
+import { BookCopiesDrawer } from '../components/BookCopiesDrawer'
 import { BookSearchBar } from '../components/BookSearchBar'
 import { buildAdminBookColumns } from '../components/adminBookColumns'
 import { useAddCopies } from '../hooks/useAddCopies'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { useStableCallback, useRequestGuard } from '@/shared/hooks'
 import { primaryButtonStyle } from '@/shared/styles/ui'
+import { getErrorMessage } from '@/shared/utils/format'
 
 export const AdminBookListPage: React.FC = () => {
   const navigate = useNavigate()
   const [books, setBooks] = useState<BookDto[]>([])
   const [loading, setLoading] = useState(true)
   const [keyword, setKeyword] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
+  const [drawerBook, setDrawerBook] = useState<BookDto | null>(null)
+  const [drawerRefreshKey, setDrawerRefreshKey] = useState(0)
+  const [togglingBookId, setTogglingBookId] = useState<string | null>(null)
 
   const guard = useRequestGuard()
 
@@ -31,14 +37,16 @@ export const AdminBookListPage: React.FC = () => {
       setLoading(true)
       const res = await catalogApi.getBooks({
         keyword: keyword.trim() || undefined,
+        status: statusFilter,
+        includeInactive: true,
         page,
         pageSize,
       })
       if (!guard.isLatest(reqId)) return
       setBooks(res.items)
       setTotalCount(res.totalCount)
-    } catch {
-      if (guard.isLatest(reqId)) message.error('Lỗi khi tải danh sách sách')
+    } catch (err: unknown) {
+      if (guard.isLatest(reqId)) message.error(getErrorMessage(err, 'Lỗi khi tải danh sách sách'))
     } finally {
       if (guard.isLatest(reqId)) setLoading(false)
     }
@@ -46,27 +54,55 @@ export const AdminBookListPage: React.FC = () => {
 
   useEffect(() => {
     fetchBooks()
-  }, [page, pageSize, fetchBooks])
+  }, [page, pageSize, statusFilter, fetchBooks])
 
-  // Về trang 1 rồi để effect tự tải; nếu đã ở trang 1 thì tải ngay (tránh gọi API hai lần với `page` cũ)
   const applyFilter = () => {
     if (page === 1) fetchBooks()
     else setPage(1)
   }
 
-  const addCopies = useAddCopies(fetchBooks)
+  const handleStatusFilterChange = (val: string) => {
+    setStatusFilter(val)
+    setPage(1)
+  }
+
+  const handleToggleStatus = async (book: BookDto) => {
+    const nextStatus: BookStatus = book.status === 'Inactive' ? 'Active' : 'Inactive'
+    try {
+      setTogglingBookId(book.id)
+      await catalogApi.updateBookStatus(book.id, nextStatus)
+      message.success(
+        nextStatus === 'Inactive'
+          ? `Đã chuyển "${book.title}" sang Ngừng lưu hành.`
+          : `Đã kích hoạt lại lưu hành "${book.title}".`
+      )
+      await fetchBooks()
+    } catch (err: unknown) {
+      message.error(getErrorMessage(err, 'Không thể cập nhật trạng thái đầu sách'))
+    } finally {
+      setTogglingBookId(null)
+    }
+  }
+
+  const addCopies = useAddCopies(() => {
+    fetchBooks()
+    setDrawerRefreshKey((k) => k + 1)
+  })
 
   const columns = buildAdminBookColumns({
     onView: (book) => navigate(`/books/${book.id}`),
     onEdit: (book) => navigate(`/admin/books/${book.id}/edit`),
+    onManageCopies: (book) => setDrawerBook(book),
     onAddCopies: addCopies.openFor,
+    onToggleStatus: handleToggleStatus,
+    togglingBookId,
   })
 
   return (
     <div>
       <PageHeader
         title="Quản Lý Mục Lục Sách"
-        subtitle="Quản lý toàn bộ danh mục tài liệu, số hiệu phân loại và các bản sao lưu thông"
+        subtitle="Quản lý danh mục đầu sách, trạng thái lưu hành, bản sao vật lý và xếp kệ"
         breadcrumbs={[
           { title: 'Quản trị', href: '/admin/dashboard' },
           { title: 'Danh mục sách' },
@@ -89,6 +125,8 @@ export const AdminBookListPage: React.FC = () => {
         onSearch={applyFilter}
         totalCount={totalCount}
         selectedCount={selectedRowKeys.length}
+        statusFilter={statusFilter}
+        onStatusFilterChange={handleStatusFilterChange}
         onViewSelected={() => {
           if (selectedRowKeys.length === 1) {
             navigate(`/books/${selectedRowKeys[0]}`)
@@ -105,7 +143,7 @@ export const AdminBookListPage: React.FC = () => {
         dataSource={books}
         rowKey="id"
         loading={loading}
-        scroll={{ x: 800 }}
+        scroll={{ x: 1050 }}
         pagination={{
           current: page,
           pageSize,
@@ -118,6 +156,16 @@ export const AdminBookListPage: React.FC = () => {
           },
         }}
         bordered
+      />
+
+      {/* Drawer Quản lý bản sao & Xếp kệ */}
+      <BookCopiesDrawer
+        open={drawerBook !== null}
+        book={drawerBook}
+        refreshKey={drawerRefreshKey}
+        onClose={() => setDrawerBook(null)}
+        onChanged={fetchBooks}
+        onOpenAddCopies={(b) => addCopies.openFor(b)}
       />
 
       {/* Modal Thêm bản sao */}

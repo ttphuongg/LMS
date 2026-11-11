@@ -117,7 +117,7 @@ export const BookListPage: React.FC = () => {
       >
         <Space wrap size={12} style={{ flex: 1 }}>
           <Input
-            placeholder="Tìm theo tên sách, tác giả, ISBN, Call number..."
+            placeholder="Tìm theo tên sách, tác giả, ISBN..."
             prefix={<SearchOutlined style={mutedTextStyle} />}
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -138,7 +138,7 @@ export const BookListPage: React.FC = () => {
             }}
             style={{ width: 240 }}
             options={categories.map((c) => ({
-              label: `${c.code ? `[${c.code}] ` : ''}${c.name}`,
+              label: c.name,
               value: c.id,
             }))}
           />

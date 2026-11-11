@@ -4,7 +4,7 @@ import type { CategoryDto } from '@/features/catalog'
 
 interface CategoryGridProps {
   categories: CategoryDto[]
-  /** Số đầu sách theo danh mục; chỉ truyền khi đã có đủ dữ liệu để đếm chính xác */
+  /** Số đầu sách theo danh mục tính từ API hoặc fallback theo tên */
   counts?: Record<string, number>
 }
 
@@ -21,23 +21,25 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({ categories, counts }
         </button>
       </div>
       <div className="home-cats">
-        {categories.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            className="home-cat"
-            onClick={() => navigate(`/books?categoryId=${encodeURIComponent(c.id)}`)}
-          >
-            {c.code && <span className="catalog-call-number">#{c.code}</span>}
-            <span className="home-cat-name">{c.name}</span>
-            {c.description && <span className="home-cat-desc">{c.description}</span>}
-            {counts && (
-              <span className="home-cat-desc" style={{ marginTop: 'var(--sp-2)' }}>
-                {counts[c.id] ?? 0} đầu sách
-              </span>
-            )}
-          </button>
-        ))}
+        {categories.map((c) => {
+          const count = c.bookCount !== undefined ? c.bookCount : counts?.[c.name]
+          return (
+            <button
+              key={c.id}
+              type="button"
+              className="home-cat"
+              onClick={() => navigate(`/books?categoryId=${encodeURIComponent(c.id)}`)}
+            >
+              <span className="home-cat-name">{c.name}</span>
+              {c.description && <span className="home-cat-desc">{c.description}</span>}
+              {count !== undefined && (
+                <span className="home-cat-desc" style={{ marginTop: 'var(--sp-2)' }}>
+                  {count} đầu sách
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
     </section>
   )

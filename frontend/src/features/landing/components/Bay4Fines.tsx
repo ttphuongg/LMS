@@ -1,7 +1,7 @@
 import React from 'react'
 import { ShelfBookCluster } from './BookSpineArtwork'
 import { LIBRARY_RULES } from '@/shared/constants/rules'
-import { DollarOutlined, ExclamationCircleOutlined, QrcodeOutlined } from '@ant-design/icons'
+import { DollarOutlined, ExclamationCircleOutlined, CheckCircleOutlined } from '@ant-design/icons'
 
 export const Bay4Fines: React.FC = () => {
   const fineCards = [
@@ -16,21 +16,21 @@ export const Bay4Fines: React.FC = () => {
     },
     {
       title: 'Bồi Thường Mất / Hư Hỏng',
-      rate: '100% Giá bìa + 20.000 ₫',
+      rate: 'Theo biên bản thực tế',
       badge: 'Bảo quản tài sản',
       color: '#3B2A1E',
       icon: <ExclamationCircleOutlined style={{ fontSize: 21, color: '#B08D3C' }} />,
-      desc: 'Trường hợp làm mất hoặc làm rách nát tài liệu không thể phục chế, bạn đọc bồi hoàn theo giá trị niêm yết hoặc bổ sung bản sao mới tương đương.',
-      tip: 'Phí nghiệp vụ đóng gáy & cấp mã mới',
+      desc: 'Trường hợp làm mất hoặc hư hại tài liệu, thủ thư lập biên bản đánh giá mức độ (Nhẹ, Nặng hoặc Mất hoàn toàn) để xác định khoản bồi hoàn phù hợp.',
+      tip: 'Đối chiếu trực tiếp với giá trị tài liệu',
     },
     {
-      title: 'Thanh Toán Không Tiền Mặt',
-      rate: 'VietQR / Chuyển Khoản',
+      title: 'Thanh Toán Trọn Gói 1 Lần',
+      rate: 'Thu đủ 100% tại quầy',
       badge: 'Minh bạch 100%',
       color: '#1F3A2E',
-      icon: <QrcodeOutlined style={{ fontSize: 21, color: '#B08D3C' }} />,
-      desc: 'Hệ thống tích hợp mã QR chuyển khoản ngân hàng chuẩn NAPAS247 ngay trên trang "Tiền phạt của tôi". Thủ thư đối soát và xóa nợ tức thì.',
-      tip: 'Biên lai điện tử lưu trữ vĩnh viễn',
+      icon: <CheckCircleOutlined style={{ fontSize: 21, color: '#B08D3C' }} />,
+      desc: 'Bạn đọc nộp đủ 100% giá trị phiếu phạt bằng tiền mặt tại quầy thủ thư hoặc chuyển khoản đối soát trực tiếp. Thủ thư xác nhận hoàn tất ngay.',
+      tip: 'Lưu lịch sử phiếu phạt rõ ràng trên tài khoản',
     },
   ]
 

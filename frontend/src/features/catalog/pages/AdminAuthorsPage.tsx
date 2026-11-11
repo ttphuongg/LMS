@@ -7,17 +7,17 @@ import { SimpleCreateListPage } from '../components/SimpleCreateListPage'
 
 const columns: ColumnsType<AuthorDto> = [
   {
+    title: 'ID',
+    dataIndex: 'id',
+    key: 'id',
+    width: 80,
+    render: (id: string) => <span className="tabular-numbers">#{id}</span>,
+  },
+  {
     title: 'Tên tác giả',
     dataIndex: 'name',
     key: 'name',
     render: (name: string) => <strong>{name}</strong>,
-  },
-  {
-    title: 'Quốc tịch',
-    dataIndex: 'nationality',
-    key: 'nationality',
-    width: 150,
-    render: (nat: string) => nat || 'Chưa cập nhật',
   },
   {
     title: 'Tiểu sử tóm tắt',
@@ -51,10 +51,6 @@ export const AdminAuthorsPage: React.FC = () => (
           rules={[{ required: true, message: 'Vui lòng nhập tên tác giả' }]}
         >
           <Input placeholder="VD: Robert C. Martin" />
-        </Form.Item>
-
-        <Form.Item label="Quốc tịch" name="nationality">
-          <Input placeholder="VD: Hoa Kỳ, Việt Nam..." />
         </Form.Item>
 
         <Form.Item label="Tiểu sử / Ghi chú" name="bio">

@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiClient } from '@/shared/api/client'
 import type { ApiResponse, PagedResult } from '@/shared/api/types'
+import { getErrorMessage } from '@/shared/utils/format'
 import type {
   BookDto,
   BookCopyDto,
+  BookStatus,
   AuthorDto,
   CategoryDto,
   LocationDto,
@@ -14,7 +16,25 @@ import type {
   AddBookCopiesRequest,
   AddCopiesBatchResult,
   UpdateCopyStatusRequest,
+  CopyLookupDto,
 } from './types'
+
+const mapCopyDto = (c: any, bookId: string | number): BookCopyDto => {
+  const label = typeof c.locationLabel === 'string' && c.locationLabel.trim() ? c.locationLabel.trim() : null
+  return {
+    id: String(c.id),
+    copyId: c.id,
+    bookId: String(bookId),
+    bookIdInt: Number(bookId),
+    barcode: c.barcode,
+    status: c.status,
+    condition: c.condition,
+    locationId: c.locationId ?? null,
+    location: label,
+    locationLabel: label,
+    acquiredDate: c.acquiredDate ? String(c.acquiredDate) : undefined,
+  }
+}
 
 export const catalogApi = {
   // Lấy danh sách sách phân trang
@@ -22,6 +42,8 @@ export const catalogApi = {
     keyword?: string
     categoryId?: number | string
     category?: number | string
+    status?: BookStatus | string
+    includeInactive?: boolean
     page?: number
     pageSize?: number
   }): Promise<PagedResult<BookDto>> => {
@@ -37,6 +59,12 @@ export const catalogApi = {
         queryParams.categoryId = catNum
       }
     }
+    if (params?.status && params.status !== 'ALL') {
+      queryParams.status = params.status
+    }
+    if (params?.includeInactive) {
+      queryParams.includeInactive = true
+    }
 
     const res = await apiClient.get<ApiResponse<{ items: any[]; totalCount: number }>>('/api/catalog/books', {
       params: queryParams,
@@ -46,22 +74,24 @@ export const catalogApi = {
     const pageSize = params?.pageSize || 20
     const totalCount = data?.totalCount || 0
 
-    // Mapping SearchBookResult (BookSummary) sang BookDto cho giao diện
+    // Mapping SearchBookResult (BookSummary) sang BookDto cho giao diện (không fallback 1 giả)
     const items: BookDto[] = (data?.items || []).map((b: any) => ({
       id: String(b.id),
       bookId: b.id,
       title: b.title,
       isbn: b.isbn || '',
-      callNumber: b.callNumber || '000 DDC',
       authorName: b.authorName || (Array.isArray(b.authors) && b.authors.length > 0 ? b.authors.join(', ') : 'Chưa rõ tác giả'),
       categoryName: b.categoryName || (Array.isArray(b.categories) && b.categories.length > 0 ? b.categories.join(', ') : 'Chung'),
+      authors: Array.isArray(b.authors) ? b.authors : undefined,
+      categories: Array.isArray(b.categories) ? b.categories : undefined,
       publisher: b.publisher,
       publishedYear: b.publishedYear,
       description: b.description,
       coverImageUrl: b.coverImageUrl,
       coverImage: b.coverImageUrl,
-      availableCopies: b.availableCopies ?? 1,
-      totalCopies: b.totalCopies ?? b.availableCopies ?? 1,
+      availableCopies: Number(b.availableCopies ?? 0),
+      totalCopies: Number(b.totalCopies ?? 0),
+      status: b.status || 'Active',
     }))
 
     return {
@@ -73,41 +103,48 @@ export const catalogApi = {
     }
   },
 
-  // Chi tiết sách (Tự động gọi song song /api/catalog/books/{id}/copies để gộp bản sao vào book.copies)
+  // Chi tiết sách (gọi song song /copies nhưng không che giấu lỗi và không gán 1 giả)
   getBookById: async (id: string): Promise<BookDto> => {
-    const [bookRes, copiesRes] = await Promise.all([
+    const [bookResult, copiesResult] = await Promise.allSettled([
       apiClient.get<ApiResponse<any>>(`/api/catalog/books/${id}`),
-      apiClient.get<ApiResponse<any[]>>(`/api/catalog/books/${id}/copies`).catch(() => ({ data: { data: [] } })),
+      apiClient.get<ApiResponse<any[]>>(`/api/catalog/books/${id}/copies`),
     ])
 
-    const d = bookRes.data.data
-    const rawCopies = copiesRes.data.data || []
+    if (bookResult.status === 'rejected') {
+      throw bookResult.reason
+    }
+
+    const d = bookResult.value.data.data
+    const copiesFailed = copiesResult.status === 'rejected'
+    const rawCopies = copiesResult.status === 'fulfilled' ? (copiesResult.value.data.data || []) : []
+
     const authors = Array.isArray(d.authors) ? (d.authors as string[]) : []
     const categories = Array.isArray(d.categories) ? (d.categories as string[]) : []
+    const authorIds = Array.isArray(d.authorIds) ? (d.authorIds as number[]) : []
+    const categoryIds = Array.isArray(d.categoryIds) ? (d.categoryIds as number[]) : []
+    const copies: BookCopyDto[] = rawCopies.map((c: any) => mapCopyDto(c, d.id))
 
-    const copies: BookCopyDto[] = rawCopies.map((c: any) => ({
-      id: String(c.id),
-      copyId: c.id,
-      bookId: String(d.id),
-      bookIdInt: d.id,
-      barcode: c.barcode,
-      status: c.status,
-      condition: c.condition,
-      locationId: c.locationId,
-      location: c.locationLabel || 'Kệ chính - Phòng đọc',
-      locationLabel: c.locationLabel,
-      acquiredDate: c.acquiredDate ? String(c.acquiredDate) : undefined,
-    }))
+    const availableCopies =
+      d.availableCopies !== undefined && d.availableCopies !== null
+        ? Number(d.availableCopies)
+        : copies.filter((c) => c.status === 'Available').length
+    const totalCopies =
+      d.totalCopies !== undefined && d.totalCopies !== null
+        ? Number(d.totalCopies)
+        : copies.length
 
     return {
       id: String(d.id),
       bookId: d.id,
       title: d.title,
       isbn: d.isbn || '',
-      callNumber: d.callNumber || '000 DDC',
+      authorId: authorIds[0] ? String(authorIds[0]) : undefined,
+      authorIds,
       authorName: authors.length > 0 ? authors.join(', ') : (d.authorName || 'Chưa rõ tác giả'),
-      categoryName: categories.length > 0 ? categories.join(', ') : (d.categoryName || 'Chung'),
       authors,
+      categoryId: categoryIds[0] ? String(categoryIds[0]) : undefined,
+      categoryIds,
+      categoryName: categories.length > 0 ? categories.join(', ') : (d.categoryName || 'Chung'),
       categories,
       publisher: d.publisher,
       publishedYear: d.publishedYear,
@@ -117,9 +154,11 @@ export const catalogApi = {
       bookValue: d.bookValue,
       coverImageUrl: d.coverImageUrl,
       coverImage: d.coverImageUrl,
-      availableCopies: copies.length > 0 ? copies.filter((c) => c.status === 'Available').length : 1,
-      totalCopies: copies.length > 0 ? copies.length : 1,
+      availableCopies,
+      totalCopies,
+      status: d.status || 'Active',
       copies,
+      copiesError: copiesFailed,
     }
   },
 
@@ -127,29 +166,16 @@ export const catalogApi = {
   getBookCopies: async (bookId: string): Promise<BookCopyDto[]> => {
     const res = await apiClient.get<ApiResponse<any[]>>(`/api/catalog/books/${bookId}/copies`)
     const rawList = res.data.data || []
-    return rawList.map((c: any) => ({
-      id: String(c.id),
-      copyId: c.id,
-      bookId,
-      bookIdInt: Number(bookId),
-      barcode: c.barcode,
-      status: c.status,
-      condition: c.condition,
-      locationId: c.locationId,
-      location: c.locationLabel || 'Kệ lưu thông chính',
-      locationLabel: c.locationLabel,
-      acquiredDate: c.acquiredDate ? String(c.acquiredDate) : undefined,
-    }))
+    return rawList.map((c: any) => mapCopyDto(c, bookId))
   },
 
   // Thêm sách mới (Staff)
-  createBook: async (data: CreateBookRequest): Promise<BookDto> => {
-    // BE AddBookRequest(Title, Isbn, Description, PublishedYear, Publisher, Language, PageCount, BookValue, CoverImageUrl, AuthorIds, CategoryIds)
+  createBook: async (data: CreateBookRequest): Promise<BookDto & { initialCopyErrors?: string[] }> => {
     const authorIds = data.authorIds && data.authorIds.length > 0
-      ? data.authorIds
+      ? data.authorIds.map(Number)
       : (data.authorId && !isNaN(Number(data.authorId)) ? [Number(data.authorId)] : [])
     const categoryIds = data.categoryIds && data.categoryIds.length > 0
-      ? data.categoryIds
+      ? data.categoryIds.map(Number)
       : (data.categoryId && !isNaN(Number(data.categoryId)) ? [Number(data.categoryId)] : [])
 
     const payload = {
@@ -168,8 +194,9 @@ export const catalogApi = {
 
     const res = await apiClient.post<ApiResponse<number>>('/api/catalog/books', payload)
     const newBookId = res.data.data
+    const initialCopyErrors: string[] = []
 
-    // Nếu người dùng yêu cầu số bản sao ban đầu, adapter tuân thủ quy trình BE tạo tiếp các bản sao
+    // Nếu người dùng yêu cầu số bản sao ban đầu, tạo kèm locationId đã chọn và thu nhận lỗi nếu có
     if (data.initialCopies && data.initialCopies > 0) {
       for (let i = 0; i < data.initialCopies; i++) {
         try {
@@ -177,24 +204,26 @@ export const catalogApi = {
           await apiClient.post(`/api/catalog/books/${newBookId}/copies`, {
             bookId: newBookId,
             barcode,
+            locationId: data.initialLocationId || null,
             condition: 0, // Good
           })
-        } catch {
-          // Bỏ qua lỗi bản sao phụ để không làm gián đoạn
+        } catch (err: unknown) {
+          initialCopyErrors.push(getErrorMessage(err, `Lỗi tạo bản sao #${i + 1}`))
         }
       }
     }
 
-    return await catalogApi.getBookById(String(newBookId))
+    const created = await catalogApi.getBookById(String(newBookId))
+    return { ...created, initialCopyErrors }
   },
 
   // Sửa sách (Staff)
   updateBook: async (id: string, data: UpdateBookRequest): Promise<BookDto> => {
     const authorIds = data.authorIds && data.authorIds.length > 0
-      ? data.authorIds
+      ? data.authorIds.map(Number)
       : (data.authorId && !isNaN(Number(data.authorId)) ? [Number(data.authorId)] : [])
     const categoryIds = data.categoryIds && data.categoryIds.length > 0
-      ? data.categoryIds
+      ? data.categoryIds.map(Number)
       : (data.categoryId && !isNaN(Number(data.categoryId)) ? [Number(data.categoryId)] : [])
 
     const payload = {
@@ -215,6 +244,14 @@ export const catalogApi = {
     return await catalogApi.getBookById(id)
   },
 
+  // Đổi trạng thái đầu sách Active / Inactive (Staff)
+  updateBookStatus: async (bookId: string, newStatus: BookStatus): Promise<void> => {
+    await apiClient.patch<ApiResponse<boolean>>(`/api/catalog/books/${bookId}/status`, {
+      bookId: Number(bookId),
+      newStatus,
+    })
+  },
+
   // Thêm bản sao (Staff)
   addCopies: async (bookId: string, data: AddBookCopiesRequest): Promise<AddCopiesBatchResult> => {
     const count = Math.max(Number(data.quantity) || 1, 1)
@@ -224,9 +261,7 @@ export const catalogApi = {
     const now = Date.now()
     const salt = Math.random().toString(36).substring(2, 6).toUpperCase()
 
-    // Chuẩn bị các request thêm bản sao song song qua Promise.allSettled
     const tasks = Array.from({ length: count }, (_, i) => {
-      // Đảm bảo barcode là duy nhất cho mỗi bản sao
       const barcode = data.barcode && count === 1
         ? data.barcode
         : `BC-${bookId}-${now.toString().slice(-4)}${salt}-${i + 1}`
@@ -247,13 +282,11 @@ export const catalogApi = {
     const successCount = successes.length
     const failCount = failures.length
 
-    // Nếu toàn bộ thất bại, ném lỗi rõ ràng
     if (successCount === 0) {
       const firstErr = errors[0] || 'Tất cả các bản sao đều không thể tạo được'
       throw new Error(`Tạo ${count} bản sao thất bại: ${firstErr}`)
     }
 
-    // Tải lại danh sách bản sao mới nhất sau khi thêm
     const copies = await catalogApi.getBookCopies(bookId).catch(() => [])
 
     return {
@@ -273,9 +306,19 @@ export const catalogApi = {
     })
   },
 
+  // Gán / chuyển vị trí kệ bản sao (Staff)
+  updateCopyLocation: async (copyId: string | number, locationId: number | null): Promise<void> => {
+    await apiClient.patch<ApiResponse<boolean>>(`/api/catalog/copies/${copyId}/location`, {
+      copyId: Number(copyId),
+      locationId,
+    })
+  },
+
   // Tra cứu bản sao qua mã vạch (Barcode lookup)
-  lookupCopyByBarcode: async (barcode: string): Promise<any> => {
-    const res = await apiClient.get<ApiResponse<any>>(`/api/catalog/copies/lookup?barcode=${encodeURIComponent(barcode.trim())}`)
+  lookupCopyByBarcode: async (barcode: string): Promise<CopyLookupDto> => {
+    const res = await apiClient.get<ApiResponse<CopyLookupDto>>(
+      `/api/catalog/copies/lookup?barcode=${encodeURIComponent(barcode.trim())}`,
+    )
     return res.data.data
   },
 
@@ -316,7 +359,7 @@ export const catalogApi = {
       categoryId: c.id,
       name: c.name,
       description: c.description,
-      code: c.id ? `DDC-${c.id}` : undefined,
+      bookCount: Number(c.bookCount ?? 0),
     }))
   },
 
@@ -331,6 +374,7 @@ export const catalogApi = {
       categoryId: res.data.data,
       name: data.name,
       description: data.description,
+      bookCount: 0,
     }
   },
 

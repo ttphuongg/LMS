@@ -50,7 +50,7 @@ export const MyLoansPanel: React.FC<MyLoansPanelProps> = ({ active, onRenew }) =
                   {d.bookTitle}
                 </div>
                 <div className="home-loan-meta">
-                  #{d.callNumber} · Hạn trả {formatDate(d.dueDate)}
+                  {d.barcode ? `Mã ${d.barcode} · ` : ''}Hạn trả {formatDate(d.dueDate)}
                 </div>
               </div>
               <DueTag detail={d} />

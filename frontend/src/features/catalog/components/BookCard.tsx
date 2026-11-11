@@ -39,9 +39,9 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
       styles={{ body: { padding: 'var(--sp-4)', height: '100%', display: 'flex', flexDirection: 'column' } }}
     >
       <div>
-        {/* Top header: Call number & Category */}
+        {/* Top header: ISBN / ID & Category */}
         <div className="catalog-card-header">
-          <CatalogCode code={book.callNumber} />
+          <CatalogCode code={book.isbn ? book.isbn : `#${book.id}`} label={book.isbn ? 'ISBN' : undefined} />
           <Tag
             style={{
               background: 'var(--primary)',
@@ -153,7 +153,9 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
           ISBN: {book.isbn}
         </span>
 
-        {book.availableCopies > 0 ? (
+        {book.totalCopies === 0 ? (
+          <SpineTag variant="neutral">Chưa có bản sao</SpineTag>
+        ) : book.availableCopies > 0 ? (
           <SpineTag variant="primary">
             Sẵn sàng: {book.availableCopies}/{book.totalCopies}
           </SpineTag>

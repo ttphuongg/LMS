@@ -3,7 +3,7 @@ import { Card, Form, Input, Button, Select, InputNumber, Row, Col, Space } from 
 import { appMessage as message } from '@/shared/utils/appFeedback'
 import { useParams, useNavigate } from 'react-router-dom'
 import { catalogApi } from '../api'
-import type { AuthorDto, CategoryDto, CreateBookRequest, UpdateBookRequest } from '../types'
+import type { AuthorDto, CategoryDto, CreateBookRequest, LocationDto, UpdateBookRequest } from '../types'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { LoadingState } from '@/shared/components/LoadingState'
 import { cardStyle, primaryButtonStyle, radiusStyle } from '@/shared/styles/ui'
@@ -18,49 +18,58 @@ export const AdminBookFormPage: React.FC = () => {
   const [form] = Form.useForm()
   const [authors, setAuthors] = useState<AuthorDto[]>([])
   const [categories, setCategories] = useState<CategoryDto[]>([])
+  const [locations, setLocations] = useState<LocationDto[]>([])
   const [loading, setLoading] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(isEdit)
+  const [initialLoading, setInitialLoading] = useState(true)
   const [initialFormValues, setInitialFormValues] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
-    Promise.all([catalogApi.getAuthors(), catalogApi.getCategories()])
-      .then(([aList, cList]) => {
+    const loadRefData = Promise.all([
+      catalogApi.getAuthors(),
+      catalogApi.getCategories(),
+      !isEdit ? catalogApi.getLocations(true).catch(() => []) : Promise.resolve([]),
+    ])
+
+    loadRefData
+      .then(async ([aList, cList, lList]) => {
         setAuthors(aList)
         setCategories(cList)
+        setLocations(lList)
 
         if (isEdit && id) {
-          catalogApi
-            .getBookById(id)
-            .then((b) => {
-              const matchedAuthor = aList.find(
-                (a) => a.id === b.authorId || b.authors?.includes(a.name) || a.name === b.authorName
-              )
-              const matchedCategory = cList.find(
-                (c) => c.id === b.categoryId || b.categories?.includes(c.name) || c.name === b.categoryName
-              )
-              setInitialFormValues({
-                title: b.title,
-                isbn: b.isbn,
-                callNumber: b.callNumber,
-                authorId: matchedAuthor ? matchedAuthor.id : b.authorId,
-                categoryId: matchedCategory ? matchedCategory.id : b.categoryId,
-                publisher: b.publisher,
-                publishedYear: b.publishedYear,
-                description: b.description,
-                language: b.language || 'vi',
-                pageCount: b.pageCount,
-                bookValue: b.bookValue,
-                coverImageUrl: b.coverImageUrl || b.coverImage,
-              })
+          try {
+            const b = await catalogApi.getBookById(id)
+            const authorIds =
+              b.authorIds && b.authorIds.length > 0
+                ? b.authorIds
+                : aList.filter((a) => b.authors?.includes(a.name)).map((a) => Number(a.id))
+            const categoryIds =
+              b.categoryIds && b.categoryIds.length > 0
+                ? b.categoryIds
+                : cList.filter((c) => b.categories?.includes(c.name)).map((c) => Number(c.id))
+
+            setInitialFormValues({
+              title: b.title,
+              isbn: b.isbn,
+              authorIds,
+              categoryIds,
+              publisher: b.publisher,
+              publishedYear: b.publishedYear,
+              description: b.description,
+              language: b.language || 'vi',
+              pageCount: b.pageCount,
+              bookValue: b.bookValue,
+              coverImageUrl: b.coverImageUrl || b.coverImage,
             })
-            .catch(() => message.error('Không thể tải thông tin sách'))
-            .finally(() => setInitialLoading(false))
+          } catch {
+            message.error('Không thể tải thông tin sách')
+          }
         }
       })
       .catch(() => {
         message.error('Không thể tải danh mục tác giả/thể loại')
-        setInitialLoading(false)
       })
+      .finally(() => setInitialLoading(false))
   }, [id, isEdit])
 
   useEffect(() => {
@@ -76,8 +85,14 @@ export const AdminBookFormPage: React.FC = () => {
         await catalogApi.updateBook(id, values)
         message.success('Cập nhật tài liệu thành công!')
       } else {
-        await catalogApi.createBook(values)
-        message.success('Nhập tài liệu mới vào mục lục thành công!')
+        const res = await catalogApi.createBook(values)
+        if (res.initialCopyErrors && res.initialCopyErrors.length > 0) {
+          message.warning(
+            `Đã tạo đầu sách mới, nhưng có ${res.initialCopyErrors.length} bản sao ban đầu chưa tạo được: ${res.initialCopyErrors[0]}`
+          )
+        } else {
+          message.success('Nhập tài liệu mới vào mục lục thành công!')
+        }
       }
       navigate('/admin/books')
     } catch (err: unknown) {
@@ -91,11 +106,22 @@ export const AdminBookFormPage: React.FC = () => {
     return <LoadingState tip="Đang tải dữ liệu biểu mẫu sách..." />
   }
 
+  const locationOptions = locations.map((loc) => {
+    const count = loc.currentCount ?? 0
+    const isFull = loc.maxCapacity != null && count >= loc.maxCapacity
+    const capText = loc.maxCapacity != null ? `${count}/${loc.maxCapacity} cuốn` : `${count} cuốn`
+    return {
+      value: loc.id,
+      disabled: isFull,
+      label: `${loc.aisle} - ${loc.shelf} - Tầng ${loc.rowLevel} (${capText}${isFull ? ' - Đã đầy' : ''})`,
+    }
+  })
+
   return (
     <div>
       <PageHeader
         title={isEdit ? 'Chỉnh Sửa Thông Tin Sách' : 'Nhập Sách Mới Vào Mục Lục'}
-        subtitle="Khai báo số hiệu phân loại DDC, mã ISBN và các thông số thư mục"
+        subtitle="Khai báo thông tin thư mục, mã ISBN, tác giả và thể loại tài liệu"
         breadcrumbs={[
           { title: 'Quản trị', href: '/admin/dashboard' },
           { title: 'Danh mục sách', href: '/admin/books' },
@@ -105,38 +131,27 @@ export const AdminBookFormPage: React.FC = () => {
 
       <Card className="catalog-card" style={{ ...cardStyle, maxWidth: 840 }}>
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Row gutter={16}>
-            <Col xs={24} md={16}>
-              <Form.Item
-                label="Tên tài liệu / Sách"
-                name="title"
-                rules={[{ required: true, message: 'Vui lòng nhập tên sách' }]}
-              >
-                <Input placeholder="VD: Clean Code" style={radiusStyle} />
-              </Form.Item>
-            </Col>
-
-            <Col xs={24} md={8}>
-              <Form.Item
-                label="Số hiệu phân loại (Call number)"
-                name="callNumber"
-                rules={[{ required: true, message: 'Vui lòng nhập Call number' }]}
-              >
-                <Input placeholder="VD: 005.133 M385C" style={radiusStyle} />
-              </Form.Item>
-            </Col>
-          </Row>
+          <Form.Item
+            label="Tên tài liệu / Sách"
+            name="title"
+            rules={[{ required: true, message: 'Vui lòng nhập tên sách' }]}
+          >
+            <Input placeholder="VD: Clean Code" style={radiusStyle} />
+          </Form.Item>
 
           <Row gutter={16}>
             <Col xs={24} md={12}>
               <Form.Item
                 label="Tác giả"
-                name="authorId"
-                rules={[{ required: true, message: 'Vui lòng chọn tác giả' }]}
+                name="authorIds"
+                rules={[{ required: true, message: 'Vui lòng chọn ít nhất một tác giả' }]}
               >
                 <Select
-                  placeholder="Chọn tác giả biên soạn"
-                  options={authors.map((a) => ({ label: a.name, value: a.id }))}
+                  mode="multiple"
+                  allowClear
+                  optionFilterProp="label"
+                  placeholder="Chọn một hoặc nhiều tác giả"
+                  options={authors.map((a) => ({ label: a.name, value: Number(a.id) }))}
                 />
               </Form.Item>
             </Col>
@@ -144,15 +159,15 @@ export const AdminBookFormPage: React.FC = () => {
             <Col xs={24} md={12}>
               <Form.Item
                 label="Thể loại / Chuyên ngành"
-                name="categoryId"
-                rules={[{ required: true, message: 'Vui lòng chọn thể loại' }]}
+                name="categoryIds"
+                rules={[{ required: true, message: 'Vui lòng chọn ít nhất một thể loại' }]}
               >
                 <Select
-                  placeholder="Chọn thể loại phân loại"
-                  options={categories.map((c) => ({
-                    label: `${c.code ? `[${c.code}] ` : ''}${c.name}`,
-                    value: c.id,
-                  }))}
+                  mode="multiple"
+                  allowClear
+                  optionFilterProp="label"
+                  placeholder="Chọn một hoặc nhiều thể loại"
+                  options={categories.map((c) => ({ label: c.name, value: Number(c.id) }))}
                 />
               </Form.Item>
             </Col>
@@ -249,14 +264,33 @@ export const AdminBookFormPage: React.FC = () => {
           </Form.Item>
 
           {!isEdit && (
-            <Form.Item
-              label="Số lượng bản sao nhập đợt đầu"
-              name="initialCopies"
-              initialValue={1}
-              rules={[{ required: true, message: 'Nhập số lượng bản sao' }]}
-            >
-              <InputNumber min={1} max={100} style={{ width: 200, borderRadius: 'var(--radius)' }} />
-            </Form.Item>
+            <Row gutter={16}>
+              <Col xs={24} md={8}>
+                <Form.Item
+                  label="Số lượng bản sao nhập đợt đầu"
+                  name="initialCopies"
+                  initialValue={1}
+                  rules={[{ required: true, message: 'Nhập số lượng bản sao' }]}
+                >
+                  <InputNumber min={0} max={100} style={{ width: '100%', borderRadius: 'var(--radius)' }} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={16}>
+                <Form.Item
+                  label="Vị trí kệ xếp sách ban đầu"
+                  name="initialLocationId"
+                  extra="Để trống nếu chưa xếp kệ ngay."
+                >
+                  <Select
+                    allowClear
+                    showSearch
+                    optionFilterProp="label"
+                    placeholder="Chọn vị trí kệ từ hệ thống..."
+                    options={locationOptions}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
           )}
 
           <Form.Item label="Tóm tắt nội dung tài liệu" name="description">
@@ -266,7 +300,7 @@ export const AdminBookFormPage: React.FC = () => {
           <Form.Item style={{ marginTop: 'var(--sp-6)' }}>
             <Space>
               <Button type="primary" htmlType="submit" loading={loading} style={primaryButtonStyle}>
-                {isEdit ? 'Lưu cập nhật' : 'Hoàn tất nhập mục lục'}
+                {isEdit ? 'Lưu thay đổi' : 'Nhập sách vào kho'}
               </Button>
               <Button onClick={() => navigate('/admin/books')} style={radiusStyle}>Hủy bỏ</Button>
             </Space>

@@ -1,5 +1,6 @@
 export type CopyCondition = 'Good' | 'MinorDamage' | 'MajorDamage' | 'Lost'
 export type CopyStatus = 'Available' | 'Reserved' | 'Borrowed' | 'Maintenance' | 'Lost' | 'Inactive'
+export type BookStatus = 'Active' | 'Inactive'
 
 export interface BookCopyDto {
   id: string
@@ -9,9 +10,9 @@ export interface BookCopyDto {
   barcode: string
   status: CopyStatus
   condition?: CopyCondition | string
-  locationId?: number
-  location?: string
-  locationLabel?: string
+  locationId?: number | null
+  location?: string | null
+  locationLabel?: string | null
   acquiredDate?: string
   notes?: string
 }
@@ -22,7 +23,6 @@ export interface AuthorDto {
   name: string
   biography?: string
   bio?: string // Tương thích ngược
-  nationality?: string
 }
 
 export interface CategoryDto {
@@ -30,7 +30,16 @@ export interface CategoryDto {
   categoryId?: number
   name: string
   description?: string
-  code?: string
+  bookCount?: number
+}
+
+export interface LocationCopyItem {
+  id: number
+  barcode: string
+  bookId: number
+  bookTitle: string
+  status: CopyStatus | string
+  condition: CopyCondition | string
 }
 
 export interface LocationDto {
@@ -41,6 +50,7 @@ export interface LocationDto {
   maxCapacity?: number
   isActive: boolean
   currentCount?: number
+  copies?: LocationCopyItem[]
 }
 
 export interface AddLocationRequest {
@@ -64,7 +74,6 @@ export interface BookDto {
   bookId?: number
   title: string
   isbn: string
-  callNumber: string
   authorId?: string
   authorIds?: number[]
   authorName: string
@@ -81,15 +90,16 @@ export interface BookDto {
   bookValue?: number
   totalCopies: number
   availableCopies: number
+  status?: BookStatus | string
   coverImage?: string
   coverImageUrl?: string
   copies?: BookCopyDto[]
+  copiesError?: boolean
 }
 
 export interface CreateBookRequest {
   title: string
   isbn: string
-  callNumber: string
   authorId?: string
   authorIds?: number[]
   categoryId?: string
@@ -102,12 +112,12 @@ export interface CreateBookRequest {
   bookValue?: number
   coverImageUrl?: string
   initialCopies?: number
+  initialLocationId?: number | null
 }
 
 export interface UpdateBookRequest {
   title: string
   isbn: string
-  callNumber?: string
   authorId?: string
   authorIds?: number[]
   categoryId?: string
@@ -124,16 +134,15 @@ export interface UpdateBookRequest {
 export interface AddCopyRequest {
   bookId: number
   barcode: string
-  locationId?: number
+  locationId?: number | null
   acquiredDate?: string
   condition?: CopyCondition
 }
 
 export interface AddBookCopiesRequest {
   quantity: number
-  location?: string
   barcode?: string
-  locationId?: number
+  locationId?: number | null
   condition?: CopyCondition
 }
 
@@ -148,4 +157,16 @@ export interface AddCopiesBatchResult {
 export interface UpdateCopyStatusRequest {
   status: CopyStatus
   notes?: string
+}
+
+export interface CopyLookupDto {
+  id: number
+  bookId: number
+  barcode: string
+  locationId?: number | null
+  locationLabel?: string | null
+  status: CopyStatus | string
+  condition: CopyCondition | string
+  acquiredDate?: string
+  bookTitle?: string | null
 }

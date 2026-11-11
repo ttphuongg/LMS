@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CloseOutlined } from '@ant-design/icons'
-import type { BookDto } from '@/features/catalog'
+import { catalogApi, type BookCopyDto, type BookDto } from '@/features/catalog'
 import { BookCatalogSheet } from './bookReader/BookCatalogSheet'
 import { BookSummaryPage } from './bookReader/BookSummaryPage'
 import type { BookPalette } from './bookReader/types'
@@ -19,6 +19,10 @@ export const BookReaderModal: React.FC<BookReaderModalProps> = ({
   onClose,
   onNavigate,
 }) => {
+  const [copies, setCopies] = useState<BookCopyDto[]>([])
+  const [copiesLoading, setCopiesLoading] = useState(false)
+  const [copiesError, setCopiesError] = useState(false)
+
   // Listen for Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -29,6 +33,34 @@ export const BookReaderModal: React.FC<BookReaderModalProps> = ({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
+
+  useEffect(() => {
+    if (!book) {
+      setCopies([])
+      setCopiesError(false)
+      return
+    }
+    let active = true
+    setCopiesLoading(true)
+    setCopiesError(false)
+    catalogApi
+      .getBookCopies(book.id)
+      .then((list) => {
+        if (active) setCopies(list)
+      })
+      .catch(() => {
+        if (active) {
+          setCopies([])
+          setCopiesError(true)
+        }
+      })
+      .finally(() => {
+        if (active) setCopiesLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [book])
 
   if (!book) return null
 
@@ -116,13 +148,18 @@ export const BookReaderModal: React.FC<BookReaderModalProps> = ({
             boxSizing: 'border-box',
           }}
         >
+          {/* Trang trái: bìa thu nhỏ & phiếu biên mục thực tế */}
+          <BookCatalogSheet
+            book={book}
+            palette={palette}
+            copies={copies}
+            copiesLoading={copiesLoading}
+            copiesError={copiesError}
+          />
 
-        {/* Trang trái: bìa thu nhỏ & phiếu biên mục Dewey */}
-        <BookCatalogSheet book={book} palette={palette} />
-
-        {/* Trang phải: tiêu đề, tóm tắt, tình trạng lưu thông & nút hành động */}
-        <BookSummaryPage book={book} onNavigate={onNavigate} />
-      </div>
+          {/* Trang phải: tiêu đề, tóm tắt, tình trạng lưu thông & nút hành động */}
+          <BookSummaryPage book={book} onNavigate={onNavigate} />
+        </div>
       </div>
     </div>,
     document.body

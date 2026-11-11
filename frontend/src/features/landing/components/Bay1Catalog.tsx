@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { Button, Spin } from 'antd'
+import { ReloadOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import type { BookDto } from '@/features/catalog'
 import { ShelfBookCluster } from './BookSpineArtwork'
@@ -9,7 +11,7 @@ import { COVER_PALETTES, DEFAULT_TILTS, type CoverPalette } from './bay1/coverPa
 
 export const Bay1Catalog: React.FC = () => {
   const navigate = useNavigate()
-  const books = useFeaturedBooks()
+  const { books, loading, error, reload } = useFeaturedBooks()
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [selectedBook, setSelectedBook] = useState<BookDto | null>(null)
   const [selectedPalette, setSelectedPalette] = useState<{ bg: string; gold: string } | null>(null)
@@ -37,23 +39,61 @@ export const Bay1Catalog: React.FC = () => {
           </div>
 
           {/* Interactive Featured Books */}
-          {books.map((book, idx) => {
-            const pal: CoverPalette = COVER_PALETTES[idx % COVER_PALETTES.length]
-            return (
-              <FeaturedBookJacket
-                key={book.id}
-                book={book}
-                pal={pal}
-                baseTilt={DEFAULT_TILTS[idx % DEFAULT_TILTS.length]}
-                isHovered={hoveredId === book.id}
-                onHoverChange={(hovered) => setHoveredId(hovered ? book.id : null)}
-                onOpen={() => {
-                  setSelectedBook(book)
-                  setSelectedPalette(pal)
-                }}
-              />
-            )
-          })}
+          {loading ? (
+            <div style={{ minWidth: 280, padding: 'var(--sp-6)', textAlign: 'center', color: 'var(--muted-foreground)' }}>
+              <Spin size="small" /> Đang tải mục lục thực tế...
+            </div>
+          ) : error ? (
+            <div
+              style={{
+                minWidth: 320,
+                padding: 'var(--sp-5)',
+                background: 'var(--card)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                textAlign: 'center',
+              }}
+            >
+              <div style={{ color: 'var(--destructive)', fontWeight: 600, marginBottom: 'var(--sp-2)' }}>
+                Không thể kết nối máy chủ mục lục
+              </div>
+              <Button size="small" icon={<ReloadOutlined />} onClick={reload}>
+                Thử tải lại
+              </Button>
+            </div>
+          ) : books.length === 0 ? (
+            <div
+              style={{
+                minWidth: 280,
+                padding: 'var(--sp-5)',
+                background: 'var(--card)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)',
+                textAlign: 'center',
+                color: 'var(--muted-foreground)',
+              }}
+            >
+              Chưa có tài liệu nào trong mục lục thư viện.
+            </div>
+          ) : (
+            books.map((book, idx) => {
+              const pal: CoverPalette = COVER_PALETTES[idx % COVER_PALETTES.length]
+              return (
+                <FeaturedBookJacket
+                  key={book.id}
+                  book={book}
+                  pal={pal}
+                  baseTilt={DEFAULT_TILTS[idx % DEFAULT_TILTS.length]}
+                  isHovered={hoveredId === book.id}
+                  onHoverChange={(hovered) => setHoveredId(hovered ? book.id : null)}
+                  onOpen={() => {
+                    setSelectedBook(book)
+                    setSelectedPalette(pal)
+                  }}
+                />
+              )
+            })
+          )}
 
           {/* Decorative books at right edge */}
           <div className="shelf-filler-right">

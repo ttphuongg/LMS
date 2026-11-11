@@ -3,6 +3,7 @@ import type { BookDto } from '@/features/catalog'
 import type { LoanDetailDto, LoanSlipDto, ReservationDto } from '@/features/circulation'
 import type { FineDto } from '@/features/billing'
 import { LIBRARY_RULES } from '@/shared/constants/rules'
+import { getVnTodayKey, toVnDateKey } from '@/shared/utils/format'
 
 /**
  * BookDto hiện chưa có createdAt / borrowCount.
@@ -13,16 +14,16 @@ export type BookWithStats = BookDto & { borrowCount?: number; createdAt?: string
 
 const norm = (s: string) => s.trim().toLowerCase()
 
-/** Số ngày từ hôm nay đến hạn trả (âm = đã quá hạn) */
+/** Số ngày từ hôm nay (UTC+7) đến hạn trả (âm = đã quá hạn) */
 export const daysUntil = (iso: string): number =>
-  dayjs(iso).startOf('day').diff(dayjs().startOf('day'), 'day')
+  dayjs(toVnDateKey(iso)).diff(dayjs(getVnTodayKey()), 'day')
 
 // ---------------- Sách đang mượn ----------------
 export const getActiveDetails = (slips: LoanSlipDto[]): LoanDetailDto[] =>
   slips
     .flatMap((s) => s.details)
     .filter((d) => d.status !== 'Returned')
-    .sort((a, b) => dayjs(a.dueDate).valueOf() - dayjs(b.dueDate).valueOf())
+    .sort((a, b) => dayjs(toVnDateKey(a.dueDate)).valueOf() - dayjs(toVnDateKey(b.dueDate)).valueOf())
 
 export const isOverdue = (d: LoanDetailDto): boolean =>
   d.status === 'Overdue' || daysUntil(d.dueDate) < 0
@@ -55,13 +56,13 @@ export const summarizeFines = (fines: FineDto[]) => {
   const unpaid = fines.filter((f) => f.status === 'Unpaid')
   return {
     unpaidCount: unpaid.length,
-    unpaidAmount: unpaid.reduce((sum, f) => sum + Math.max(0, f.amount - f.paidAmount), 0),
+    unpaidAmount: unpaid.reduce((sum, f) => sum + f.amount, 0),
   }
 }
 
 export const summarizeReservations = (reservations: ReservationDto[]) => {
-  const ready = reservations.filter((r) => r.status === 'ReadyForPickup').length
-  const pending = reservations.filter((r) => r.status === 'Pending').length
+  const ready = reservations.filter((r) => r.status === 'Ready').length
+  const pending = reservations.filter((r) => r.status === 'Waiting').length
   return { ready, pending, total: ready + pending }
 }
 
@@ -133,8 +134,11 @@ export const pickRecommended = (
 
 export const countByCategory = (books: BookDto[]): Record<string, number> =>
   books.reduce<Record<string, number>>((acc, b) => {
-    const key = b.categoryId ?? b.categoryName
-    acc[key] = (acc[key] ?? 0) + 1
+    const names = b.categories && b.categories.length > 0 ? b.categories : [b.categoryName]
+    names.forEach((name) => {
+      if (!name) return
+      acc[name] = (acc[name] ?? 0) + 1
+    })
     return acc
   }, {})
 

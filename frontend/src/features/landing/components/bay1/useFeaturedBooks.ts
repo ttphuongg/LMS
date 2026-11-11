@@ -1,30 +1,43 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { catalogApi, type BookDto } from '@/features/catalog'
-import { FALLBACK_BOOKS } from './fallbackBooks'
 
-/** Tải 6 cuốn sách nổi bật cho khoang 1; lỗi API thì dùng danh sách mặc định. */
-export function useFeaturedBooks(): BookDto[] {
+export interface FeaturedBooksState {
+  books: BookDto[]
+  loading: boolean
+  error: boolean
+  reload: () => void
+}
+
+/** Tải 6 cuốn sách nổi bật trực tiếp từ API thực cho khoang 1 (không dùng mock fallback). */
+export function useFeaturedBooks(): FeaturedBooksState {
   const [books, setBooks] = useState<BookDto[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
-  useEffect(() => {
-    let mounted = true
+  const load = useCallback(() => {
+    let active = true
+    setLoading(true)
+    setError(false)
     catalogApi
       .getBooks({ page: 1, pageSize: 6 })
       .then((res) => {
-        if (mounted && res.items?.length > 0) {
-          setBooks(res.items.slice(0, 6))
-        }
+        if (!active) return
+        setBooks((res.items || []).slice(0, 6))
       })
       .catch(() => {
-        // Fallback default books if API is not yet loaded
-        if (mounted) {
-          setBooks(FALLBACK_BOOKS)
-        }
+        if (!active) return
+        setBooks([])
+        setError(true)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
       })
     return () => {
-      mounted = false
+      active = false
     }
   }, [])
 
-  return books
+  useEffect(() => load(), [load])
+
+  return { books, loading, error, reload: load }
 }

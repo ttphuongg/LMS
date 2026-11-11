@@ -8,9 +8,13 @@ interface BookSummaryPageProps {
   onNavigate: (bookId: string) => void
 }
 
-/** Trang phải: tiêu đề, tóm tắt, tình trạng lưu thông và nút xem chi tiết. */
+/** Trang phải: tiêu đề, tóm tắt thực tế, tình trạng lưu thông và nút xem chi tiết. */
 export const BookSummaryPage: React.FC<BookSummaryPageProps> = ({ book, onNavigate }) => {
   const isAvailable = book.availableCopies > 0
+  const hasCopies = book.totalCopies > 0
+  const cleanSynopsis = book.description
+    ? book.description.replace(/Thông tin chi tiết\s*:[\s\S]*/i, '').trim()
+    : ''
 
   return (
     <div
@@ -25,8 +29,6 @@ export const BookSummaryPage: React.FC<BookSummaryPageProps> = ({ book, onNaviga
         boxSizing: 'border-box',
       }}
     >
-
-
       <div>
         {/* Header: Page 1 notation */}
         <div
@@ -40,7 +42,7 @@ export const BookSummaryPage: React.FC<BookSummaryPageProps> = ({ book, onNaviga
           }}
         >
           <span style={{ fontSize: 11, color: '#7A6B5B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            TRANG ĐẦU TIÊN • TÓM TẮT TÁC PHẨM
+            TÓM TẮT TÀI LIỆU
           </span>
           <span style={{ fontSize: 11, fontStyle: 'italic', color: '#B08D3C' }}>Trang 1</span>
         </div>
@@ -69,10 +71,10 @@ export const BookSummaryPage: React.FC<BookSummaryPageProps> = ({ book, onNaviga
             marginBottom: 16,
           }}
         >
-          Nguyên tác: {book.authorName}
+          Tác giả: {book.authorName}
         </div>
 
-        {/* Scholarly Synopsis */}
+        {/* Synopsis from DB */}
         <div
           style={{
             fontSize: 13,
@@ -85,9 +87,16 @@ export const BookSummaryPage: React.FC<BookSummaryPageProps> = ({ book, onNaviga
             marginBottom: 20,
           }}
         >
-          <p style={{ margin: 0 }}>
-            Tác phẩm học thuật kinh điển thuộc phân ngành <strong>{book.categoryName}</strong>. Cung cấp nền tảng lý thuyết
-            chặt chẽ kết hợp các hướng dẫn thực hành chuyên sâu, phục vụ công tác nghiên cứu của giảng viên, nghiên cứu sinh và bạn đọc.
+          <p
+            style={{
+              margin: 0,
+              display: '-webkit-box',
+              WebkitLineClamp: 5,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {cleanSynopsis || `Tài liệu thuộc chủ đề ${book.categoryName}. Bấm "Xem Chi Tiết & Đặt Mượn Sách" để tra cứu đầy đủ thông tin và từng bản sao trên kệ.`}
           </p>
         </div>
 
@@ -118,11 +127,15 @@ export const BookSummaryPage: React.FC<BookSummaryPageProps> = ({ book, onNaviga
                   color: isAvailable ? '#1F3A2E' : '#7A2E2B',
                 }}
               >
-                {isAvailable ? 'Sẵn sàng lưu thông' : 'Tất cả bản sao đang được mượn'}
+                {!hasCopies
+                  ? 'Chưa có bản sao vật lý'
+                  : isAvailable
+                    ? 'Sẵn sàng lưu thông'
+                    : 'Tất cả bản sao đang được mượn'}
               </span>
             </div>
             <div style={{ fontSize: 11, color: '#6B5B4B', marginTop: 2 }}>
-              Tổng số: <strong>{book.totalCopies}</strong> cuốn • Còn tại quầy: <strong>{book.availableCopies}</strong> cuốn
+              Tổng số: <strong>{book.totalCopies}</strong> cuốn • Sẵn sàng: <strong>{book.availableCopies}</strong> cuốn
             </div>
           </div>
 
@@ -136,7 +149,7 @@ export const BookSummaryPage: React.FC<BookSummaryPageProps> = ({ book, onNaviga
               padding: '2px 8px',
             }}
           >
-            {isAvailable ? 'Mượn được ngay' : 'Hỗ trợ đặt trước'}
+            {!hasCopies ? 'Chưa nhập bản sao' : isAvailable ? 'Mượn được ngay' : 'Hỗ trợ đặt trước'}
           </Tag>
         </div>
       </div>

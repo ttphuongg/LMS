@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Row, Col, Table, Tag, Descriptions } from 'antd'
+import { Card, Row, Col, Table, Tag, Descriptions, Alert } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { catalogApi } from '../api'
 import type { BookDto, BookCopyDto } from '../types'
@@ -69,7 +69,8 @@ export const BookDetailPage: React.FC = () => {
       title: 'Vị trí kệ sách',
       dataIndex: 'location',
       key: 'location',
-      render: (loc: string) => loc || 'Kệ chính - Phòng đọc tổng hợp',
+      render: (loc: string | null | undefined) =>
+        loc ? <SpineTag variant="neutral">{loc}</SpineTag> : <Tag color="default">Chưa xếp kệ</Tag>,
     },
     {
       title: 'Trạng thái bản sao',
@@ -80,6 +81,7 @@ export const BookDetailPage: React.FC = () => {
         if (status === 'Borrowed') return <SpineTag variant="danger">Đang được mượn</SpineTag>
         if (status === 'Reserved') return <SpineTag variant="warning">Đã được giữ chỗ</SpineTag>
         if (status === 'Maintenance') return <SpineTag variant="neutral">Bảo quản / Phục chế</SpineTag>
+        if (status === 'Inactive') return <SpineTag variant="neutral">Ngừng lưu hành</SpineTag>
         return <SpineTag variant="neutral">{status}</SpineTag>
       },
     },
@@ -89,7 +91,7 @@ export const BookDetailPage: React.FC = () => {
     <div>
       <PageHeader
         title={book.title}
-        subtitle={`Số hiệu phân loại: ${book.callNumber} • Tác giả: ${book.authorName}`}
+        subtitle={`${book.isbn ? `ISBN: ${book.isbn} • ` : ''}Tác giả: ${book.authorName}`}
         breadcrumbs={[
           { title: 'Trang chủ', href: '/' },
           { title: 'Mục lục sách', href: '/books' },
@@ -127,10 +129,16 @@ export const BookDetailPage: React.FC = () => {
             }}
           >
             <div className="catalog-card-header">
-              <CatalogCode code={book.callNumber} label="Số hiệu DDC:" />
-              <Tag style={primaryTagStyle}>
-                {book.categoryName}
-              </Tag>
+              <CatalogCode
+                code={book.isbn || `#${book.id}`}
+                label={book.isbn ? 'ISBN' : 'Mã tài liệu'}
+              />
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {book.status === 'Inactive' && <Tag color="red">Ngừng lưu hành</Tag>}
+                <Tag style={primaryTagStyle}>
+                  {book.categoryName}
+                </Tag>
+              </div>
             </div>
 
             <h2
@@ -252,15 +260,20 @@ export const BookDetailPage: React.FC = () => {
               Dịch Vụ Mượn & Giữ Chỗ
             </h3>
             <p style={{ fontSize: 13, color: 'var(--muted-foreground)', lineHeight: 1.6, marginBottom: 'var(--sp-4)' }}>
-              {book.availableCopies > 0
-                ? `Hiện có ${book.availableCopies} cuốn sách sẵn sàng phục vụ tại quầy. Bạn có thể đến nhận trực tiếp hoặc bấm nút đặt trước bên dưới.`
-                : 'Hiện tất cả các bản sao đang được lưu thông. Bạn có thể đặt trước để thư viện giữ sách ngay khi được độc giả khác hoàn trả.'}
+              {book.status === 'Inactive'
+                ? 'Tài liệu này hiện đang ngừng lưu hành tại thư viện nên tạm thời không nhận đặt trước.'
+                : book.totalCopies === 0
+                  ? 'Tài liệu hiện chưa có bản sao vật lý trong kho.'
+                  : book.availableCopies > 0
+                    ? `Hiện có ${book.availableCopies} cuốn sách sẵn sàng phục vụ tại quầy. Bạn có thể đến nhận trực tiếp hoặc bấm nút đặt trước bên dưới.`
+                    : 'Hiện tất cả các bản sao đang được lưu thông. Bạn có thể đặt trước để thư viện giữ sách ngay khi được độc giả khác hoàn trả.'}
             </p>
 
             <div style={{ textAlign: 'center', padding: 'var(--sp-2) 0' }}>
               <ReserveButton
                 bookId={book.id}
                 bookTitle={book.title}
+                disabled={book.status === 'Inactive'}
               />
             </div>
           </Card>
@@ -279,6 +292,14 @@ export const BookDetailPage: React.FC = () => {
         >
           Danh Sách Các Bản Sao Trên Kệ ({book.copies?.length || 0})
         </h3>
+        {book.copiesError && (
+          <Alert
+            type="warning"
+            showIcon
+            title="Không thể tải danh sách bản sao vật lý lúc này. Vui lòng tải lại trang."
+            style={{ marginBottom: 'var(--sp-3)', borderRadius: 'var(--radius)' }}
+          />
+        )}
         <Table
           columns={copyColumns}
           dataSource={book.copies || []}
@@ -286,6 +307,7 @@ export const BookDetailPage: React.FC = () => {
           pagination={false}
           scroll={{ x: 600 }}
           bordered
+          locale={{ emptyText: 'Đầu sách này chưa có bản sao vật lý nào trên hệ thống.' }}
         />
       </div>
     </div>

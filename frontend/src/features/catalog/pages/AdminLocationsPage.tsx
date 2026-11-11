@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Table,
   Button,
@@ -741,6 +742,39 @@ export const AdminLocationsPage: React.FC = () => {
                 })()}
               </div>
             )}
+
+            <div style={{ marginTop: 'var(--sp-5)' }}>
+              <div style={{ marginBottom: 'var(--sp-2)', fontWeight: 600 }}>
+                Bản sao đang lưu trữ trên kệ ({detailedLocation.copies?.length ?? 0}):
+              </div>
+              <Table
+                size="small"
+                bordered
+                pagination={{ pageSize: 6 }}
+                rowKey="id"
+                dataSource={detailedLocation.copies ?? []}
+                locale={{ emptyText: 'Chưa có bản sao nào được xếp lên kệ này.' }}
+                columns={[
+                  {
+                    title: 'Mã vạch',
+                    dataIndex: 'barcode',
+                    key: 'barcode',
+                    render: (code: string) => <SpineTag variant="primary">{code}</SpineTag>,
+                  },
+                  {
+                    title: 'Đầu sách',
+                    key: 'bookTitle',
+                    render: (_, c) => <Link to={`/books/${c.bookId}`}>{c.bookTitle}</Link>,
+                  },
+                  {
+                    title: 'Trạng thái',
+                    dataIndex: 'status',
+                    key: 'status',
+                    render: (s: string) => <Tag>{s}</Tag>,
+                  },
+                ]}
+              />
+            </div>
           </div>
         ) : null}
       </Drawer>

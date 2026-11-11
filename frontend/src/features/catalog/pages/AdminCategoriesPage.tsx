@@ -8,17 +8,24 @@ import { SpineTag } from '@/shared/components/SpineTag'
 
 const columns: ColumnsType<CategoryDto> = [
   {
-    title: 'Mã phân loại DDC',
-    dataIndex: 'code',
-    key: 'code',
-    width: 160,
-    render: (code: string) => (code ? <SpineTag variant="primary">{code}</SpineTag> : '—'),
+    title: 'Mã danh mục',
+    dataIndex: 'id',
+    key: 'id',
+    width: 120,
+    render: (id: string) => <SpineTag variant="neutral">#{id}</SpineTag>,
   },
   {
     title: 'Tên thể loại',
     dataIndex: 'name',
     key: 'name',
     render: (name: string) => <strong>{name}</strong>,
+  },
+  {
+    title: 'Số đầu sách',
+    dataIndex: 'bookCount',
+    key: 'bookCount',
+    width: 130,
+    render: (count?: number) => <SpineTag variant="primary">{count ?? 0} đầu sách</SpineTag>,
   },
   {
     title: 'Mô tả phạm vi',
@@ -30,30 +37,22 @@ const columns: ColumnsType<CategoryDto> = [
 
 export const AdminCategoriesPage: React.FC = () => (
   <SimpleCreateListPage<CategoryDto, Omit<CategoryDto, 'id'>>
-    title="Danh Mục Thể Loại Phân Loại"
-    subtitle="Hệ thống phân loại Dewey (DDC) tổ chức kho tàng tri thức theo chuyên ngành"
+    title="Danh Mục Thể Loại Tài Liệu"
+    subtitle="Quản lý các nhóm chuyên ngành và phạm vi tài liệu trong mục lục thư viện"
     breadcrumbTitle="Thể loại"
     addButtonLabel="Thêm thể loại"
-    modalTitle="Thêm Thể Loại Phân Loại Mới"
+    modalTitle="Thêm Thể Loại Mới"
     okText="Lưu thể loại"
     fetchItems={catalogApi.getCategories}
     createItem={catalogApi.createCategory}
     columns={columns}
     messages={{
       loadError: 'Lỗi khi tải danh sách thể loại',
-      createSuccess: 'Đã thêm thể loại phân loại thành công!',
+      createSuccess: 'Đã thêm thể loại thành công!',
       createError: 'Lỗi khi thêm thể loại',
     }}
     formFields={
       <>
-        <Form.Item
-          label="Mã phân loại DDC"
-          name="code"
-          rules={[{ required: true, message: 'Vui lòng nhập mã DDC' }]}
-        >
-          <Input placeholder="VD: 005.1 hoặc 330" />
-        </Form.Item>
-
         <Form.Item
           label="Tên thể loại / Chuyên ngành"
           name="name"

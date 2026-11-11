@@ -55,7 +55,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({ fullName, categories }) 
           onChange={(e) => setKeyword(e.target.value)}
           allowClear
           prefix={<SearchOutlined style={mutedTextStyle} />}
-          placeholder="Tên sách, tác giả, ISBN hoặc số hiệu phân loại"
+          placeholder="Tên sách, tác giả, ISBN hoặc mô tả..."
           aria-label="Từ khóa tìm kiếm"
         />
         <Button type="primary" size="large" htmlType="submit">
