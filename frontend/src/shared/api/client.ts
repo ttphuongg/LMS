@@ -2,7 +2,6 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import type { ApiResponse, ProblemDetails } from './types'
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 
 export interface AuthAdapter {
   getAccessToken: () => string | null

@@ -4,13 +4,14 @@ import { strongTextStyle } from '@/shared/styles/ui'
 
 interface BookTitleCellProps {
   title: string
-  callNumber: string
+  code?: string | null
+  codeLabel?: string
 }
 
-/** Ô bảng: tên tài liệu (đậm) + số hiệu phân loại bên dưới. */
-export const BookTitleCell: React.FC<BookTitleCellProps> = ({ title, callNumber }) => (
+/** Ô bảng: tên tài liệu (đậm) + mã định danh thực tế bên dưới (ISBN / mã bản sao nếu có). */
+export const BookTitleCell: React.FC<BookTitleCellProps> = ({ title, code, codeLabel }) => (
   <div>
     <div style={strongTextStyle}>{title}</div>
-    <CatalogCode code={callNumber} />
+    {code ? <CatalogCode code={code} label={codeLabel} /> : null}
   </div>
 )

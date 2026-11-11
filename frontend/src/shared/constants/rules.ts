@@ -3,7 +3,7 @@
  */
 export const LIBRARY_RULES = {
   standardBorrowDays: 14,
-  maxRenewTimes: 2,
+  maxRenewTimes: 3,
   renewalExtensionDays: 7,
   finePerDayVND: 5000,
   maxConcurrentLoans: 5,

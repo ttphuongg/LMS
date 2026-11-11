@@ -87,16 +87,16 @@ export const Footer: React.FC = () => {
             </h4>
             <Space orientation="vertical" size={6} style={{ color: '#EAE0C9' }}>
               <div>
-                <EnvironmentOutlined style={{ marginRight: 6, color: '#B08D3C' }} /> Tầng 2-5, Tòa nhà Trung tâm Tri thức
+                <EnvironmentOutlined style={{ marginRight: 6, color: '#B08D3C' }} /> {BRAND.contact.address}
               </div>
               <div>
-                <PhoneOutlined style={{ marginRight: 6, color: '#B08D3C' }} /> (024) 3869 1234
+                <PhoneOutlined style={{ marginRight: 6, color: '#B08D3C' }} /> {BRAND.contact.phone}
               </div>
               <div>
-                <MailOutlined style={{ marginRight: 6, color: '#B08D3C' }} /> thuvien@library.edu.vn
+                <MailOutlined style={{ marginRight: 6, color: '#B08D3C' }} /> {BRAND.contact.email}
               </div>
               <div style={{ marginTop: 4, fontSize: 12, color: '#FBF7EC', fontWeight: 600 }}>
-                Mở cửa: Thứ Hai – Thứ Bảy (08:00 – 21:00)
+                Mở cửa: {BRAND.contact.hours}
               </div>
             </Space>
           </Col>
