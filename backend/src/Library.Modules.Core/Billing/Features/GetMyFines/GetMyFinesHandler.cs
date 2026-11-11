@@ -12,7 +12,8 @@ public sealed class GetMyFinesHandler : IRequestHandler<GetMyFinesRequest, ApiRe
 
     public async Task<ApiResponse<List<FineDto>>> Handle(GetMyFinesRequest request, CancellationToken ct)
     {
-        var fines = await _db.Set<Fine>()
+        var fines = await _db.Fines
+            .AsNoTracking()
             .Where(f => f.AccountId == request.AccountId)
             .OrderByDescending(f => f.IssuedAt)
             .Select(f => new FineDto(f.Id, f.FineType.ToString(), f.Amount, f.Status.ToString(), f.PaymentDueDate, f.IssuedAt))

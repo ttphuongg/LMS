@@ -8,5 +8,6 @@ public class PayFineValidator : AbstractValidator<PayFineRequest>
     {
         RuleFor(x => x.FineId).GreaterThan(0);
         RuleFor(x => x.PaymentMethod).IsInEnum();
+        RuleFor(x => x.Notes).MaximumLength(500);
     }
 }

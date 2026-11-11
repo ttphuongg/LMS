@@ -21,17 +21,13 @@ public static class PersistenceExtensions
         {
             var conn = sp.GetRequiredService<DbConnection>();
             var schema = typeof(TContext).GetField("Schema")?.GetValue(null) as string;
-
             options.UseSqlServer(conn, sql =>
             {
                 sql.MigrationsAssembly("Library.Modules.Core");
                 if (!string.IsNullOrEmpty(schema))
-                {
                     sql.MigrationsHistoryTable("__EFMigrationsHistory", schema);
-                }
             });
         });
-
         services.AddScoped<DbContext>(sp => sp.GetRequiredService<TContext>());
         return services;
     }

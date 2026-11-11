@@ -1,20 +1,21 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 
 namespace Library.Modules.Core.Shared;
 
 public static class ClaimsPrincipalExtensions
 {
+    public static int? TryGetAccountId(this ClaimsPrincipal? user)
+    {
+        var idStr = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                 ?? user?.FindFirst("sub")?.Value;
+
+        return int.TryParse(idStr, out var id) ? id : null;
+    }
+
     public static int GetAccountId(this ClaimsPrincipal user)
     {
-        var idStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                 ?? user.FindFirst("sub")?.Value;
-
-        if (int.TryParse(idStr, out var id))
-        {
-            return id;
-        }
-
-        throw new UnauthorizedAccessException("Không xác định được danh tính người dùng.");
+        return user.TryGetAccountId()
+            ?? throw new UnauthorizedAccessException("Không xác định được danh tính người dùng.");
     }
 
     public static string? GetRole(this ClaimsPrincipal user)

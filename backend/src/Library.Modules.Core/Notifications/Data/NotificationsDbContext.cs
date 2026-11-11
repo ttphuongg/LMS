@@ -1,4 +1,3 @@
-using Library.Modules.Core.Notifications.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Modules.Core.Notifications.Data;
@@ -12,9 +11,8 @@ public class NotificationsDbContext(DbContextOptions<NotificationsDbContext> opt
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(Schema);
-
-        modelBuilder.ApplyConfigurationsFromAssembly(
-            typeof(NotificationsDbContext).Assembly,
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(NotificationsDbContext).Assembly,
             t => t.Namespace?.StartsWith("Library.Modules.Core.Notifications") == true);
     }
 }
+

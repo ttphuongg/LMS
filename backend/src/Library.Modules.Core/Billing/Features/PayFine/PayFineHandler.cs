@@ -23,25 +23,20 @@ public sealed class PayFineHandler : IRequestHandler<PayFineRequest, ApiResponse
         if (!val.IsValid) return ApiResponse<bool>.Fail(string.Join("; ", val.Errors.Select(e => e.ErrorMessage)));
 
         var fine = await _db.Fines
-            .Include(f => f.Payments)
             .FirstOrDefaultAsync(f => f.Id == request.FineId, ct);
 
-        if (fine == null) return ApiResponse<bool>.Fail("Phi?u ph?t kh�ng t?n t?i.");
-        if (fine.Status == FineStatus.Paid || fine.Status == FineStatus.Cancelled)
-            return ApiResponse<bool>.Fail("Phi?u ph?t �? ��?c thanh to�n ho?c h?y.");
+        if (fine == null) return ApiResponse<bool>.Fail("Phiếu phạt không tồn tại.");
+        if (fine.Status != FineStatus.Unpaid)
+            return ApiResponse<bool>.Fail("Phiếu phạt đã được thanh toán hoặc hủy.");
 
-        var totalPaid = fine.Payments.Sum(p => p.Amount) + request.Amount;
-        if (totalPaid > fine.Amount)
-            return ApiResponse<bool>.Fail("S? ti?n thanh to�n v�?t qu� s? ti?n ph?t.");
-
-        // Thanh toán trực tiếp trọn gói 1 lần: Tự động quyết toán đúng 100% số tiền phạt
+        // Thanh toán trực tiếp trọn gói 1 lần: quyết toán đủ 100% số tiền phạt
         var payment = new FinePayment
         {
             FineId = fine.Id,
             LibrarianId = request.LibrarianId,
-            Amount = fine.Amount, // Tự động lấy đủ số tiền phạt
+            Amount = fine.Amount,
             PaymentMethod = request.PaymentMethod,
-            Notes = string.IsNullOrWhiteSpace(request.Notes) ? "Thanh toán trực tiếp tại quầy" : request.Notes,
+            Notes = string.IsNullOrWhiteSpace(request.Notes) ? "Thanh toán trực tiếp tại quầy" : request.Notes.Trim(),
             PaidAt = DateTime.UtcNow
         };
 

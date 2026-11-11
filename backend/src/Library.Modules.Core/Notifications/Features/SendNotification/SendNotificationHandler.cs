@@ -9,6 +9,20 @@ public sealed class SendNotificationHandler : IRequestHandler<SendNotificationRe
     private readonly NotificationsDbContext _db;
     public SendNotificationHandler(NotificationsDbContext db) => _db = db;
 
-    public Task<ApiResponse<long>> Handle(SendNotificationRequest request, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
+    public async Task<ApiResponse<long>> Handle(SendNotificationRequest request, CancellationToken ct)
+    {
+        var notif = new Notification
+        {
+            AccountId = request.AccountId,
+            Title = request.Title,
+            Content = request.Content,
+            NotificationType = request.NotificationType,
+            IsRead = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.Notifications.Add(notif);
+        await _db.SaveChangesAsync(ct);
+        return ApiResponse<long>.Ok(notif.Id);
+    }
 }

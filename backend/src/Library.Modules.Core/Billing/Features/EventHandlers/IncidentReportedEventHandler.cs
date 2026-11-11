@@ -1,5 +1,6 @@
 using Library.Modules.Core.Billing.Contracts;
 using Library.Modules.Core.Billing.Features.IssueFine;
+using Library.Modules.Core.Shared;
 using Library.Modules.Core.Shared.Events;
 using MediatR;
 
@@ -16,18 +17,17 @@ public class IncidentReportedEventHandler : INotificationHandler<IncidentReporte
 
     public async Task Handle(IncidentReportedEvent notification, CancellationToken ct)
     {
-        if (notification.CompensationAmount > 0)
-        {
-            var issueFineReq = new IssueFineRequest(
-                notification.AccountId,
-                notification.LoanSlipDetailId,
-                notification.IncidentId,
-                FineType.Compensation,
-                notification.CompensationAmount.Value,
-                DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7))
-            );
+        if (notification.CompensationAmount <= 0 || notification.AccountId <= 0) return;
 
-            await _sender.Send(issueFineReq, ct);
-        }
+        var issueFineReq = new IssueFineRequest(
+            notification.AccountId,
+            notification.LoanSlipDetailId,
+            notification.IncidentId,
+            FineType.Compensation,
+            notification.CompensationAmount,
+            VietnamTime.Today().AddDays(7)
+        );
+
+        await _sender.Send(issueFineReq, ct);
     }
 }

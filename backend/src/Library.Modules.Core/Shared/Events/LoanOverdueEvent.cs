@@ -8,4 +8,3 @@ public record LoanOverdueEvent(
     int BookCopyId,
     DateOnly DueDate
 ) : INotification;
-

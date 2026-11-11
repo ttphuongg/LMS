@@ -16,14 +16,14 @@ public static class PayFineEndpoint
             {
                 var method = body?.PaymentMethod ?? Data.PaymentMethod.Cash;
                 var notes = body?.Notes;
-                var librarianId = user.IsStaff() ? user.GetAccountId() : (int?)null;
+                var librarianId = user.GetAccountId();
 
                 var req = new PayFineRequest(fineId, librarianId, method, notes);
                 return Results.Ok(await mediator.Send(req, ct));
             })
            .WithTags("Billing")
-           .WithSummary("Thanh toán trực tiếp toàn bộ tiền phạt một lần (Direct Full Payment)")
-           .RequireAuthorization();
+           .WithSummary("Thanh toán trực tiếp toàn bộ tiền phạt một lần (StaffOnly)")
+           .RequireAuthorization("StaffOnly");
 
         return app;
     }

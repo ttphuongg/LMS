@@ -1,4 +1,3 @@
-using Library.Modules.Core.Search.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Modules.Core.Search.Data;
@@ -12,9 +11,8 @@ public class SearchDbContext(DbContextOptions<SearchDbContext> options) : DbCont
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(Schema);
-
-        modelBuilder.ApplyConfigurationsFromAssembly(
-            typeof(SearchDbContext).Assembly,
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(SearchDbContext).Assembly,
             t => t.Namespace?.StartsWith("Library.Modules.Core.Search") == true);
     }
 }
+

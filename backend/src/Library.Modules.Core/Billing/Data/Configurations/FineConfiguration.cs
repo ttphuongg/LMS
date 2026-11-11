@@ -30,10 +30,10 @@ public class FineConfiguration : IEntityTypeConfiguration<Fine>
             t.HasCheckConstraint("CK_Fines_Status", "[Status] IN (N'Unpaid', N'PartiallyPaid', N'Paid', N'Cancelled')");
         });
 
-        // Within Billing context
+        // Within Billing context — Restrict để bảo toàn dữ liệu kế toán
         builder.HasMany(f => f.Payments)
             .WithOne(p => p.Fine)
             .HasForeignKey(p => p.FineId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

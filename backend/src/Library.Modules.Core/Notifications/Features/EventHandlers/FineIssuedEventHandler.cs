@@ -1,4 +1,5 @@
 using Library.Modules.Core.Notifications.Data;
+using Library.Modules.Core.Shared;
 using Library.Modules.Core.Shared.Events;
 using MediatR;
 
@@ -18,8 +19,8 @@ public class FineIssuedEventHandler : INotificationHandler<FineIssuedEvent>
         var notif = new Notification
         {
             AccountId = notification.AccountId,
-            Title = "Ban co phieu phat moi",
-            Content = $"Ban vua bi phat {notification.Amount:N0} VND voi ly do: {notification.FineType}. Vui long thanh toan som.",
+            Title = "Bạn có phiếu phạt mới",
+            Content = $"Bạn vừa có phiếu phạt {notification.Amount:N0} VNĐ với lý do: {notification.FineType}. Vui lòng thanh toán sớm.",
             NotificationType = NotificationType.Fine,
             CreatedAt = DateTime.UtcNow,
             IsRead = false
