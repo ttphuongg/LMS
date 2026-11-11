@@ -1,3 +1,5 @@
+using Library.Modules.Core.Identity.Data;
+using Library.Modules.Core.Catalog.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

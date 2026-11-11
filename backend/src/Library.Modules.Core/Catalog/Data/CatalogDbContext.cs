@@ -1,4 +1,3 @@
-using Library.Modules.Core.Catalog.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Modules.Core.Catalog.Data;
@@ -18,9 +17,8 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbCo
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(Schema);
-
-        modelBuilder.ApplyConfigurationsFromAssembly(
-            typeof(CatalogDbContext).Assembly,
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(CatalogDbContext).Assembly,
             t => t.Namespace?.StartsWith("Library.Modules.Core.Catalog") == true);
     }
 }
+

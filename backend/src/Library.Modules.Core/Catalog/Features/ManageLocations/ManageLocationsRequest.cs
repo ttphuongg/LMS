@@ -29,6 +29,15 @@ public record GetAllLocationsRequest(bool? ActiveOnly = true) : IRequest<ApiResp
 /// <summary>Gets a single location by Id.</summary>
 public record GetLocationByIdRequest(int LocationId) : IRequest<ApiResponse<LocationDetail>>;
 
+public record LocationCopyItem(
+    int Id,
+    string Barcode,
+    int BookId,
+    string BookTitle,
+    string Status,
+    string Condition
+);
+
 public record LocationDetail(
     int Id,
     string Aisle,
@@ -36,6 +45,7 @@ public record LocationDetail(
     int RowLevel,
     int? MaxCapacity,
     bool IsActive,
-    int CurrentCount
+    int CurrentCount,
+    List<LocationCopyItem>? Copies = null
 );
 

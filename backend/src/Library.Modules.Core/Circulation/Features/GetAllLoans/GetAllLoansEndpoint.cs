@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -9,8 +9,16 @@ public static class GetAllLoansEndpoint
 {
     public static IEndpointRouteBuilder Map(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/circulation/loans", async (int? status, IMediator mediator, CancellationToken ct, int page = 1, int pageSize = 10) =>
-            Results.Ok(await mediator.Send(new GetAllLoansRequest(status, page, pageSize), ct)))
+        app.MapGet("/api/circulation/loans",
+            async (
+                int? status,
+                IMediator mediator,
+                CancellationToken ct,
+                int page = 1,
+                int pageSize = 10,
+                string? keyword = null,
+                bool openOnly = false) =>
+            Results.Ok(await mediator.Send(new GetAllLoansRequest(status, page, pageSize, keyword, openOnly), ct)))
             .WithTags("Circulation Admin")
             .WithSummary("Get all loans (Staff only)")
             .RequireAuthorization("StaffOnly");

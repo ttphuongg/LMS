@@ -9,7 +9,7 @@ public class BorrowBookValidator : AbstractValidator<BorrowBookRequest>
         RuleFor(x => x.AccountId).GreaterThan(0).WithMessage("AccountId không hợp lệ.");
         
         RuleFor(x => x.DueDate)
-            .GreaterThan(DateOnly.FromDateTime(DateTime.UtcNow))
+            .GreaterThan(DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7)))
             .WithMessage("Ngày hạn trả phải lớn hơn ngày hiện tại.");
             
         RuleFor(x => x.BookCopyIds)

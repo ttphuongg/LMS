@@ -6,6 +6,6 @@ public class AddCategoryValidator : AbstractValidator<AddCategoryRequest>
 {
     public AddCategoryValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage("T�n th? lo?i kh�ng ��?c �? tr?ng.");
+        RuleFor(x => x.Name).NotEmpty().WithMessage("Tên thể loại không được để trống.");
     }
 }

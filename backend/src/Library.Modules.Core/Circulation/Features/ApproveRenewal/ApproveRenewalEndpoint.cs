@@ -1,4 +1,6 @@
-﻿using MediatR;
+using System.Security.Claims;
+using Library.Modules.Core.Shared;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -9,9 +11,10 @@ public static class ApproveRenewalEndpoint
 {
     public static IEndpointRouteBuilder Map(IEndpointRouteBuilder app)
     {
-        app.MapPatch("/api/circulation/renewals/{renewalId:long}/status", async (long renewalId, ApproveRenewalRequest req, IMediator mediator, CancellationToken ct) =>
+        app.MapPatch("/api/circulation/renewals/{renewalId:long}/status", async (long renewalId, ApproveRenewalRequest req, ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
         {
             req.RenewalId = renewalId;
+            req = req with { LibrarianId = user.GetAccountId() };
             return Results.Ok(await mediator.Send(req, ct));
         })
         .WithTags("Circulation")

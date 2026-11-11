@@ -6,6 +6,6 @@ public class AddAuthorValidator : AbstractValidator<AddAuthorRequest>
 {
     public AddAuthorValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage("Tên tác gi? không ðý?c ð? tr?ng.");
+        RuleFor(x => x.Name).NotEmpty().WithMessage("TÃªn tÃ¡c giáº£ khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
     }
 }

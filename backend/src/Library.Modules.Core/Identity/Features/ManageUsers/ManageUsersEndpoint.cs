@@ -1,6 +1,4 @@
-using System.Security.Claims;
 using Library.Modules.Core.Identity.Data;
-using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -22,26 +20,18 @@ public static class ManageUsersEndpoint
             .WithSummary("Get list of users (Staff & Admin)")
             .RequireAuthorization("StaffOnly");
 
-        group.MapPatch("/{id:int}/role", async (int id, ChangeRoleBody body, ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
+        group.MapPatch("/{id:int}/role", async (int id, ChangeRoleBody body, IMediator mediator, CancellationToken ct) =>
         {
-            var newRole = body?.NewRole ?? body?.Role;
-            if (!newRole.HasValue)
-                return Results.BadRequest(ApiResponse<bool>.Fail("Vui lòng cung cấp vai trò mới (Role hoặc NewRole)."));
-
-            var currentAdminId = user.GetAccountId();
-            return Results.Ok(await mediator.Send(new ChangeRoleRequest(id, newRole.Value, currentAdminId), ct));
+            var targetRole = body.NewRole ?? body.Role ?? AccountRole.Reader;
+            return Results.Ok(await mediator.Send(new ChangeRoleRequest(id, targetRole), ct));
         })
         .WithSummary("Change user role (Admin only)")
         .RequireAuthorization("AdminOnly");
 
-        group.MapPatch("/{id:int}/status", async (int id, ChangeStatusBody body, ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
+        group.MapPatch("/{id:int}/status", async (int id, ChangeStatusBody body, IMediator mediator, CancellationToken ct) =>
         {
-            var newStatus = body?.NewStatus ?? body?.Status;
-            if (!newStatus.HasValue)
-                return Results.BadRequest(ApiResponse<bool>.Fail("Vui lòng cung cấp trạng thái mới (Status hoặc NewStatus)."));
-
-            var currentAdminId = user.GetAccountId();
-            return Results.Ok(await mediator.Send(new ChangeStatusRequest(id, newStatus.Value, currentAdminId), ct));
+            var targetStatus = body.NewStatus ?? body.Status ?? AccountStatus.Active;
+            return Results.Ok(await mediator.Send(new ChangeStatusRequest(id, targetStatus), ct));
         })
         .WithSummary("Change user status (Admin only)")
         .RequireAuthorization("AdminOnly");

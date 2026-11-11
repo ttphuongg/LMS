@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace Library.Modules.Core.Identity.Features.RefreshToken;
 

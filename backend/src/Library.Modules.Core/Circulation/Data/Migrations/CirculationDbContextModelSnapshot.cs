@@ -157,6 +157,9 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
                     b.Property<int>("BookCopyId")
                         .HasColumnType("int");
 
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date");
+
                     b.Property<long>("LoanSlipId")
                         .HasColumnType("bigint");
 

@@ -26,21 +26,21 @@ public sealed class GetMyReservationsHandler : IRequestHandler<GetMyReservations
             .ToListAsync(ct);
 
         var bookIds = reservations.Select(r => r.BookId).Distinct().ToList();
-        var bookDict = await _sender.Send(new GetBookInfosQuery(bookIds), ct);
+        var books = await _sender.Send(new GetBookInfosQuery(bookIds), ct);
 
         var copyIds = reservations
             .Where(r => r.BookCopyId.HasValue)
             .Select(r => r.BookCopyId!.Value)
             .Distinct()
             .ToList();
-        var copyDict = await _sender.Send(new GetCopyInfosQuery(copyIds), ct);
+        var copyMap = await _sender.Send(new GetCopyInfosQuery(copyIds), ct);
 
         var result = reservations.Select(r =>
         {
-            bookDict.TryGetValue(r.BookId, out var book);
+            books.TryGetValue(r.BookId, out var book);
             string? barcode = null;
-            if (r.BookCopyId.HasValue && copyDict.TryGetValue(r.BookCopyId.Value, out var copy))
-                barcode = copy.Barcode;
+            if (r.BookCopyId.HasValue && copyMap.TryGetValue(r.BookCopyId.Value, out var cp))
+                barcode = cp.Barcode;
 
             return new MyReservationDto(
                 r.Id,

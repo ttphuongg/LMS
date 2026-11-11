@@ -13,29 +13,36 @@ public sealed class FindAvailableCopyHandler : IRequestHandler<FindAvailableCopy
 
     public async Task<CopyInfo?> Handle(FindAvailableCopyQuery request, CancellationToken ct)
     {
-        var query = _db.BookCopies
-            .AsNoTracking()
+        IQueryable<BookCopy> query = _db.BookCopies
             .Include(c => c.Book)
+            .Include(c => c.Location)
             .Where(c => c.BookId == request.BookId && c.Status == CopyStatus.Available);
 
         if (request.PreferredCopyId.HasValue)
         {
-            query = query.Where(c => c.Id == request.PreferredCopyId.Value);
+            var preferred = await query.FirstOrDefaultAsync(c => c.Id == request.PreferredCopyId.Value, ct);
+            if (preferred != null)
+            {
+                return ToCopyInfo(preferred);
+            }
         }
 
-        var copy = await query
-            .OrderBy(c => c.Id)
-            .Select(c => new CopyInfo(
-                c.Id,
-                c.Barcode,
-                c.BookId,
-                c.Book.Title,
-                c.Book.Status == BookStatus.Active,
-                c.Condition,
-                c.Status))
-            .FirstOrDefaultAsync(ct);
+        var copy = await query.FirstOrDefaultAsync(ct);
+        if (copy == null) return null;
 
-        return copy;
+        return ToCopyInfo(copy);
     }
+
+    private static CopyInfo ToCopyInfo(BookCopy copy) => new(
+        copy.Id,
+        copy.Barcode,
+        copy.BookId,
+        copy.Book.Title,
+        copy.Book.Status == BookStatus.Active,
+        copy.Condition,
+        copy.Status,
+        copy.Location != null
+            ? $"{copy.Location.Aisle} - {copy.Location.Shelf} - Tầng {copy.Location.RowLevel}"
+            : null);
 }
 

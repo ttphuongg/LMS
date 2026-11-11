@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -15,7 +15,7 @@ public static class BorrowBookEndpoint
             async (BorrowBookRequest req, ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
             {
                 var staffId = user.GetAccountId();
-                var finalReq = req with { LibrarianId = staffId };
+                var finalReq = req.LibrarianId.HasValue ? req : req with { LibrarianId = staffId };
                 return Results.Ok(await mediator.Send(finalReq, ct));
             })
            .WithTags("Circulation")

@@ -1,5 +1,5 @@
-using FluentValidation;
 using Library.Modules.Core.Identity.Data;
+using FluentValidation;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -29,9 +29,6 @@ public sealed class ChangePasswordHandler : IRequestHandler<ChangePasswordReques
             return ApiResponse<bool>.Fail("Mật khẩu hiện tại không đúng.");
 
         account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-        account.UpdatedAt = DateTime.UtcNow;
-        account.UpdatedBy = request.AccountId;
-
         await _db.SaveChangesAsync(ct);
         return ApiResponse<bool>.Ok(true);
     }

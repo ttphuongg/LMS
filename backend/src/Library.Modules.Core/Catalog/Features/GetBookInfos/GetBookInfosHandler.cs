@@ -16,16 +16,10 @@ public sealed class GetBookInfosHandler : IRequestHandler<GetBookInfosQuery, IRe
         if (request.BookIds.Count == 0)
             return new Dictionary<int, BookInfo>();
 
-        var distinctIds = request.BookIds.Distinct().ToList();
-
         var books = await _db.Books
-            .AsNoTracking()
-            .Where(b => distinctIds.Contains(b.Id))
-            .Select(b => new BookInfo(
-                b.Id,
-                b.Title,
-                b.Status == BookStatus.Active))
-            .ToDictionaryAsync(b => b.BookId, ct);
+            .Where(b => request.BookIds.Contains(b.Id))
+            .Select(b => new BookInfo(b.Id, b.Title, b.Status == BookStatus.Active))
+            .ToDictionaryAsync(b => b.BookId, b => b, ct);
 
         return books;
     }

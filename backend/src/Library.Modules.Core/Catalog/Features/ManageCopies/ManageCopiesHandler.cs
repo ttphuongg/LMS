@@ -1,5 +1,4 @@
 using FluentValidation;
-using Library.Modules.Core.Catalog.Contracts;
 using Library.Modules.Core.Catalog.Data;
 using Library.Modules.Core.Circulation.Contracts;
 using Library.Modules.Core.Shared;
@@ -38,18 +37,13 @@ public sealed class ManageCopiesHandler : IRequestHandler<AddCopyRequest, ApiRes
         if (await _db.BookCopies.AnyAsync(c => c.Barcode == barcode, ct))
             return ApiResponse<int>.Fail($"Mã vạch '{barcode}' đã tồn tại trong hệ thống.");
 
-        // ── Verify location exists and capacity (if provided) ───────────────────
+        // ── Verify location exists, is active & has capacity (if provided) ────
         if (request.LocationId.HasValue)
         {
-            var location = await _db.Locations
-                .Include(l => l.BookCopies)
-                .FirstOrDefaultAsync(l => l.Id == request.LocationId.Value, ct);
-
-            if (location is null || !location.IsActive)
-                return ApiResponse<int>.Fail($"Vị trí với Id = {request.LocationId.Value} không tồn tại hoặc đã bị vô hiệu hóa.");
-
-            if (location.MaxCapacity.HasValue && location.BookCopies.Count >= location.MaxCapacity.Value)
-                return ApiResponse<int>.Fail($"Vị trí ({location.Aisle} - {location.Shelf} - Tầng {location.RowLevel}) đã đạt sức chứa tối đa ({location.MaxCapacity.Value} bản sao).");
+            var locationError = await CopyLocationValidationHelper.ValidateAsync(
+                _db, request.LocationId.Value, excludingCopyId: null, ct);
+            if (locationError is not null)
+                return ApiResponse<int>.Fail(locationError);
         }
 
         // ── Create BookCopy entity ────────────────────────────────────────────
@@ -58,10 +52,9 @@ public sealed class ManageCopiesHandler : IRequestHandler<AddCopyRequest, ApiRes
             BookId = request.BookId,
             Barcode = barcode,
             LocationId = request.LocationId,
-            AcquiredDate = request.AcquiredDate ?? DateOnly.FromDateTime(DateTime.Today),
+            AcquiredDate = request.AcquiredDate ?? DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7)),
             Condition = request.Condition,
-            Status = CopyStatus.Available,
-            CreatedAt = DateTime.UtcNow
+            Status = CopyStatus.Available
         };
 
         _db.BookCopies.Add(copy);
@@ -127,17 +120,14 @@ public sealed class UpdateCopyStatusHandler : IRequestHandler<UpdateCopyStatusRe
         if (!Enum.IsDefined(request.NewStatus))
             return ApiResponse<bool>.Fail("Trạng thái bản sao không hợp lệ.");
 
-        // ── Guard transitions ────────────────────────────────────────────────
-        if (copy.Status == CopyStatus.Borrowed && request.NewStatus != CopyStatus.Borrowed)
+        // ── Guard active loan or active reservation before changing copy status ─
+        if (request.NewStatus != copy.Status)
         {
-            return ApiResponse<bool>.Fail("Bản sao này hiện đang cho mượn. Vui lòng ghi nhận trả sách hoặc báo sự cố thay vì đổi trực tiếp trạng thái.");
-        }
+            if (copy.Status == CopyStatus.Reserved)
+                return ApiResponse<bool>.Fail("Bản sao đang được giữ cho yêu cầu đặt trước, vui lòng xử lý tại quầy đặt trước.");
 
-        if (request.NewStatus == CopyStatus.Available)
-        {
-            var isCurrentlyBorrowing = await _sender.Send(new HasActiveLoanForCopyQuery(copy.Id), ct);
-            if (isCurrentlyBorrowing)
-                return ApiResponse<bool>.Fail("Không thể chuyển sang Available vì bản sao này đang nằm trong một phiếu mượn chưa hoàn tất.");
+            if (await _sender.Send(new HasActiveLoanForCopyQuery(copy.Id), ct))
+                return ApiResponse<bool>.Fail("Không thể đổi trạng thái thủ công khi bản sao đang trong phiếu mượn hoạt động.");
         }
 
         // ── Update status ─────────────────────────────────────────────────────
@@ -146,5 +136,72 @@ public sealed class UpdateCopyStatusHandler : IRequestHandler<UpdateCopyStatusRe
         await _db.SaveChangesAsync(ct);
 
         return ApiResponse<bool>.Ok(true);
+    }
+}
+
+/// <summary>Handles assigning or moving a book copy to a shelf location.</summary>
+public sealed class UpdateCopyLocationHandler : IRequestHandler<UpdateCopyLocationRequest, ApiResponse<bool>>
+{
+    private readonly CatalogDbContext _db;
+    private readonly IValidator<UpdateCopyLocationRequest> _validator;
+
+    public UpdateCopyLocationHandler(CatalogDbContext db, IValidator<UpdateCopyLocationRequest> validator)
+    {
+        _db = db;
+        _validator = validator;
+    }
+
+    public async Task<ApiResponse<bool>> Handle(UpdateCopyLocationRequest request, CancellationToken ct)
+    {
+        var validation = await _validator.ValidateAsync(request, ct);
+        if (!validation.IsValid)
+            return ApiResponse<bool>.Fail(string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)));
+
+        var copy = await _db.BookCopies.FindAsync([request.CopyId], ct);
+        if (copy is null)
+            return ApiResponse<bool>.Fail($"Bản sao với Id = {request.CopyId} không tồn tại.");
+
+        if (request.LocationId.HasValue)
+        {
+            var locationError = await CopyLocationValidationHelper.ValidateAsync(
+                _db, request.LocationId.Value, excludingCopyId: copy.Id, ct);
+            if (locationError is not null)
+                return ApiResponse<bool>.Fail(locationError);
+        }
+
+        copy.LocationId = request.LocationId;
+        copy.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        return ApiResponse<bool>.Ok(true);
+    }
+}
+
+internal static class CopyLocationValidationHelper
+{
+    public static async Task<string?> ValidateAsync(
+        CatalogDbContext db,
+        int locationId,
+        int? excludingCopyId,
+        CancellationToken ct)
+    {
+        var location = await db.Locations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(l => l.Id == locationId, ct);
+
+        if (location is null || !location.IsActive)
+            return $"Vị trí với Id = {locationId} không tồn tại hoặc đã bị vô hiệu hóa.";
+
+        if (location.MaxCapacity.HasValue)
+        {
+            var currentCount = await db.BookCopies.CountAsync(
+                c => c.LocationId == locationId && (!excludingCopyId.HasValue || c.Id != excludingCopyId.Value),
+                ct);
+
+            if (currentCount >= location.MaxCapacity.Value)
+                return $"Kệ '{location.Aisle} - {location.Shelf} - Tầng {location.RowLevel}' đã đạt sức chứa tối đa ({location.MaxCapacity.Value} bản sao).";
+        }
+
+        return null;
     }
 }

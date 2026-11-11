@@ -51,7 +51,6 @@ public sealed class GetAllRenewalsHandler : IRequestHandler<GetAllRenewalsReques
             })
             .ToListAsync(ct);
 
-        // Look up reader names and book info for just this page
         var accountIds = rows.Select(x => x.AccountId).Distinct().ToList();
         var names = await _sender.Send(new GetAccountNamesQuery(accountIds), ct);
 

@@ -1,5 +1,11 @@
 namespace Library.Modules.Core.Catalog.Data;
 
+/// <summary>
+/// Represents a physical 3D coordinate on a library shelf (ViTriKe).
+/// A location is uniquely identified by (Aisle, Shelf, RowLevel).
+/// Locations are managed centrally and assigned to BookCopies.
+/// Deletion is restricted if any BookCopy still references this location.
+/// </summary>
 public class Location
 {
     public int Id { get; set; }

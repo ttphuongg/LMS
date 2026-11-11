@@ -1,4 +1,3 @@
-using Library.Modules.Core.Circulation.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Modules.Core.Circulation.Data;
@@ -16,9 +15,8 @@ public class CirculationDbContext(DbContextOptions<CirculationDbContext> options
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(Schema);
-
-        modelBuilder.ApplyConfigurationsFromAssembly(
-            typeof(CirculationDbContext).Assembly,
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(CirculationDbContext).Assembly,
             t => t.Namespace?.StartsWith("Library.Modules.Core.Circulation") == true);
     }
 }
+

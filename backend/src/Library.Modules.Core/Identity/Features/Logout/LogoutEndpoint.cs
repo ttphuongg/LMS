@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -12,13 +12,10 @@ public static class LogoutEndpoint
     public static IEndpointRouteBuilder Map(IEndpointRouteBuilder app)
     {
         app.MapPost("/api/identity/logout", async (ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
-        {
-            var accountId = user.GetAccountId();
-            return Results.Ok(await mediator.Send(new LogoutRequest(accountId), ct));
-        })
-        .WithTags("Identity")
-        .WithSummary("Logout user")
-        .RequireAuthorization();
+            Results.Ok(await mediator.Send(new LogoutRequest(user.GetAccountId()), ct)))
+            .WithTags("Identity")
+            .WithSummary("Logout current user")
+            .RequireAuthorization();
         return app;
     }
 }

@@ -11,15 +11,12 @@ public static class ReturnBookEndpoint
 {
     public static IEndpointRouteBuilder Map(IEndpointRouteBuilder app)
     {
+        // Primary resource-oriented endpoint: /api/circulation/loans/{loanSlipId}/return
         app.MapPost("/api/circulation/loans/{loanSlipId:long}/return",
             async (long loanSlipId, ReturnBookRequest req, ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
-            {
-                var staffId = user.GetAccountId();
-                var finalReq = req with { LoanSlipId = loanSlipId, LibrarianId = staffId };
-                return Results.Ok(await mediator.Send(finalReq, ct));
-            })
+                Results.Ok(await mediator.Send(req with { LoanSlipId = loanSlipId, LibrarianId = user.GetAccountId() }, ct)))
            .WithTags("Circulation")
-           .WithSummary("Process book return for a loan slip (Staff only)")
+           .WithSummary("Process book return for a specific loan slip (Staff only)")
            .RequireAuthorization("StaffOnly");
 
         return app;

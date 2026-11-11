@@ -11,14 +11,14 @@ namespace Library.Modules.Core.Circulation.Features.CancelReservation;
 public sealed class CancelReservationHandler : IRequestHandler<CancelReservationRequest, ApiResponse<bool>>
 {
     private readonly CirculationDbContext _db;
-    private readonly IValidator<CancelReservationRequest> _validator;
     private readonly ISender _sender;
+    private readonly IValidator<CancelReservationRequest> _validator;
 
-    public CancelReservationHandler(CirculationDbContext db, IValidator<CancelReservationRequest> validator, ISender sender)
+    public CancelReservationHandler(CirculationDbContext db, ISender sender, IValidator<CancelReservationRequest> validator)
     {
         _db = db;
-        _validator = validator;
         _sender = sender;
+        _validator = validator;
     }
 
     public async Task<ApiResponse<bool>> Handle(CancelReservationRequest request, CancellationToken ct)
@@ -26,11 +26,11 @@ public sealed class CancelReservationHandler : IRequestHandler<CancelReservation
         var val = await _validator.ValidateAsync(request, ct);
         if (!val.IsValid) return ApiResponse<bool>.Fail(string.Join("; ", val.Errors.Select(e => e.ErrorMessage)));
 
-        var res = await _db.Reservations.FindAsync(new object[] { request.ReservationId }, ct);
-        if (res == null) return ApiResponse<bool>.Fail("Yêu cầu đặt trước không tồn tại.");
+        var res = await _db.Reservations.FirstOrDefaultAsync(r => r.Id == request.ReservationId, ct);
+        if (res == null) return ApiResponse<bool>.Fail("Đặt trước không tồn tại.");
 
-        if (!request.IsStaff && res.AccountId != request.AccountId)
-            return ApiResponse<bool>.Fail("Bạn không có quyền hủy đặt trước của người khác.");
+        if (res.AccountId != request.AccountId && !request.IsStaff)
+            return ApiResponse<bool>.Fail("Bạn không có quyền hủy đặt trước này.");
 
         if (res.Status != ReservationStatus.Waiting && res.Status != ReservationStatus.Ready)
             return ApiResponse<bool>.Fail("Không thể hủy đặt trước ở trạng thái hiện tại.");
@@ -38,15 +38,10 @@ public sealed class CancelReservationHandler : IRequestHandler<CancelReservation
         res.Status = ReservationStatus.Cancelled;
         res.CancelledAt = DateTime.UtcNow;
 
-        // Release or reassign reserved copy
         if (res.BookCopyId.HasValue)
         {
-            var copyDict = await _sender.Send(new GetCopyInfosQuery([res.BookCopyId.Value]), ct);
-            if (copyDict.TryGetValue(res.BookCopyId.Value, out var copy) && copy.Status == CopyStatus.Reserved)
-            {
-                var newStatus = await _sender.Send(new ReleaseCopyCommand(res.BookId, copy.CopyId, res.Id), ct);
-                await _sender.Send(new SetCopyStatusCommand(copy.CopyId, null, newStatus, copy.Condition), ct);
-            }
+            var nextStatus = await _sender.Send(new ReleaseCopyCommand(res.BookId, res.BookCopyId.Value, res.Id), ct);
+            await _sender.Send(new SetCopyStatusCommand(res.BookCopyId.Value, null, nextStatus), ct);
         }
 
         await _db.SaveChangesAsync(ct);

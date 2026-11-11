@@ -1,4 +1,4 @@
-using Library.Modules.Core.Catalog.Contracts;
+using Library.Modules.Core.Catalog.Data;
 using Library.Modules.Core.Circulation.Contracts;
 using Library.Modules.Core.Circulation.Data;
 using MediatR;
@@ -22,10 +22,7 @@ public sealed class ReleaseCopyHandler : IRequestHandler<ReleaseCopyCommand, Cop
             query = query.Where(r => r.Id != request.ExcludeReservationId.Value);
         }
 
-        var nextReservation = await query
-            .OrderBy(r => r.ReservedAt)
-            .FirstOrDefaultAsync(ct);
-
+        var nextReservation = await query.OrderBy(r => r.ReservedAt).FirstOrDefaultAsync(ct);
         if (nextReservation is not null)
         {
             nextReservation.BookCopyId = request.CopyId;

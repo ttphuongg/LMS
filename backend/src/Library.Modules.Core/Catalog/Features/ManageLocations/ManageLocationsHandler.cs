@@ -72,6 +72,14 @@ public sealed class UpdateLocationHandler : IRequestHandler<UpdateLocationReques
         if (location is null)
             return ApiResponse<bool>.Fail($"Vị trí với Id = {request.LocationId} không tồn tại.");
 
+        if (request.MaxCapacity.HasValue)
+        {
+            var currentCount = await _db.BookCopies.CountAsync(c => c.LocationId == request.LocationId, ct);
+            if (request.MaxCapacity.Value < currentCount)
+                return ApiResponse<bool>.Fail(
+                    $"Sức chứa tối đa ({request.MaxCapacity.Value}) không thể nhỏ hơn số bản sao đang lưu trữ ({currentCount}).");
+        }
+
         // Check unique if coordinates changed
         var aisle = request.Aisle.Trim();
         var shelf = request.Shelf.Trim();
@@ -83,14 +91,6 @@ public sealed class UpdateLocationHandler : IRequestHandler<UpdateLocationReques
                 return ApiResponse<bool>.Fail(
                     $"Tọa độ ({aisle}, {shelf}, Tầng {request.RowLevel}) đã tồn tại.");
         }
-
-        // Check capacity against currently stored copies
-        var currentCopiesCount = await _db.BookCopies.CountAsync(c => c.LocationId == location.Id, ct);
-        if (request.MaxCapacity.HasValue && currentCopiesCount > request.MaxCapacity.Value)
-            return ApiResponse<bool>.Fail($"Không thể giảm sức chứa xuống {request.MaxCapacity.Value} vì vị trí này đang chứa {currentCopiesCount} bản sao.");
-
-        if (!request.IsActive && currentCopiesCount > 0)
-            return ApiResponse<bool>.Fail($"Không thể vô hiệu hóa vị trí này vì đang có {currentCopiesCount} bản sao được xếp tại đây.");
 
         location.Aisle = aisle;
         location.Shelf = shelf;
@@ -143,6 +143,7 @@ public sealed class GetLocationByIdHandler : IRequestHandler<GetLocationByIdRequ
     public async Task<ApiResponse<LocationDetail>> Handle(GetLocationByIdRequest request, CancellationToken ct)
     {
         var location = await _db.Locations
+            .AsNoTracking()
             .Where(l => l.Id == request.LocationId)
             .Select(l => new LocationDetail(
                 l.Id,
@@ -151,7 +152,17 @@ public sealed class GetLocationByIdHandler : IRequestHandler<GetLocationByIdRequ
                 l.RowLevel,
                 l.MaxCapacity,
                 l.IsActive,
-                l.BookCopies.Count
+                l.BookCopies.Count,
+                l.BookCopies
+                    .OrderBy(c => c.Barcode)
+                    .Select(c => new LocationCopyItem(
+                        c.Id,
+                        c.Barcode,
+                        c.BookId,
+                        c.Book.Title,
+                        c.Status.ToString(),
+                        c.Condition.ToString()))
+                    .ToList()
             ))
             .FirstOrDefaultAsync(ct);
 
@@ -161,3 +172,4 @@ public sealed class GetLocationByIdHandler : IRequestHandler<GetLocationByIdRequ
         return ApiResponse<LocationDetail>.Ok(location);
     }
 }
+

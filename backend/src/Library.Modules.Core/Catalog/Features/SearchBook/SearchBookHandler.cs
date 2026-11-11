@@ -1,5 +1,4 @@
 using FluentValidation;
-using Library.Modules.Core.Catalog.Contracts;
 using Library.Modules.Core.Catalog.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
@@ -26,10 +25,16 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
             return ApiResponse<SearchBookResult>.Fail(
                 string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)));
 
-        // ── Build base query (only Active books) ──────────────────────────────
-        IQueryable<Book> query = _db.Books
-            .Where(b => b.Status == BookStatus.Active)
-            .AsNoTracking();
+        // ── Build base query (public sees Active only; staff can filter/include Inactive) ──
+        IQueryable<Book> query = _db.Books.AsNoTracking();
+        if (request.Status.HasValue)
+        {
+            query = query.Where(b => b.Status == request.Status.Value);
+        }
+        else if (!request.IncludeInactive)
+        {
+            query = query.Where(b => b.Status == BookStatus.Active);
+        }
 
         // ── Apply filters (sử dụng EF.Functions.Like để SQL Server dùng được index) ─────
         if (!string.IsNullOrWhiteSpace(request.Keyword))
@@ -85,7 +90,8 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
                 b.Copies.Count(),
                 b.BookAuthors.Select(ba => ba.Author.Name).ToList(),
                 b.BookCategories.Select(bc => bc.Category.Name).ToList(),
-                b.Description
+                b.Description,
+                b.Status.ToString()
             ))
             .ToListAsync(ct);
 

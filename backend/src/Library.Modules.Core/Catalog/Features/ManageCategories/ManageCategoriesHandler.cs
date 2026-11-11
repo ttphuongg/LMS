@@ -32,7 +32,15 @@ public sealed class ManageCategoriesHandler :
 
     public async Task<ApiResponse<List<CategoryDto>>> Handle(GetCategoriesRequest request, CancellationToken ct)
     {
-        var result = await _db.Categories.AsNoTracking().OrderBy(c => c.Name).Select(c => new CategoryDto(c.Id, c.Name, c.Description)).ToListAsync(ct);
+        var result = await _db.Categories
+            .AsNoTracking()
+            .OrderBy(c => c.Name)
+            .Select(c => new CategoryDto(
+                c.Id,
+                c.Name,
+                c.Description,
+                c.BookCategories.Count(bc => bc.Book.Status == BookStatus.Active)))
+            .ToListAsync(ct);
         return ApiResponse<List<CategoryDto>>.Ok(result);
     }
 }

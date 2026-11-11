@@ -8,6 +8,8 @@ public class RequestRenewalValidator : AbstractValidator<RequestRenewalRequest>
     {
         RuleFor(x => x.LoanSlipDetailId).GreaterThan(0).WithMessage("Chi tiết phiếu mượn không hợp lệ.");
         RuleFor(x => x.AccountId).GreaterThan(0).WithMessage("Tài khoản không hợp lệ.");
-        RuleFor(x => x.NewDueDate).GreaterThan(DateOnly.FromDateTime(DateTime.UtcNow)).WithMessage("Ngày gia hạn phải lớn hơn hôm nay.");
+        RuleFor(x => x.NewDueDate)
+            .GreaterThan(DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7)))
+            .WithMessage("Ngày gia hạn phải lớn hơn hôm nay.");
     }
 }

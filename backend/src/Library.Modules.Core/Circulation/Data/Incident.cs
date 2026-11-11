@@ -1,5 +1,3 @@
-using Library.Modules.Core.Circulation.Contracts;
-
 namespace Library.Modules.Core.Circulation.Data;
 
 /// <summary>
@@ -24,3 +22,10 @@ public class Incident
     public IncidentStatus Status { get; set; } = IncidentStatus.Recorded;
     public DateTime? ResolvedAt { get; set; }
 }
+
+public enum IncidentType { Lost, Damaged }
+
+/// <summary>NHE → Minor | NANG → Major | MAT → TotalLoss</summary>
+public enum IncidentSeverity { Minor, Major, TotalLoss }
+
+public enum IncidentStatus { Recorded, Resolved, Cancelled }

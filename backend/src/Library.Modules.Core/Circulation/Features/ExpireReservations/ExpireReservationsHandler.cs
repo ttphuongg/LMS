@@ -1,7 +1,8 @@
 using Library.Modules.Core.Catalog.Contracts;
+using Library.Modules.Core.Catalog.Data;
 using Library.Modules.Core.Circulation.Contracts;
 using Library.Modules.Core.Circulation.Data;
-using Library.Modules.Core.Shared;
+using Library.Modules.Core.Shared.Events;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,42 +12,41 @@ public sealed class ExpireReservationsHandler : IRequestHandler<ExpireReservatio
 {
     private readonly CirculationDbContext _db;
     private readonly ISender _sender;
+    private readonly IMediator _mediator;
 
-    public ExpireReservationsHandler(CirculationDbContext db, ISender sender)
+    public ExpireReservationsHandler(CirculationDbContext db, ISender sender, IMediator mediator)
     {
         _db = db;
         _sender = sender;
+        _mediator = mediator;
     }
 
     public async Task<int> Handle(ExpireReservationsCommand request, CancellationToken ct)
     {
-        var expiredReservations = await _db.Reservations
-            .Where(r => r.Status == ReservationStatus.Ready &&
-                        r.ExpiresAt.HasValue &&
-                        r.ExpiresAt.Value < DateTime.UtcNow)
+        var now = DateTime.UtcNow;
+        var expired = await _db.Reservations
+            .Where(r => r.Status == ReservationStatus.Ready && r.ExpiresAt != null && r.ExpiresAt < now)
             .ToListAsync(ct);
 
-        if (expiredReservations.Count == 0)
-            return 0;
-
-        foreach (var res in expiredReservations)
+        foreach (var res in expired)
         {
             res.Status = ReservationStatus.Expired;
 
             if (res.BookCopyId.HasValue)
             {
-                var copyDict = await _sender.Send(new GetCopyInfosQuery([res.BookCopyId.Value]), ct);
-                if (copyDict.TryGetValue(res.BookCopyId.Value, out var copy) && copy.Status == CopyStatus.Reserved)
-                {
-                    // Assign copy to next waiting reservation (FIFO) via ReleaseCopyCommand
-                    var newStatus = await _sender.Send(new ReleaseCopyCommand(res.BookId, copy.CopyId, res.Id), ct);
-                    await _sender.Send(new SetCopyStatusCommand(copy.CopyId, CopyStatus.Reserved, newStatus), ct);
-                }
+                var nextStatus = await _sender.Send(new ReleaseCopyCommand(res.BookId, res.BookCopyId.Value, res.Id), ct);
+                await _sender.Send(new SetCopyStatusCommand(res.BookCopyId.Value, null, nextStatus), ct);
             }
+
+            await _mediator.Publish(new ReservationExpiredEvent(res.Id, res.AccountId), ct);
         }
 
-        await _db.SaveChangesAsync(ct);
-        return expiredReservations.Count;
+        if (expired.Count > 0)
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+
+        return expired.Count;
     }
 }
 

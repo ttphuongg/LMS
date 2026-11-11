@@ -6,8 +6,8 @@ public class ChangePasswordValidator : AbstractValidator<ChangePasswordRequest>
 {
     public ChangePasswordValidator()
     {
-        RuleFor(x => x.AccountId).GreaterThan(0).WithMessage("AccountId kh�ng h?p l?.");
-        RuleFor(x => x.CurrentPassword).NotEmpty().WithMessage("Vui l?ng nh?p m?t kh?u hi?n t?i.");
-        RuleFor(x => x.NewPassword).NotEmpty().MinimumLength(6).WithMessage("M?t kh?u m?i ph?i c� �t nh?t 6 k? t?.");
+        RuleFor(x => x.AccountId).GreaterThan(0).WithMessage("AccountId không hợp lệ.");
+        RuleFor(x => x.CurrentPassword).NotEmpty().WithMessage("Vui lòng nhập mật khẩu hiện tại.");
+        RuleFor(x => x.NewPassword).NotEmpty().MinimumLength(6).WithMessage("Mật khẩu mới phải có ít nhất 6 ký tự.");
     }
 }

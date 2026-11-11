@@ -23,3 +23,16 @@ public sealed class AddCopyValidator : AbstractValidator<AddCopyRequest>
             .When(x => x.AcquiredDate.HasValue);
     }
 }
+
+public sealed class UpdateCopyLocationValidator : AbstractValidator<UpdateCopyLocationRequest>
+{
+    public UpdateCopyLocationValidator()
+    {
+        RuleFor(x => x.CopyId)
+            .GreaterThan(0).WithMessage("CopyId không hợp lệ.");
+
+        RuleFor(x => x.LocationId)
+            .GreaterThan(0).WithMessage("LocationId không hợp lệ.")
+            .When(x => x.LocationId.HasValue);
+    }
+}

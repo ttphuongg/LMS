@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using FluentValidation;
 using Library.Modules.Core.Identity.Data;
 using Library.Modules.Core.Identity.Features.Login;
@@ -21,71 +23,61 @@ public sealed class RefreshTokenHandler : IRequestHandler<RefreshTokenRequest, A
         _jwt = jwt;
     }
 
+    private static string HashToken(string token)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(bytes);
+    }
+
     public async Task<ApiResponse<LoginResponse>> Handle(RefreshTokenRequest request, CancellationToken ct)
     {
         var val = await _validator.ValidateAsync(request, ct);
-        if (!val.IsValid) 
-            return ApiResponse<LoginResponse>.Fail(string.Join("; ", val.Errors.Select(e => e.ErrorMessage)));
+        if (!val.IsValid) return ApiResponse<LoginResponse>.Fail(string.Join("; ", val.Errors.Select(e => e.ErrorMessage)));
 
-        var rawToken = request.RefreshToken.Trim();
-        var parts = rawToken.Split('.', 2);
-        
-        LoginSession? session = null;
-        string? secret = null;
+        var tokenHash = HashToken(request.RefreshToken);
 
-        if (parts.Length == 2 && long.TryParse(parts[0], out var sessionId))
+        // Tra cứu trực tiếp O(1) qua SHA256 hash thay vì quét toàn bộ bảng và verify BCrypt (chống DoS)
+        var validSession = await _db.LoginSessions
+            .Include(s => s.Account)
+            .FirstOrDefaultAsync(s => s.RefreshTokenHash == tokenHash && s.LoggedOutAt == null && s.ExpiresAt > DateTime.UtcNow, ct);
+
+        // Hỗ trợ phiên bản cũ lưu bằng BCrypt (nếu có)
+        if (validSession == null)
         {
-            secret = parts[1];
-            session = await _db.LoginSessions
+            var legacySessions = await _db.LoginSessions
                 .Include(s => s.Account)
-                .FirstOrDefaultAsync(s => s.Id == sessionId, ct);
-        }
-        else
-        {
-            var recentActive = await _db.LoginSessions
-                .Include(s => s.Account)
-                .Where(s => s.LoggedOutAt == null && s.ExpiresAt > DateTime.UtcNow)
+                .Where(s => s.LoggedOutAt == null && s.ExpiresAt > DateTime.UtcNow && s.RefreshTokenHash != null && s.RefreshTokenHash.StartsWith("$2"))
                 .OrderByDescending(s => s.LoggedInAt)
                 .Take(20)
                 .ToListAsync(ct);
 
-            foreach (var s in recentActive)
+            foreach (var s in legacySessions)
             {
-                if (s.RefreshTokenHash != null && BCrypt.Net.BCrypt.Verify(rawToken, s.RefreshTokenHash))
+                if (BCrypt.Net.BCrypt.Verify(request.RefreshToken, s.RefreshTokenHash))
                 {
-                    session = s;
-                    secret = rawToken;
+                    validSession = s;
                     break;
                 }
             }
         }
 
-        if (session == null)
-            return ApiResponse<LoginResponse>.Fail("Refresh token không hợp lệ hoặc không tồn tại.");
+        if (validSession == null)
+            return ApiResponse<LoginResponse>.Fail("Refresh token không hợp lệ hoặc đã hết hạn.");
 
-        if (session.LoggedOutAt != null)
-        {
-            return ApiResponse<LoginResponse>.Fail("Phiên đăng nhập đã bị thu hồi hoặc đã được làm mới trước đó.");
-        }
+        if (validSession.Account.Status != AccountStatus.Active)
+            return ApiResponse<LoginResponse>.Fail("Tài khoản không hoạt động.");
 
-        if (session.ExpiresAt <= DateTime.UtcNow)
-            return ApiResponse<LoginResponse>.Fail("Refresh token đã hết hạn.");
+        // Thu hồi session cũ
+        validSession.LoggedOutAt = DateTime.UtcNow;
 
-        if (secret != null && session.RefreshTokenHash != null && !BCrypt.Net.BCrypt.Verify(secret, session.RefreshTokenHash))
-            return ApiResponse<LoginResponse>.Fail("Refresh token không hợp lệ.");
-
-        if (session.Account.Status != AccountStatus.Active)
-            return ApiResponse<LoginResponse>.Fail("Tài khoản đã bị khóa hoặc không hoạt động.");
-
-        session.LoggedOutAt = DateTime.UtcNow;
-
-        var accessToken = _jwt.GenerateAccessToken(session.Account);
-        var newRefreshTokenSecret = _jwt.GenerateRefreshToken();
+        // Tạo token mới
+        var accessToken = _jwt.GenerateAccessToken(validSession.Account);
+        var newRefreshToken = _jwt.GenerateRefreshToken();
 
         var newSession = new LoginSession
         {
-            AccountId = session.AccountId,
-            RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(newRefreshTokenSecret),
+            AccountId = validSession.AccountId,
+            RefreshTokenHash = HashToken(newRefreshToken),
             LoggedInAt = DateTime.UtcNow,
             ExpiresAt = _jwt.GetRefreshTokenExpiry()
         };
@@ -93,18 +85,15 @@ public sealed class RefreshTokenHandler : IRequestHandler<RefreshTokenRequest, A
         _db.LoginSessions.Add(newSession);
         await _db.SaveChangesAsync(ct);
 
-        var newClientRefreshToken = $"{newSession.Id}.{newRefreshTokenSecret}";
-        var accessExpiryMinutes = _jwt.GetAccessTokenExpiryMinutes();
-
         var response = new LoginResponse(
-            AccountId: session.Account.Id,
-            Username: session.Account.Username,
-            FullName: session.Account.FullName,
-            Email: session.Account.Email,
-            Role: session.Account.Role.ToString(),
+            AccountId: validSession.Account.Id,
+            Username: validSession.Account.Username,
+            FullName: validSession.Account.FullName,
+            Email: validSession.Account.Email,
+            Role: validSession.Account.Role.ToString(),
             AccessToken: accessToken,
-            RefreshToken: newClientRefreshToken,
-            AccessTokenExpiresAt: DateTime.UtcNow.AddMinutes(accessExpiryMinutes)
+            RefreshToken: newRefreshToken,
+            AccessTokenExpiresAt: _jwt.GetAccessTokenExpiry()
         );
 
         return ApiResponse<LoginResponse>.Ok(response);

@@ -13,9 +13,8 @@ public sealed class HasActiveLoanForCopyHandler : IRequestHandler<HasActiveLoanF
 
     public async Task<bool> Handle(HasActiveLoanForCopyQuery request, CancellationToken ct)
     {
-        return await _db.LoanSlipDetails
-            .AsNoTracking()
-            .AnyAsync(d => d.BookCopyId == request.CopyId && d.Status == LoanDetailStatus.Borrowing, ct);
+        return await _db.LoanSlipDetails.AnyAsync(
+            d => d.BookCopyId == request.CopyId && d.Status == LoanDetailStatus.Borrowing, ct);
     }
 }
 

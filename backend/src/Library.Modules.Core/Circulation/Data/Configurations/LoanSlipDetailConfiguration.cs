@@ -1,3 +1,4 @@
+using Library.Modules.Core.Catalog.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,6 +11,7 @@ public class LoanSlipDetailConfiguration : IEntityTypeConfiguration<LoanSlipDeta
         builder.ToTable("LoanSlipDetails");
         builder.HasKey(d => d.Id);
 
+        builder.Property(d => d.DueDate).IsRequired(false);
         builder.Property(d => d.Notes).HasMaxLength(500);
         builder.Property(d => d.Status)
             .HasConversion<string>()

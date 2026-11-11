@@ -16,12 +16,10 @@ public sealed class GetCopyInfosHandler : IRequestHandler<GetCopyInfosQuery, IRe
         if (request.CopyIds.Count == 0)
             return new Dictionary<int, CopyInfo>();
 
-        var distinctIds = request.CopyIds.Distinct().ToList();
-
         var copies = await _db.BookCopies
-            .AsNoTracking()
             .Include(c => c.Book)
-            .Where(c => distinctIds.Contains(c.Id))
+            .Include(c => c.Location)
+            .Where(c => request.CopyIds.Contains(c.Id))
             .Select(c => new CopyInfo(
                 c.Id,
                 c.Barcode,
@@ -29,8 +27,11 @@ public sealed class GetCopyInfosHandler : IRequestHandler<GetCopyInfosQuery, IRe
                 c.Book.Title,
                 c.Book.Status == BookStatus.Active,
                 c.Condition,
-                c.Status))
-            .ToDictionaryAsync(c => c.CopyId, ct);
+                c.Status,
+                c.Location != null
+                    ? c.Location.Aisle + " - " + c.Location.Shelf + " - Tầng " + c.Location.RowLevel
+                    : null))
+            .ToDictionaryAsync(c => c.CopyId, c => c, ct);
 
         return copies;
     }

@@ -10,8 +10,8 @@ public record UpdateBookRequest(
     int? PublishedYear,
     string? Publisher,
     string? Language,
-    int PageCount,
-    decimal BookValue,
+    int? PageCount,
+    decimal? BookValue,
     string? CoverImageUrl,
     List<int> AuthorIds,
     List<int> CategoryIds

@@ -1,5 +1,5 @@
-using FluentValidation;
 using Library.Modules.Core.Identity.Data;
+using FluentValidation;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

@@ -13,24 +13,33 @@ namespace Library.Modules.Core.Identity.Services;
 /// </summary>
 public sealed class JwtTokenService
 {
-    private readonly IConfiguration _config;
+    private readonly string _secretKey;
+    private readonly string _issuer;
+    private readonly string _audience;
+    private readonly int _accessTokenExpiryMinutes;
+    private readonly int _refreshTokenExpiryDays;
 
-    public JwtTokenService(IConfiguration config) => _config = config;
+    public JwtTokenService(IConfiguration config)
+    {
+        _secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+            ?? config["JwtSettings:SecretKey"]
+            ?? throw new InvalidOperationException("JwtSettings:SecretKey is not configured.");
+        _issuer = config["JwtSettings:Issuer"] ?? "LibrarySystem";
+        _audience = config["JwtSettings:Audience"] ?? "LibrarySystemClient";
+        _accessTokenExpiryMinutes = int.TryParse(config["JwtSettings:AccessTokenExpiryMinutes"], out var accessMins) ? accessMins : 60;
+        _refreshTokenExpiryDays = int.TryParse(config["JwtSettings:RefreshTokenExpiryDays"], out var refDays) ? refDays : 7;
+    }
 
-    public int GetAccessTokenExpiryMinutes() =>
-        int.Parse(_config["JwtSettings:AccessTokenExpiryMinutes"] ?? "60");
+    public int GetAccessTokenExpiryMinutes() => _accessTokenExpiryMinutes;
+    public DateTime GetAccessTokenExpiry() => DateTime.UtcNow.AddMinutes(_accessTokenExpiryMinutes);
 
     /// <summary>
     /// Creates a signed JWT access token containing user claims (sub, name, email, role).
     /// </summary>
     public string GenerateAccessToken(Account account)
     {
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["JwtSettings:SecretKey"]!));
-
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var expiryMinutes = GetAccessTokenExpiryMinutes();
 
         var claims = new[]
         {
@@ -46,10 +55,10 @@ public sealed class JwtTokenService
         };
 
         var token = new JwtSecurityToken(
-            issuer: _config["JwtSettings:Issuer"],
-            audience: _config["JwtSettings:Audience"],
+            issuer: _issuer,
+            audience: _audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(expiryMinutes),
+            expires: GetAccessTokenExpiry(),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -71,7 +80,6 @@ public sealed class JwtTokenService
     /// </summary>
     public DateTime GetRefreshTokenExpiry()
     {
-        var days = int.Parse(_config["JwtSettings:RefreshTokenExpiryDays"] ?? "7");
-        return DateTime.UtcNow.AddDays(days);
+        return DateTime.UtcNow.AddDays(_refreshTokenExpiryDays);
     }
 }

@@ -1,3 +1,4 @@
+using Library.Modules.Core.Catalog.Data;
 using Library.Modules.Core.Shared;
 using Library.Modules.Core.Shared.Persistence;
 using MediatR;
@@ -10,4 +11,4 @@ public record ReturnBookRequest(
     List<ReturnedCopy> ReturnedCopies
 ) : IRequest<ApiResponse<bool>>, ITransactionalCommand;
 
-public record ReturnedCopy(long LoanSlipDetailId, string? Notes = null);
+public record ReturnedCopy(long LoanSlipDetailId, string? Notes = null, CopyCondition? Condition = null);

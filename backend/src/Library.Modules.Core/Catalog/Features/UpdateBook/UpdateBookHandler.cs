@@ -31,18 +31,16 @@ public sealed class UpdateBookHandler : IRequestHandler<UpdateBookRequest, ApiRe
         if (book == null)
             return ApiResponse<bool>.Fail("Sách không tồn tại.");
 
-        // ── Normalize and verify ISBN uniqueness ──────────────────────────────
-        var isbn = string.IsNullOrWhiteSpace(request.Isbn) ? null : request.Isbn.Trim();
-        if (isbn != null && isbn != book.Isbn)
+        if (!string.IsNullOrWhiteSpace(request.Isbn) && request.Isbn != book.Isbn)
         {
-            if (await _db.Books.AnyAsync(b => b.Id != book.Id && b.Isbn == isbn, ct))
+            if (await _db.Books.AnyAsync(b => b.Isbn == request.Isbn, ct))
                 return ApiResponse<bool>.Fail("ISBN đã tồn tại ở một cuốn sách khác.");
         }
 
         // ── Verify AuthorIds exist ────────────────────────────────────────────
-        var distinctAuthorIds = request.AuthorIds?.Distinct().ToList() ?? [];
-        if (distinctAuthorIds.Count > 0)
+        if (request.AuthorIds.Count > 0)
         {
+            var distinctAuthorIds = request.AuthorIds.Distinct().ToList();
             var existingAuthorCount = await _db.Authors
                 .CountAsync(a => distinctAuthorIds.Contains(a.Id), ct);
 
@@ -51,9 +49,9 @@ public sealed class UpdateBookHandler : IRequestHandler<UpdateBookRequest, ApiRe
         }
 
         // ── Verify CategoryIds exist ──────────────────────────────────────────
-        var distinctCategoryIds = request.CategoryIds?.Distinct().ToList() ?? [];
-        if (distinctCategoryIds.Count > 0)
+        if (request.CategoryIds.Count > 0)
         {
+            var distinctCategoryIds = request.CategoryIds.Distinct().ToList();
             var existingCategoryCount = await _db.Categories
                 .CountAsync(c => distinctCategoryIds.Contains(c.Id), ct);
 
@@ -62,22 +60,21 @@ public sealed class UpdateBookHandler : IRequestHandler<UpdateBookRequest, ApiRe
         }
 
         book.Title = request.Title.Trim();
-        book.Isbn = isbn;
-        book.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+        book.Isbn = request.Isbn?.Trim();
+        book.Description = request.Description?.Trim();
         book.PublishedYear = (short?)request.PublishedYear;
-        book.Publisher = string.IsNullOrWhiteSpace(request.Publisher) ? null : request.Publisher.Trim();
-        book.Language = string.IsNullOrWhiteSpace(request.Language) ? null : request.Language.Trim();
+        book.Publisher = request.Publisher?.Trim();
+        book.Language = request.Language?.Trim();
         book.PageCount = request.PageCount;
         book.BookValue = request.BookValue;
-        book.CoverImageUrl = string.IsNullOrWhiteSpace(request.CoverImageUrl) ? null : request.CoverImageUrl.Trim();
-        book.UpdatedAt = DateTime.UtcNow;
+        book.CoverImageUrl = request.CoverImageUrl?.Trim();
 
         _db.BookAuthors.RemoveRange(book.BookAuthors);
-        foreach (var aid in distinctAuthorIds)
+        foreach (var aid in request.AuthorIds.Distinct())
             book.BookAuthors.Add(new BookAuthor { AuthorId = aid });
 
         _db.BookCategories.RemoveRange(book.BookCategories);
-        foreach (var cid in distinctCategoryIds)
+        foreach (var cid in request.CategoryIds.Distinct())
             book.BookCategories.Add(new BookCategory { CategoryId = cid });
 
         await _db.SaveChangesAsync(ct);

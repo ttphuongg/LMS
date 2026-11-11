@@ -1,8 +1,11 @@
 using FluentValidation;
 using Library.Modules.Core.Catalog.Contracts;
+using Library.Modules.Core.Catalog.Data;
 using Library.Modules.Core.Circulation.Contracts;
 using Library.Modules.Core.Circulation.Data;
+using Library.Modules.Core.Circulation.Services;
 using Library.Modules.Core.Shared;
+using Library.Modules.Core.Shared.Events;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,14 +14,16 @@ namespace Library.Modules.Core.Circulation.Features.ReturnBook;
 public sealed class ReturnBookHandler : IRequestHandler<ReturnBookRequest, ApiResponse<bool>>
 {
     private readonly CirculationDbContext _db;
-    private readonly IValidator<ReturnBookRequest> _validator;
     private readonly ISender _sender;
+    private readonly IValidator<ReturnBookRequest> _validator;
+    private readonly IMediator _mediator;
 
-    public ReturnBookHandler(CirculationDbContext db, IValidator<ReturnBookRequest> validator, ISender sender)
+    public ReturnBookHandler(CirculationDbContext db, ISender sender, IValidator<ReturnBookRequest> validator, IMediator mediator)
     {
         _db = db;
-        _validator = validator;
         _sender = sender;
+        _validator = validator;
+        _mediator = mediator;
     }
 
     public async Task<ApiResponse<bool>> Handle(ReturnBookRequest request, CancellationToken ct)
@@ -29,58 +34,61 @@ public sealed class ReturnBookHandler : IRequestHandler<ReturnBookRequest, ApiRe
 
         var loanSlip = await _db.LoanSlips
             .Include(l => l.Details)
+                .ThenInclude(d => d.Renewals)
             .FirstOrDefaultAsync(l => l.Id == request.LoanSlipId, ct);
 
         if (loanSlip == null)
             return ApiResponse<bool>.Fail("Phiếu mượn không tồn tại.");
 
-        if (loanSlip.Status == LoanStatus.Returned || loanSlip.Status == LoanStatus.Cancelled)
-            return ApiResponse<bool>.Fail("Phiếu mượn này đã được hoàn tất hoặc đã bị hủy.");
+        var copyIdsToUpdate = loanSlip.Details
+            .Where(d => request.ReturnedCopies.Any(r => r.LoanSlipDetailId == d.Id))
+            .Select(d => d.BookCopyId)
+            .Distinct()
+            .ToList();
 
-        var requestedDetailIds = request.ReturnedCopies.Select(r => r.LoanSlipDetailId).ToHashSet();
-        var validDetails = loanSlip.Details.Where(d => requestedDetailIds.Contains(d.Id)).ToList();
+        var copyInfoMap = await _sender.Send(new GetCopyInfosQuery(copyIdsToUpdate), ct);
 
-        if (validDetails.Count == 0)
-            return ApiResponse<bool>.Fail("Không có chi tiết mượn sách nào thuộc phiếu mượn này được tìm thấy.");
+        // Giờ Việt Nam UTC+7
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));
 
-        var activeBorrowingDetails = validDetails.Where(d => d.Status == LoanDetailStatus.Borrowing).ToList();
-        if (activeBorrowingDetails.Count == 0)
-            return ApiResponse<bool>.Fail("Các sách được chọn đều đã được trả hoặc xử lý trước đó.");
-
-        var copyIdsToUpdate = activeBorrowingDetails.Select(d => d.BookCopyId).ToList();
-        var copyMap = await _sender.Send(new GetCopyInfosQuery(copyIdsToUpdate), ct);
-
-        foreach (var detail in activeBorrowingDetails)
+        foreach (var ret in request.ReturnedCopies)
         {
-            var returnInfo = request.ReturnedCopies.First(r => r.LoanSlipDetailId == detail.Id);
-            detail.Status = LoanDetailStatus.Returned;
-            detail.ActualReturnDate = DateOnly.FromDateTime(DateTime.UtcNow);
-            detail.Notes = returnInfo.Notes;
-            detail.UpdatedAt = DateTime.UtcNow;
-            detail.UpdatedBy = request.LibrarianId;
-
-            if (copyMap.TryGetValue(detail.BookCopyId, out var copy))
+            var detail = loanSlip.Details.FirstOrDefault(d => d.Id == ret.LoanSlipDetailId);
+            if (detail != null && detail.Status == LoanDetailStatus.Borrowing)
             {
-                if (copy.Condition == CopyCondition.MajorDamage)
+                detail.Status = LoanDetailStatus.Returned;
+                detail.ActualReturnDate = today;
+                detail.Notes = ret.Notes;
+                detail.UpdatedAt = DateTime.UtcNow;
+                detail.UpdatedBy = request.LibrarianId;
+
+                var effectiveDueDate = detail.GetEffectiveDueDate();
+                if (effectiveDueDate == default)
+                    effectiveDueDate = loanSlip.DueDate;
+
+                if (today > effectiveDueDate)
                 {
-                    await _sender.Send(new SetCopyStatusCommand(copy.CopyId, null, CopyStatus.Maintenance, copy.Condition), ct);
+                    await _mediator.Publish(new LoanOverdueEvent(
+                        detail.Id,
+                        loanSlip.AccountId,
+                        detail.BookCopyId,
+                        effectiveDueDate), ct);
                 }
-                else
+
+                if (copyInfoMap.TryGetValue(detail.BookCopyId, out var copyInfo))
                 {
-                    var newStatus = await _sender.Send(new ReleaseCopyCommand(copy.BookId, copy.CopyId, null), ct);
-                    await _sender.Send(new SetCopyStatusCommand(copy.CopyId, null, newStatus, copy.Condition), ct);
+                    var nextStatus = await _sender.Send(new ReleaseCopyCommand(copyInfo.BookId, detail.BookCopyId), ct);
+                    await _sender.Send(new SetCopyStatusCommand(detail.BookCopyId, null, nextStatus, ret.Condition), ct);
                 }
             }
         }
 
-        // Check if all details in the loan slip are completed
         if (loanSlip.Details.All(d => d.Status != LoanDetailStatus.Borrowing))
         {
             loanSlip.Status = LoanStatus.Returned;
+            loanSlip.UpdatedAt = DateTime.UtcNow;
+            loanSlip.UpdatedBy = request.LibrarianId;
         }
-
-        loanSlip.UpdatedAt = DateTime.UtcNow;
-        loanSlip.UpdatedBy = request.LibrarianId;
 
         await _db.SaveChangesAsync(ct);
         return ApiResponse<bool>.Ok(true);

@@ -1,8 +1,11 @@
 using FluentValidation;
 using Library.Modules.Core.Catalog.Contracts;
+using Library.Modules.Core.Catalog.Data;
 using Library.Modules.Core.Circulation.Data;
+using Library.Modules.Core.Circulation.Services;
 using Library.Modules.Core.Identity.Contracts;
 using Library.Modules.Core.Shared;
+using Library.Modules.Core.Shared.Events;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,14 +14,16 @@ namespace Library.Modules.Core.Circulation.Features.ReserveBook;
 public sealed class ReserveBookHandler : IRequestHandler<ReserveBookRequest, ApiResponse<long>>
 {
     private readonly CirculationDbContext _db;
-    private readonly IValidator<ReserveBookRequest> _validator;
     private readonly ISender _sender;
+    private readonly IValidator<ReserveBookRequest> _validator;
+    private readonly IMediator _mediator;
 
-    public ReserveBookHandler(CirculationDbContext db, IValidator<ReserveBookRequest> validator, ISender sender)
+    public ReserveBookHandler(CirculationDbContext db, ISender sender, IValidator<ReserveBookRequest> validator, IMediator mediator)
     {
         _db = db;
-        _validator = validator;
         _sender = sender;
+        _validator = validator;
+        _mediator = mediator;
     }
 
     public async Task<ApiResponse<long>> Handle(ReserveBookRequest request, CancellationToken ct)
@@ -31,73 +36,70 @@ public sealed class ReserveBookHandler : IRequestHandler<ReserveBookRequest, Api
         if (account is null)
             return ApiResponse<long>.Fail("Tài khoản không tồn tại.");
 
-        if (!account.IsActive)
-            return ApiResponse<long>.Fail("Tài khoản đang bị khóa hoặc vô hiệu hóa, không thể đặt trước sách.");
-
-        var hasOverdueLoans = await _db.LoanSlips
-            .AnyAsync(l => l.AccountId == request.AccountId && l.Status == LoanStatus.Overdue, ct);
-        if (hasOverdueLoans)
-            return ApiResponse<long>.Fail("Độc giả có sách quá hạn chưa hoàn trả, không thể đặt trước.");
-
-        var bookDict = await _sender.Send(new GetBookInfosQuery([request.BookId]), ct);
-        if (!bookDict.TryGetValue(request.BookId, out var book))
+        var books = await _sender.Send(new GetBookInfosQuery([request.BookId]), ct);
+        if (!books.TryGetValue(request.BookId, out var bookInfo))
             return ApiResponse<long>.Fail("Sách không tồn tại.");
+        if (!bookInfo.IsActive)
+            return ApiResponse<long>.Fail("Tài liệu này hiện đang ngừng lưu hành.");
 
-        if (!book.IsActive)
-            return ApiResponse<long>.Fail("Sách hiện ngưng phục vụ.");
+        var alreadyReserved = await _db.Reservations.AnyAsync(r =>
+            r.AccountId == request.AccountId &&
+            r.BookId == request.BookId &&
+            (r.Status == ReservationStatus.Waiting || r.Status == ReservationStatus.Ready), ct);
 
-        // Check if reader already has an active reservation for this book
-        var alreadyReserved = await _db.Reservations
-            .AnyAsync(r => r.AccountId == request.AccountId &&
-                           r.BookId == request.BookId &&
-                           (r.Status == ReservationStatus.Waiting || r.Status == ReservationStatus.Ready), ct);
         if (alreadyReserved)
-            return ApiResponse<long>.Fail("Bạn đã có một yêu cầu đặt trước đang chờ hoặc sẵn sàng cho cuốn sách này.");
+            return ApiResponse<long>.Fail("Bạn đã có một yêu cầu đặt trước đang chờ hoặc sẵn sàng nhận cho cuốn sách này.");
 
         CopyInfo? assignedCopy = null;
 
         if (request.BookCopyId.HasValue)
         {
-            var copyDict = await _sender.Send(new GetCopyInfosQuery([request.BookCopyId.Value]), ct);
-            if (!copyDict.TryGetValue(request.BookCopyId.Value, out var preferredCopy) || preferredCopy.BookId != request.BookId)
-                return ApiResponse<long>.Fail("Bản sao sách không tồn tại hoặc không thuộc về cuốn sách này.");
-            
-            if (preferredCopy.Status != CopyStatus.Available)
+            var copyInfo = await _sender.Send(new FindAvailableCopyQuery(request.BookId, request.BookCopyId.Value), ct);
+            if (copyInfo == null || copyInfo.CopyId != request.BookCopyId.Value)
                 return ApiResponse<long>.Fail("Bản sao sách không sẵn sàng để đặt trước.");
 
-            assignedCopy = preferredCopy;
+            var setOk = await _sender.Send(new SetCopyStatusCommand(copyInfo.CopyId, CopyStatus.Available, CopyStatus.Reserved), ct);
+            if (!setOk)
+                return ApiResponse<long>.Fail("Không thể giữ bản sao này.");
+
+            assignedCopy = copyInfo;
         }
         else
         {
-            // Auto-assign first available copy if one exists
-            assignedCopy = await _sender.Send(new FindAvailableCopyQuery(request.BookId, null), ct);
+            var copyInfo = await _sender.Send(new FindAvailableCopyQuery(request.BookId), ct);
+            if (copyInfo != null)
+            {
+                var setOk = await _sender.Send(new SetCopyStatusCommand(copyInfo.CopyId, CopyStatus.Available, CopyStatus.Reserved), ct);
+                if (setOk)
+                {
+                    assignedCopy = copyInfo;
+                }
+            }
         }
 
-        DateTime? expiresAt = null;
-        var status = ReservationStatus.Waiting;
-
-        if (assignedCopy != null)
-        {
-            var setSuccess = await _sender.Send(new SetCopyStatusCommand(assignedCopy.CopyId, CopyStatus.Available, CopyStatus.Reserved), ct);
-            if (!setSuccess)
-                return ApiResponse<long>.Fail("Bản sao sách không sẵn sàng để đặt trước.");
-
-            status = ReservationStatus.Ready;
-            expiresAt = DateTime.UtcNow.AddDays(3); // Giữ chỗ tối đa 3 ngày
-        }
+        var isReady = assignedCopy != null;
+        var expiresAt = isReady ? DateTime.UtcNow.Add(ReservationQueue.PickupWindow) : (DateTime?)null;
 
         var reservation = new Reservation
         {
             AccountId = request.AccountId,
             BookId = request.BookId,
             BookCopyId = assignedCopy?.CopyId,
-            ReservedAt = DateTime.UtcNow,
-            ExpiresAt = expiresAt,
-            Status = status
+            Status = isReady ? ReservationStatus.Ready : ReservationStatus.Waiting,
+            ExpiresAt = expiresAt
         };
 
         _db.Reservations.Add(reservation);
         await _db.SaveChangesAsync(ct);
+
+        if (isReady && assignedCopy != null)
+        {
+            await _mediator.Publish(new ReservationReadyEvent(
+                reservation.Id,
+                reservation.AccountId,
+                reservation.BookCopyId,
+                reservation.ExpiresAt), ct);
+        }
 
         return ApiResponse<long>.Ok(reservation.Id);
     }
