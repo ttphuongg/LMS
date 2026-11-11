@@ -67,6 +67,8 @@ export const LibraryInfoPanel: React.FC<LibraryInfoPanelProps> = ({ totalBooks, 
       )}
       <dt>Mượn tối đa</dt>
       <dd>{LIBRARY_RULES.maxConcurrentLoans} cuốn</dd>
+      <dt>Đặt trước tối đa</dt>
+      <dd>{LIBRARY_RULES.maxConcurrentReservations} cuốn</dd>
       <dt>Thời hạn mượn</dt>
       <dd>{LIBRARY_RULES.standardBorrowDays} ngày</dd>
       <dt>Gia hạn</dt>

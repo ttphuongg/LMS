@@ -74,6 +74,7 @@ export interface BookDto {
   bookId?: number
   title: string
   isbn: string
+  callNumber?: string
   authorId?: string
   authorIds?: number[]
   authorName: string
