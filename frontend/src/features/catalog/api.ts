@@ -404,4 +404,21 @@ export const catalogApi = {
     const res = await apiClient.put<ApiResponse<boolean>>(`/api/catalog/locations/${id}`, data)
     return res.data.data
   },
+
+  // Tải ảnh bìa sách lên hệ thống (Cloudflare R2 / Server storage)
+  uploadCoverImage: async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await apiClient.post<ApiResponse<string>>(
+      '/api/catalog/books/upload-cover',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+    return res.data.data
+  },
 }
