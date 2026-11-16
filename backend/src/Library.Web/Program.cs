@@ -56,6 +56,7 @@ builder.Services.AddValidatorsFromAssembly(typeof(UnitOfWork).Assembly);
 
 // ── Identity Services ─────────────────────────────────────────────────────────
 builder.Services.AddSingleton<JwtTokenService>();
+builder.Services.AddScoped<Library.Modules.Core.Catalog.Services.IStorageService, Library.Modules.Core.Catalog.Services.CloudflareR2StorageService>();
 
 // ── JSON Options: global enum string converter + camelCase ────────────────────
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -299,6 +300,7 @@ ManageCopiesEndpoint.Map(app);
 Library.Modules.Core.Catalog.Features.ManageAuthors.ManageAuthorsEndpoint.Map(app);
 Library.Modules.Core.Catalog.Features.ManageCategories.ManageCategoriesEndpoint.Map(app);
 Library.Modules.Core.Catalog.Features.ManageLocations.ManageLocationsEndpoint.Map(app);
+Library.Modules.Core.Catalog.Features.UploadBookCover.UploadBookCoverEndpoint.Map(app);
 
 // ── Circulation ───────────────────────────────────────────────────────────────
 BorrowBookEndpoint.Map(app);
