@@ -114,8 +114,14 @@ public sealed class BorrowBookHandler : IRequestHandler<BorrowBookRequest, ApiRe
             });
         }
 
+        var borrowedCopyIds = distinctCopyIds.ToHashSet();
         foreach (var r in readyReservations)
-            r.Status = ReservationStatus.Completed;
+        {
+            if (r.BookCopyId.HasValue && borrowedCopyIds.Contains(r.BookCopyId.Value))
+            {
+                r.Status = ReservationStatus.Completed;
+            }
+        }
 
         _db.LoanSlips.Add(loanSlip);
         await _db.SaveChangesAsync(ct);

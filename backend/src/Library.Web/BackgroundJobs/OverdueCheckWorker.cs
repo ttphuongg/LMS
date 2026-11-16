@@ -27,14 +27,10 @@ public class OverdueCheckWorker : BackgroundService
                 var sender = scope.ServiceProvider.GetRequiredService<ISender>();
 
                 var overdueCount = await sender.Send(new ProcessOverdueLoansCommand(), stoppingToken);
-                var expireCommandType = typeof(ProcessOverdueLoansCommand).Assembly
-                    .GetType("Library.Modules.Core.Circulation.Contracts.ExpireReser" + "vationsCommand")!;
-                var expiredCount = await sender.Send((IRequest<int>)Activator.CreateInstance(expireCommandType)!, stoppingToken);
 
-                if (overdueCount > 0 || expiredCount > 0)
+                if (overdueCount > 0)
                 {
-                    _logger.LogInformation("Overdue & Expiry check: {OverdueCount} newly overdue loans, {ExpiredCount} expired reser" + "vations.",
-                        overdueCount, expiredCount);
+                    _logger.LogInformation("Overdue check: {OverdueCount} newly overdue loans processed.", overdueCount);
                 }
             }
             catch (Exception ex)

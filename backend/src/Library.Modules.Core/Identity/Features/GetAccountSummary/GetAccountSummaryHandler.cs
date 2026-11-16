@@ -15,7 +15,7 @@ public sealed class GetAccountSummaryHandler : IRequestHandler<GetAccountSummary
     {
         var account = await _db.Accounts
             .Where(a => a.Id == request.AccountId)
-            .Select(a => new AccountSummary(a.Id, a.FullName, a.Status == AccountStatus.Active, a.Username))
+            .Select(a => new AccountSummary(a.Id, a.FullName, a.Status == AccountStatus.Active, a.Username, a.Status.ToString()))
             .FirstOrDefaultAsync(ct);
 
         return account;

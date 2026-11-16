@@ -37,10 +37,7 @@ public sealed class ReserveBookHandler : IRequestHandler<ReserveBookRequest, Api
         if (account is null)
             return ApiResponse<long>.Fail("Tài khoản không tồn tại.");
 
-        if (account.Status == "Suspended")
-            return ApiResponse<long>.Fail("Tài khoản đang bị tạm ngưng quyền đặt trước sách. Vui lòng hoàn trả các tài liệu quá hạn hoặc thanh toán phí phạt.");
-
-        if (!account.IsActive)
+        if (!account.IsActive || account.Status == "Locked" || account.Status == "Inactive")
             return ApiResponse<long>.Fail("Tài khoản bị khóa hoặc không hoạt động, không thể đặt trước hoặc mượn sách.");
 
         var books = await _sender.Send(new GetBookInfosQuery([request.BookId]), ct);
