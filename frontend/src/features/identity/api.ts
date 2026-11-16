@@ -7,6 +7,8 @@ import type {
   UpdateProfileRequest,
   ChangePasswordRequest,
   ProfileDto,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
 } from './types'
 
 export const identityApi = {
@@ -88,6 +90,18 @@ export const identityApi = {
       newPassword: data.newPassword,
     }
     await apiClient.post<ApiResponse>('/api/identity/change-password', payload)
+  },
+
+  // Quên mật khẩu: Yêu cầu gửi hướng dẫn & mã OTP
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<string> => {
+    const res = await apiClient.post<ApiResponse<string>>('/api/identity/forgot-password', data)
+    return res.data.data
+  },
+
+  // Đặt lại mật khẩu mới bằng Token hoặc OTP
+  resetPassword: async (data: ResetPasswordRequest): Promise<string> => {
+    const res = await apiClient.post<ApiResponse<string>>('/api/identity/reset-password', data)
+    return res.data.data
   },
 
   // Làm mới token

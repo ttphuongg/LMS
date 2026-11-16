@@ -56,6 +56,7 @@ builder.Services.AddValidatorsFromAssembly(typeof(UnitOfWork).Assembly);
 
 // ── Identity Services ─────────────────────────────────────────────────────────
 builder.Services.AddSingleton<JwtTokenService>();
+builder.Services.AddScoped<Library.Modules.Core.Identity.Services.IEmailService, Library.Modules.Core.Identity.Services.EmailService>();
 builder.Services.AddScoped<Library.Modules.Core.Catalog.Services.IStorageService, Library.Modules.Core.Catalog.Services.CloudflareR2StorageService>();
 
 // ── JSON Options: global enum string converter + camelCase ────────────────────
@@ -283,6 +284,8 @@ app.UseAuthorization();
 // ── Identity ──────────────────────────────────────────────────────────────────
 RegisterEndpoint.Map(app);
 LoginEndpoint.Map(app);
+Library.Modules.Core.Identity.Features.ForgotPassword.ForgotPasswordEndpoint.Map(app);
+Library.Modules.Core.Identity.Features.ResetPassword.ResetPasswordEndpoint.Map(app);
 UpdateProfileEndpoint.Map(app);
 Library.Modules.Core.Identity.Features.ManageUsers.ManageUsersEndpoint.Map(app);
 Library.Modules.Core.Identity.Features.ChangePassword.ChangePasswordEndpoint.Map(app);

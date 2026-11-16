@@ -61,3 +61,14 @@ export interface ChangePasswordRequest {
 export interface RefreshTokenRequest {
   refreshToken: string
 }
+
+export interface ForgotPasswordRequest {
+  email: string
+}
+
+export interface ResetPasswordRequest {
+  email: string
+  tokenOrOtp: string
+  newPassword: string
+  confirmPassword?: string
+}
