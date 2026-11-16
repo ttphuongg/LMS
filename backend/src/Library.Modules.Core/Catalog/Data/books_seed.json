@@ -1,4 +1,4 @@
-[
+﻿[
   {
     "Title": "Mắt biếc",
     "Author": "Nguyễn Nhật Ánh",
@@ -10,7 +10,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 244,
     "BookValue": 110000,
-    "CoverImageUrl": "/book_covers/book_001_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_001_1.jpg",
     "Copies": [
       {
         "Barcode": "9786041200449-01"
@@ -31,7 +31,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 208,
     "BookValue": 90000,
-    "CoverImageUrl": "/book_covers/book_002_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_002_1.jpg",
     "Copies": [
       {
         "Barcode": "9786041004757-01"
@@ -52,7 +52,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 359,
     "BookValue": 145000,
-    "CoverImageUrl": "/book_covers/book_003_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_003_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045377123-01"
@@ -73,7 +73,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 267,
     "BookValue": 115000,
-    "CoverImageUrl": "/book_covers/book_004_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_004_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049639838-01"
@@ -94,7 +94,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 256,
     "BookValue": 249000,
-    "CoverImageUrl": "/book_covers/book_005_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_005_1.jpg",
     "Copies": [
       {
         "Barcode": "9780446608954-01"
@@ -115,7 +115,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 177,
     "BookValue": 85000,
-    "CoverImageUrl": "/book_covers/book_006_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_006_1.jpg",
     "Copies": [
       {
         "Barcode": "9782707306951-01"
@@ -136,7 +136,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 448,
     "BookValue": 239000,
-    "CoverImageUrl": "/book_covers/book_007_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_007_1.jpg",
     "Copies": [
       {
         "Barcode": "9780143130154-01"
@@ -157,7 +157,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 334,
     "BookValue": 350000,
-    "CoverImageUrl": "/book_covers/book_008_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_008_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043063233-01"
@@ -178,7 +178,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 298,
     "BookValue": 120000,
-    "CoverImageUrl": "/book_covers/book_009_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_009_1.jpg",
     "Copies": [
       {
         "Barcode": "9786041184848-01"
@@ -199,7 +199,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 296,
     "BookValue": 110000,
-    "CoverImageUrl": "/book_covers/book_010_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_010_1.jpg",
     "Copies": [
       {
         "Barcode": "9786041222045-01"
@@ -220,7 +220,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 652,
     "BookValue": 175000,
-    "CoverImageUrl": "/book_covers/book_011_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_011_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045922439-01"
@@ -241,7 +241,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 429,
     "BookValue": 145000,
-    "CoverImageUrl": "/book_covers/book_012_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_012_1.jpg",
     "Copies": [
       {
         "Barcode": "9781784161750-01"
@@ -262,7 +262,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 592,
     "BookValue": 185000,
-    "CoverImageUrl": "/book_covers/book_013_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_013_1.jpg",
     "Copies": [
       {
         "Barcode": "8935077000344-01"
@@ -283,7 +283,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 728,
     "BookValue": 195000,
-    "CoverImageUrl": "/book_covers/book_014_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_014_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049898624-01"
@@ -304,7 +304,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 1392,
     "BookValue": 638000,
-    "CoverImageUrl": "/book_covers/book_015_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_015_1.jpg",
     "Copies": [
       {
         "Barcode": "9781473666931-01"
@@ -325,7 +325,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 659,
     "BookValue": 210000,
-    "CoverImageUrl": "/book_covers/book_016_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_016_1.jpg",
     "Copies": [
       {
         "Barcode": "9780307743657-01"
@@ -346,7 +346,7 @@
     "Language": "Tiếng Anh",
     "PageCount": 464,
     "BookValue": 165000,
-    "CoverImageUrl": "/book_covers/book_017_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_017_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043569134-01"
@@ -367,7 +367,7 @@
     "Language": "Tiếng Anh",
     "PageCount": 352,
     "BookValue": 115000,
-    "CoverImageUrl": "/book_covers/book_018_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_018_1.jpg",
     "Copies": [
       {
         "Barcode": "9781847493507-01"
@@ -388,7 +388,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 592,
     "BookValue": 195000,
-    "CoverImageUrl": "/book_covers/book_019_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_019_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043710908-01"
@@ -409,7 +409,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 340,
     "BookValue": 125000,
-    "CoverImageUrl": "/book_covers/book_020_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_020_1.jpg",
     "Copies": [
       {
         "Barcode": "9780140071085-01"
@@ -430,7 +430,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 714,
     "BookValue": 355000,
-    "CoverImageUrl": "/book_covers/book_021_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_021_1.jpg",
     "Copies": [
       {
         "Barcode": "9786320212255-01"
@@ -451,7 +451,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 336,
     "BookValue": 128000,
-    "CoverImageUrl": "/book_covers/book_022_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_022_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049548246-01"
@@ -472,7 +472,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 240,
     "BookValue": 320000,
-    "CoverImageUrl": "/book_covers/book_023_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_023_1.jpg",
     "Copies": [
       {
         "Barcode": "9780008117498-01"
@@ -493,7 +493,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 375,
     "BookValue": 240000,
-    "CoverImageUrl": "/book_covers/book_024_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_024_1.jpg",
     "Copies": [
       {
         "Barcode": "9780812524581-01"
@@ -514,7 +514,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 198,
     "BookValue": 70000,
-    "CoverImageUrl": "/book_covers/book_025_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_025_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045522479-01"
@@ -535,7 +535,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 464,
     "BookValue": 195000,
-    "CoverImageUrl": "/book_covers/book_026_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_026_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049632693-01"
@@ -556,7 +556,7 @@
     "Language": "Tiếng Anh",
     "PageCount": 368,
     "BookValue": 135000,
-    "CoverImageUrl": "/book_covers/book_027_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_027_1.jpg",
     "Copies": [
       {
         "Barcode": "9780261103283-01"
@@ -577,7 +577,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 9530,
     "BookValue": 1850000,
-    "CoverImageUrl": "/book_covers/book_028_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_028_1.jpg",
     "Copies": [
       {
         "Barcode": "9786041100923-01"
@@ -598,7 +598,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 719,
     "BookValue": 320000,
-    "CoverImageUrl": "/book_covers/book_029_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_029_1.jpg",
     "Copies": [
       {
         "Barcode": "9780007428540-01"
@@ -619,7 +619,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 440,
     "BookValue": 135000,
-    "CoverImageUrl": "/book_covers/book_030_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_030_1.jpg",
     "Copies": [
       {
         "Barcode": "8936046240419-01"
@@ -640,7 +640,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 227,
     "BookValue": 89000,
-    "CoverImageUrl": "/book_covers/book_031_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_031_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045372043-01"
@@ -661,7 +661,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 36,
     "BookValue": 25000,
-    "CoverImageUrl": "/book_covers/book_032_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_032_1.jpg",
     "Copies": [
       {
         "Barcode": "9786042268066-01"
@@ -682,7 +682,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 180,
     "BookValue": 25000,
-    "CoverImageUrl": "/book_covers/book_033_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_033_1.jpg",
     "Copies": [
       {
         "Barcode": "9786042327145-01"
@@ -703,7 +703,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 188,
     "BookValue": 30000,
-    "CoverImageUrl": "/book_covers/book_034_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_034_1.jpg",
     "Copies": [
       {
         "Barcode": "9786042248778-01"
@@ -724,7 +724,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 196,
     "BookValue": 25000,
-    "CoverImageUrl": "/book_covers/book_035_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_035_1.jpg",
     "Copies": [
       {
         "Barcode": "9786042340083-01"
@@ -745,7 +745,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 192,
     "BookValue": 30000,
-    "CoverImageUrl": "/book_covers/book_036_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_036_1.jpg",
     "Copies": [
       {
         "Barcode": "9786042040624-01"
@@ -766,7 +766,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 236,
     "BookValue": 35000,
-    "CoverImageUrl": "/book_covers/book_037_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_037_1.jpg",
     "Copies": [
       {
         "Barcode": "9786042192484-01"
@@ -787,7 +787,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 136,
     "BookValue": 20000,
-    "CoverImageUrl": "/book_covers/book_038_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_038_1.jpg",
     "Copies": [
       {
         "Barcode": "8936071290601-01"
@@ -808,7 +808,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 192,
     "BookValue": 45000,
-    "CoverImageUrl": "/book_covers/book_039_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_039_1.jpg",
     "Copies": [
       {
         "Barcode": "9786041244436-01"
@@ -829,7 +829,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 215,
     "BookValue": 65000,
-    "CoverImageUrl": "/book_covers/book_040_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_040_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049761133-01"
@@ -850,7 +850,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 332,
     "BookValue": 85000,
-    "CoverImageUrl": "/book_covers/book_041_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_041_1.jpg",
     "Copies": [
       {
         "Barcode": "9786046947004-01"
@@ -871,7 +871,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 152,
     "BookValue": 60000,
-    "CoverImageUrl": "/book_covers/book_042_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_042_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049692864-01"
@@ -892,7 +892,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 502,
     "BookValue": 185000,
-    "CoverImageUrl": "/book_covers/book_043_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_043_1.jpg",
     "Copies": [
       {
         "Barcode": "8935230008729-01"
@@ -913,7 +913,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 150,
     "BookValue": 70000,
-    "CoverImageUrl": "/book_covers/book_044_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_044_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049767807-01"
@@ -934,7 +934,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 553,
     "BookValue": 140000,
-    "CoverImageUrl": "/book_covers/book_045_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_045_1.jpg",
     "Copies": [
       {
         "Barcode": "8936024919047-01"
@@ -955,7 +955,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 848,
     "BookValue": 320000,
-    "CoverImageUrl": "/book_covers/book_046_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_046_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045588567-01"
@@ -976,7 +976,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 1004,
     "BookValue": 320000,
-    "CoverImageUrl": "/book_covers/book_047_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_047_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043946352-01"
@@ -997,7 +997,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 328,
     "BookValue": 98000,
-    "CoverImageUrl": "/book_covers/book_048_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_048_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043912296-01"
@@ -1018,7 +1018,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 320,
     "BookValue": 128000,
-    "CoverImageUrl": "/book_covers/book_049_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_049_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043897102-01"
@@ -1039,7 +1039,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 531,
     "BookValue": 210000,
-    "CoverImageUrl": "/book_covers/book_050_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_050_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045843888-01"
@@ -1060,7 +1060,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 612,
     "BookValue": 289000,
-    "CoverImageUrl": "/book_covers/book_051_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_051_1.jpg",
     "Copies": [
       {
         "Barcode": "9786326046427-01"
@@ -1081,7 +1081,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 400,
     "BookValue": 148000,
-    "CoverImageUrl": "/book_covers/book_052_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_052_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045883464-01"
@@ -1102,7 +1102,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 436,
     "BookValue": 179000,
-    "CoverImageUrl": "/book_covers/book_053_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_053_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043604542-01"
@@ -1123,7 +1123,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 385,
     "BookValue": 189000,
-    "CoverImageUrl": "/book_covers/book_054_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_054_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043655841-01"
@@ -1144,7 +1144,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 408,
     "BookValue": 168000,
-    "CoverImageUrl": "/book_covers/book_055_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_055_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045847213-01"
@@ -1165,7 +1165,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 404,
     "BookValue": 159000,
-    "CoverImageUrl": "/book_covers/book_056_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_056_1.jpg",
     "Copies": [
       {
         "Barcode": "9786047780687-01"
@@ -1186,7 +1186,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 214,
     "BookValue": 98000,
-    "CoverImageUrl": "/book_covers/book_057_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_057_1.jpg",
     "Copies": [
       {
         "Barcode": "9786326504985-01"
@@ -1207,7 +1207,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 334,
     "BookValue": 115000,
-    "CoverImageUrl": "/book_covers/book_058_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_058_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045989630-01"
@@ -1228,7 +1228,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 130,
     "BookValue": 79000,
-    "CoverImageUrl": "/book_covers/book_059_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_059_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049226656-01"
@@ -1249,7 +1249,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 320,
     "BookValue": 159000,
-    "CoverImageUrl": "/book_covers/book_060_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_060_1.jpg",
     "Copies": [
       {
         "Barcode": "8935251421071-01"
@@ -1270,7 +1270,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 475,
     "BookValue": 219000,
-    "CoverImageUrl": "/book_covers/book_061_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_061_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043112955-01"
@@ -1291,7 +1291,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 224,
     "BookValue": 108000,
-    "CoverImageUrl": "/book_covers/book_062_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_062_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045852729-01"
@@ -1312,7 +1312,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 382,
     "BookValue": 189000,
-    "CoverImageUrl": "/book_covers/book_063_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_063_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043140156-01"
@@ -1333,7 +1333,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 402,
     "BookValue": 160000,
-    "CoverImageUrl": "/book_covers/book_064_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_064_1.jpg",
     "Copies": [
       {
         "Barcode": "9786046951957-01"
@@ -1354,7 +1354,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 316,
     "BookValue": 85000,
-    "CoverImageUrl": "/book_covers/book_065_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_065_1.jpg",
     "Copies": [
       {
         "Barcode": "9781612680194-01"
@@ -1375,7 +1375,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 484,
     "BookValue": 165000,
-    "CoverImageUrl": "/book_covers/book_066_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_066_1.jpg",
     "Copies": [
       {
         "Barcode": "9786041201583-01"
@@ -1396,7 +1396,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 227,
     "BookValue": 89000,
-    "CoverImageUrl": "/book_covers/book_067_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_067_1.jpg",
     "Copies": [
       {
         "Barcode": "8935235226272-01"
@@ -1417,7 +1417,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 210,
     "BookValue": 110000,
-    "CoverImageUrl": "/book_covers/book_068_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_068_1.jpg",
     "Copies": [
       {
         "Barcode": "9780553418286-01"
@@ -1438,7 +1438,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 348,
     "BookValue": 159000,
-    "CoverImageUrl": "/book_covers/book_069_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_069_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045883938-01"
@@ -1459,7 +1459,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 363,
     "BookValue": 149000,
-    "CoverImageUrl": "/book_covers/book_070_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_070_1.jpg",
     "Copies": [
       {
         "Barcode": "9786326120158-01"
@@ -1480,7 +1480,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 206,
     "BookValue": 139000,
-    "CoverImageUrl": "/book_covers/book_071_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_071_1.jpg",
     "Copies": [
       {
         "Barcode": "9786326123968-01"
@@ -1501,7 +1501,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 116,
     "BookValue": 58000,
-    "CoverImageUrl": "/book_covers/book_072_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_072_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043354409-01"
@@ -1522,7 +1522,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 566,
     "BookValue": 219000,
-    "CoverImageUrl": "/book_covers/book_073_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_073_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043400502-01"
@@ -1543,7 +1543,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 660,
     "BookValue": 269000,
-    "CoverImageUrl": "/book_covers/book_074_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_074_1.jpg",
     "Copies": [
       {
         "Barcode": "9786047774081-01"
@@ -1564,7 +1564,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 700,
     "BookValue": 220000,
-    "CoverImageUrl": "/book_covers/book_075_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_075_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049954450-01"
@@ -1585,7 +1585,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 334,
     "BookValue": 145000,
-    "CoverImageUrl": "/book_covers/book_076_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_076_1.jpg",
     "Copies": [
       {
         "Barcode": "9786047937165-01"
@@ -1606,7 +1606,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 464,
     "BookValue": 259000,
-    "CoverImageUrl": "/book_covers/book_077_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_077_1.jpg",
     "Copies": [
       {
         "Barcode": "9780062464347-01"
@@ -1627,7 +1627,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 580,
     "BookValue": 180000,
-    "CoverImageUrl": "/book_covers/book_078_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_078_1.jpg",
     "Copies": [
       {
         "Barcode": "9786042281225-01"
@@ -1648,7 +1648,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 1200,
     "BookValue": 490000,
-    "CoverImageUrl": "/book_covers/book_079_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_079_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043594515-01"
@@ -1669,7 +1669,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 284,
     "BookValue": 120000,
-    "CoverImageUrl": "/book_covers/book_080_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_080_1.jpg",
     "Copies": [
       {
         "Barcode": "9786041204232-01"
@@ -1690,7 +1690,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 254,
     "BookValue": 110000,
-    "CoverImageUrl": "/book_covers/book_081_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_081_1.jpg",
     "Copies": [
       {
         "Barcode": "9786041005556-01"
@@ -1711,7 +1711,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 548,
     "BookValue": 235000,
-    "CoverImageUrl": "/book_covers/book_082_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_082_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043405620-01"
@@ -1732,7 +1732,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 512,
     "BookValue": 210000,
-    "CoverImageUrl": "/book_covers/book_083_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_083_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049650165-01"
@@ -1753,7 +1753,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 292,
     "BookValue": 129000,
-    "CoverImageUrl": "/book_covers/book_084_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_084_1.jpg",
     "Copies": [
       {
         "Barcode": "9786048893705-01"
@@ -1774,7 +1774,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 436,
     "BookValue": 179000,
-    "CoverImageUrl": "/book_covers/book_085_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_085_1.jpg",
     "Copies": [
       {
         "Barcode": "8935251406191-01"
@@ -1795,7 +1795,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 400,
     "BookValue": 169000,
-    "CoverImageUrl": "/book_covers/book_086_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_086_1.jpg",
     "Copies": [
       {
         "Barcode": "9786047764020-01"
@@ -1816,7 +1816,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 572,
     "BookValue": 260000,
-    "CoverImageUrl": "/book_covers/book_087_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_087_1.jpg",
     "Copies": [
       {
         "Barcode": "9780345539434-01"
@@ -1837,7 +1837,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 164,
     "BookValue": 68000,
-    "CoverImageUrl": "/book_covers/book_088_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_088_1.jpg",
     "Copies": [
       {
         "Barcode": "9786047745821-01"
@@ -1858,7 +1858,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 488,
     "BookValue": 199000,
-    "CoverImageUrl": "/book_covers/book_089_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_089_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049329081-01"
@@ -1879,7 +1879,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 1082,
     "BookValue": 550000,
-    "CoverImageUrl": "/book_covers/book_090_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_090_1.jpg",
     "Copies": [
       {
         "Barcode": "8935205600699-01"
@@ -1900,7 +1900,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 1491,
     "BookValue": 480000,
-    "CoverImageUrl": "/book_covers/book_091_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_091_1.jpg",
     "Copies": [
       {
         "Barcode": "9786044821412-01"
@@ -1921,7 +1921,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 224,
     "BookValue": 85000,
-    "CoverImageUrl": "/book_covers/book_092_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_092_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045765944-01"
@@ -1942,7 +1942,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 519,
     "BookValue": 220000,
-    "CoverImageUrl": "/book_covers/book_093_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_093_1.jpg",
     "Copies": [
       {
         "Barcode": "9786046662716-01"
@@ -1963,7 +1963,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 343,
     "BookValue": 145000,
-    "CoverImageUrl": "/book_covers/book_094_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_094_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043306422-01"
@@ -1984,7 +1984,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 362,
     "BookValue": 135000,
-    "CoverImageUrl": "/book_covers/book_095_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_095_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045784976-01"
@@ -2005,7 +2005,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 244,
     "BookValue": 95000,
-    "CoverImageUrl": "/book_covers/book_096_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_096_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045709917-01"
@@ -2026,7 +2026,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 125,
     "BookValue": 50000,
-    "CoverImageUrl": "/book_covers/book_097_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_097_1.jpg",
     "Copies": [
       {
         "Barcode": "9786042200479-01"
@@ -2047,7 +2047,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 216,
     "BookValue": 85000,
-    "CoverImageUrl": "/book_covers/book_098_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_098_1.jpg",
     "Copies": [
       {
         "Barcode": "9786042262637-01"
@@ -2068,7 +2068,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 84,
     "BookValue": 65000,
-    "CoverImageUrl": "/book_covers/book_099_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_099_1.jpg",
     "Copies": [
       {
         "Barcode": "9786048859718-01"
@@ -2089,7 +2089,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 9530,
     "BookValue": 1850000,
-    "CoverImageUrl": "/book_covers/book_100_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_100_1.jpg",
     "Copies": [
       {
         "Barcode": "9786041084292-01"
@@ -2110,7 +2110,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 132,
     "BookValue": 55000,
-    "CoverImageUrl": "/book_covers/book_101_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_101_1.jpg",
     "Copies": [
       {
         "Barcode": "8936024912994-01"
@@ -2131,7 +2131,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 616,
     "BookValue": 195000,
-    "CoverImageUrl": "/book_covers/book_102_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_102_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043233612-01"
@@ -2152,7 +2152,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 172,
     "BookValue": 75000,
-    "CoverImageUrl": "/book_covers/book_103_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_103_1.jpg",
     "Copies": [
       {
         "Barcode": "9786042312066-01"
@@ -2173,7 +2173,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 464,
     "BookValue": 175000,
-    "CoverImageUrl": "/book_covers/book_104_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_104_1.jpg",
     "Copies": [
       {
         "Barcode": "9786326311105-01"
@@ -2194,7 +2194,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 216,
     "BookValue": 85000,
-    "CoverImageUrl": "/book_covers/book_105_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_105_1.jpg",
     "Copies": [
       {
         "Barcode": "9786320033478-01"
@@ -2215,7 +2215,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 340,
     "BookValue": 118000,
-    "CoverImageUrl": "/book_covers/book_106_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_106_1.jpg",
     "Copies": [
       {
         "Barcode": "9786326180978-01"
@@ -2236,7 +2236,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 284,
     "BookValue": 119000,
-    "CoverImageUrl": "/book_covers/book_107_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_107_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043233698-01"
@@ -2257,7 +2257,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 160,
     "BookValue": 68000,
-    "CoverImageUrl": "/book_covers/book_108_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_108_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043126150-01"
@@ -2278,7 +2278,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 541,
     "BookValue": 195000,
-    "CoverImageUrl": "/book_covers/book_109_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_109_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049722875-01"
@@ -2299,7 +2299,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 204,
     "BookValue": 99000,
-    "CoverImageUrl": "/book_covers/book_110_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_110_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043114218-01"
@@ -2320,7 +2320,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 176,
     "BookValue": 89000,
-    "CoverImageUrl": "/book_covers/book_111_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_111_1.jpg",
     "Copies": [
       {
         "Barcode": "9786047444960-01"
@@ -2341,7 +2341,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 151,
     "BookValue": 65000,
-    "CoverImageUrl": "/book_covers/book_112_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_112_1.jpg",
     "Copies": [
       {
         "Barcode": "9786045023112-01"
@@ -2362,7 +2362,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 408,
     "BookValue": 155000,
-    "CoverImageUrl": "/book_covers/book_113_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_113_1.jpg",
     "Copies": [
       {
         "Barcode": "9786049677564-01"
@@ -2383,7 +2383,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 276,
     "BookValue": 110000,
-    "CoverImageUrl": "/book_covers/book_114_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_114_1.jpg",
     "Copies": [
       {
         "Barcode": "9786043178319-01"
@@ -2404,7 +2404,7 @@
     "Language": "Tiếng Việt",
     "PageCount": 230,
     "BookValue": 98000,
-    "CoverImageUrl": "/book_covers/book_115_1.jpg",
+    "CoverImageUrl": "https://images.libri.id.vn/book_115_1.jpg",
     "Copies": [
       {
         "Barcode": "9786046548096-01"

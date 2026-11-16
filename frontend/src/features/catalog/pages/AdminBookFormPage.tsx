@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Card, Form, Input, Button, Select, InputNumber, Row, Col, Space } from 'antd'
+import { Card, Form, Input, Button, Select, InputNumber, Row, Col, Space, Upload } from 'antd'
+import { UploadOutlined, LoadingOutlined, DeleteOutlined } from '@ant-design/icons'
 import { appMessage as message } from '@/shared/utils/appFeedback'
 import { useParams, useNavigate } from 'react-router-dom'
 import { catalogApi } from '../api'
@@ -22,6 +23,31 @@ export const AdminBookFormPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
   const [initialFormValues, setInitialFormValues] = useState<Record<string, unknown> | null>(null)
+  const [uploadingCover, setUploadingCover] = useState(false)
+
+  const handleCoverUpload = async (file: File) => {
+    const isValidType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+    if (!isValidType) {
+      message.error('Chỉ hỗ trợ file ảnh định dạng JPG, PNG hoặc WebP!')
+      return false
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      message.error('Dung lượng ảnh không được vượt quá 5MB!')
+      return false
+    }
+
+    setUploadingCover(true)
+    try {
+      const url = await catalogApi.uploadCoverImage(file)
+      form.setFieldsValue({ coverImageUrl: url })
+      message.success('Tải ảnh bìa lên thành công!')
+    } catch (err: unknown) {
+      message.error(getErrorMessage(err, 'Lỗi khi tải ảnh bìa lên'))
+    } finally {
+      setUploadingCover(false)
+    }
+    return false
+  }
 
   useEffect(() => {
     const loadRefData = Promise.all([
@@ -240,24 +266,70 @@ export const AdminBookFormPage: React.FC = () => {
             </Col>
           </Row>
 
-          <Form.Item label="Đường dẫn ảnh bìa (Cover Image URL)" name="coverImageUrl">
-            <Input placeholder="https://example.com/cover.jpg" style={radiusStyle} />
-          </Form.Item>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
+              Ảnh bìa sách (Cover Image)
+            </label>
+            <Row gutter={12} align="top">
+              <Col xs={24} sm={16} md={18}>
+                <Form.Item name="coverImageUrl" noStyle>
+                  <Input placeholder="https://images.libri.id.vn/... hoặc dán link ảnh" style={radiusStyle} />
+                </Form.Item>
+                <div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginTop: 4 }}>
+                  Hỗ trợ dán đường dẫn trực tiếp hoặc bấm nút bên cạnh để tải ảnh từ máy tính (tối đa 5MB: JPG, PNG, WebP).
+                </div>
+              </Col>
+              <Col xs={24} sm={8} md={6}>
+                <Upload
+                  accept=".jpg,.jpeg,.png,.webp"
+                  showUploadList={false}
+                  beforeUpload={(file) => {
+                    handleCoverUpload(file as File)
+                    return false
+                  }}
+                  disabled={uploadingCover}
+                >
+                  <Button
+                    icon={uploadingCover ? <LoadingOutlined /> : <UploadOutlined />}
+                    loading={uploadingCover}
+                    style={{ ...radiusStyle, width: '100%' }}
+                  >
+                    {uploadingCover ? 'Đang tải lên...' : 'Tải ảnh từ máy'}
+                  </Button>
+                </Upload>
+              </Col>
+            </Row>
+          </div>
 
           <Form.Item shouldUpdate={(prev, curr) => prev.coverImageUrl !== curr.coverImageUrl} noStyle>
             {({ getFieldValue }) => {
               const rawUrl = getFieldValue('coverImageUrl') as string | undefined
               const url = rawUrl ? (rawUrl.startsWith('http') ? rawUrl : `${API_BASE_URL}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`) : ''
               return url ? (
-                <div style={{ marginBottom: 16 }}>
+                <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
                   <img
                     src={url}
                     alt="Preview bìa sách"
-                    style={{ maxHeight: 120, objectFit: 'contain', borderRadius: 4, border: '1px solid #d9d9d9' }}
+                    style={{
+                      maxHeight: 120,
+                      maxWidth: 160,
+                      objectFit: 'contain',
+                      borderRadius: 4,
+                      border: '1px solid #d9d9d9',
+                      background: 'rgba(0,0,0,0.02)',
+                    }}
                     onError={(e) => {
                       ;(e.target as HTMLImageElement).style.display = 'none'
                     }}
                   />
+                  <Button
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => form.setFieldsValue({ coverImageUrl: '' })}
+                  >
+                    Xóa ảnh
+                  </Button>
                 </div>
               ) : null
             }}
