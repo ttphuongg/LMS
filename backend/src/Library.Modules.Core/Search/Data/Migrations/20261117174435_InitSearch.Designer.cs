@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Library.Modules.Core.Search.Data.Migrations
 {
     [DbContext(typeof(SearchDbContext))]
-    [Migration("20261117171518_InitSearch")]
+    [Migration("20261117174435_InitSearch")]
     partial class InitSearch
     {
         /// <inheritdoc />

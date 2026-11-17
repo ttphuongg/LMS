@@ -35,7 +35,7 @@ namespace Library.Modules.Core.Identity.Data.Migrations
                     CreatedBy = table.Column<int>(type: "integer", nullable: true),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     UpdatedBy = table.Column<int>(type: "integer", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
                     DeactivatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     LastLoginAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },

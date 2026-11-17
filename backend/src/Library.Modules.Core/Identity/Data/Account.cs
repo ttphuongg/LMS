@@ -20,7 +20,7 @@ public class Account
     public int? CreatedBy { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int? UpdatedBy { get; set; }
-    public byte[] RowVersion { get; set; } = default!;
+    public uint RowVersion { get; set; }
 
     public DateTime? DeactivatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Library.Modules.Core.Billing.Data.Migrations
 {
     [DbContext(typeof(BillingDbContext))]
-    [Migration("20261117171444_InitBilling")]
+    [Migration("20261117174345_InitBilling")]
     partial class InitBilling
     {
         /// <inheritdoc />

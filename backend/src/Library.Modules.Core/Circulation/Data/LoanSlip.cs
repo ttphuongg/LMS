@@ -21,7 +21,7 @@ public class LoanSlip
 
     public DateTime? UpdatedAt { get; set; }
     public int? UpdatedBy { get; set; }
-    public byte[] RowVersion { get; set; } = default!;
+    public uint RowVersion { get; set; }
 
     // Navigation within Circulation context
     public ICollection<LoanSlipDetail> Details { get; set; } = [];

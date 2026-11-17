@@ -18,7 +18,7 @@ public class Book
     public int? CreatedBy { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int? UpdatedBy { get; set; }
-    public byte[] RowVersion { get; set; } = default!;
+    public uint RowVersion { get; set; }
 
     // Navigation (within Catalog context)
     public ICollection<BookAuthor> BookAuthors { get; set; } = [];
