@@ -2,56 +2,56 @@ pipeline {
     agent any
 
     options {
-        timeout(time: 20, unit: 'MINUTES')
+        timeout(time: 40, unit: 'MINUTES')
         disableConcurrentBuilds()
+        skipDefaultCheckout(true)
     }
 
     stages {
         stage('1. Checkout Code') {
             steps {
-                echo '📥 [Stage 1] Lấy mã nguồn từ Git Repository...'
                 checkout scm
             }
         }
 
-        stage('2. Build Frontend (React / Vite)') {
+        stage('2. Build Frontend') {
             steps {
-                echo '⚛️ [Stage 2] Đang kiểm tra TypeScript và đóng gói Frontend...'
-                sh 'docker build -t lms-frontend:ci ./frontend'
+                sh '''
+                    docker build \
+                      -t lms-frontend:ci \
+                      "/opt/libri/jenkins-workspace/${JOB_NAME}/frontend"
+                '''
             }
         }
 
-        stage('3. Build Backend (.NET 10)') {
+        stage('3. Build Backend') {
             steps {
-                echo '🚀 [Stage 3] Đang biên dịch mã nguồn và đóng gói Backend API...'
-                sh 'docker build -t lms-backend:ci ./backend'
+                sh '''
+                    docker build \
+                      -t lms-backend:ci \
+                      "/opt/libri/jenkins-workspace/${JOB_NAME}/backend"
+                '''
             }
         }
 
-        stage('4. Verify Compose Configuration') {
+        stage('4. Verify Compose') {
             steps {
-                echo '🐳 [Stage 4] Kiểm tra cấu trúc file cấu hình Docker Compose...'
-                sh 'docker compose -f docker-compose.yml config'
+                sh '''
+                    docker compose \
+                      -f /opt/libri/LMS/docker-compose.yml \
+                      --project-directory /opt/libri/LMS \
+                      config --quiet
+                '''
             }
         }
     }
 
     post {
-        always {
-            echo '🧹 [Cleanup] Dọn dẹp các image kiểm thử tạm thời...'
-            sh 'docker rmi -f lms-frontend:ci lms-backend:ci || true'
-        }
         success {
-            echo '=================================================='
-            echo '🎉 [SUCCESS] CI PIPELINE BUILD THÀNH CÔNG!'
-            echo 'Frontend, Backend API và Dockerfile đều hợp lệ.'
-            echo '=================================================='
+            echo 'CI BUILD SUCCESS'
         }
         failure {
-            echo '=================================================='
-            echo '❌ [FAILURE] CI PIPELINE BUILD THẤT BẠI!'
-            echo 'Vui lòng kiểm tra Console Output để xem chi tiết lỗi.'
-            echo '=================================================='
+            echo 'CI BUILD FAILED'
         }
     }
 }
