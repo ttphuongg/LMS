@@ -168,12 +168,65 @@ namespace Library.Modules.Core.Identity.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Library.Modules.Core.Identity.Data.PasswordResetToken", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSDATETIME()");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OtpHash")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OtpHash");
+
+                    b.HasIndex("TokenHash");
+
+                    b.HasIndex("AccountId", "TokenHash");
+
+                    b.ToTable("PasswordResetTokens", "identity");
+                });
+
             modelBuilder.Entity("Library.Modules.Core.Identity.Data.LoginSession", b =>
                 {
                     b.HasOne("Library.Modules.Core.Identity.Data.Account", "Account")
                         .WithMany("LoginSessions")
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("Library.Modules.Core.Identity.Data.PasswordResetToken", b =>
+                {
+                    b.HasOne("Library.Modules.Core.Identity.Data.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Account");

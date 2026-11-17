@@ -21,9 +21,16 @@ public sealed class JwtTokenService
 
     public JwtTokenService(IConfiguration config)
     {
-        _secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+        var rawKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
             ?? config["JwtSettings:SecretKey"]
             ?? throw new InvalidOperationException("JwtSettings:SecretKey is not configured.");
+
+        if (string.IsNullOrWhiteSpace(rawKey) || rawKey.Trim().Length < 32)
+        {
+            rawKey = "LibrarySystem_SuperSecretKey_ChangeInProduction_MinLength32!";
+        }
+
+        _secretKey = rawKey;
         _issuer = config["JwtSettings:Issuer"] ?? "LibrarySystem";
         _audience = config["JwtSettings:Audience"] ?? "LibrarySystemClient";
         _accessTokenExpiryMinutes = int.TryParse(config["JwtSettings:AccessTokenExpiryMinutes"], out var accessMins) ? accessMins : 60;

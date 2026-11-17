@@ -121,7 +121,13 @@ export const LoginPage: React.FC = () => {
             />
           </Form.Item>
 
-          <Form.Item style={{ marginTop: 'var(--sp-6)' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -8, marginBottom: 'var(--sp-4)' }}>
+            <Link to="/forgot-password" style={{ color: 'var(--primary)', fontSize: 13, fontWeight: 500 }}>
+              Quên mật khẩu?
+            </Link>
+          </div>
+
+          <Form.Item style={{ marginTop: 'var(--sp-4)' }}>
             <Button
               type="primary"
               htmlType="submit"
