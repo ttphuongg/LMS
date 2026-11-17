@@ -1,5 +1,6 @@
-using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -45,27 +46,29 @@ public sealed class EmailService : IEmailService
             return;
         }
 
+        var portString = _cfg["Smtp:Port"] ?? Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587";
+        int.TryParse(portString, out var port);
+        if (port <= 0) port = 587;
+
+        var username = _cfg["Smtp:Username"] ?? Environment.GetEnvironmentVariable("SMTP_USERNAME");
+        var password = _cfg["Smtp:Password"] ?? Environment.GetEnvironmentVariable("SMTP_PASSWORD");
+        var fromEmail = _cfg["Smtp:FromEmail"] ?? Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ?? username ?? "noreply@library.vn";
+        var fromName = _cfg["Smtp:FromName"] ?? Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ?? "Thư Viện Libri";
+        var enableSsl = bool.TryParse(_cfg["Smtp:EnableSsl"] ?? Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL"), out var ssl) ? ssl : true;
+
         try
         {
-            var portString = _cfg["Smtp:Port"] ?? Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587";
-            int.TryParse(portString, out var port);
-            if (port <= 0) port = 587;
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(fromName, fromEmail));
+            message.To.Add(new MailboxAddress(toEmail, toEmail));
+            message.Subject = "[Libri Library] Yêu cầu đặt lại mật khẩu tài khoản";
 
-            var username = _cfg["Smtp:Username"] ?? Environment.GetEnvironmentVariable("SMTP_USERNAME");
-            var password = _cfg["Smtp:Password"] ?? Environment.GetEnvironmentVariable("SMTP_PASSWORD");
-            var fromEmail = _cfg["Smtp:FromEmail"] ?? Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") ?? username ?? "noreply@library.vn";
-            var fromName = _cfg["Smtp:FromName"] ?? Environment.GetEnvironmentVariable("SMTP_FROM_NAME") ?? "Thư Viện Libri";
-            var enableSsl = bool.TryParse(_cfg["Smtp:EnableSsl"] ?? Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL"), out var ssl) ? ssl : true;
-
-            using var message = new MailMessage
+            var bodyBuilder = new BodyBuilder
             {
-                From = new MailAddress(fromEmail, fromName),
-                Subject = "[Libri Library] Yêu cầu đặt lại mật khẩu tài khoản",
-                IsBodyHtml = true,
-                Body = $"""
+                HtmlBody = $"""
                 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0d8c8; border-radius: 8px; background-color: #ffffff;">
                     <div style="text-align: center; margin-bottom: 24px;">
-                        <h2 style="color: #2c1810; margin: 0; font-family: Georgia, serif;">THƯ VIỆN LIBRI</h2>
+                        <h2 style="color: #003D28; margin: 0; font-family: Georgia, serif;">THƯ VIỆN LIBRI</h2>
                         <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Cổng thông tin & quản lý bạn đọc</p>
                     </div>
 
@@ -73,24 +76,24 @@ public sealed class EmailService : IEmailService
                         Xin chào bạn,
                     </p>
                     <p style="color: #374151; font-size: 15px; line-height: 1.6;">
-                        Hệ thống vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản liên kết với địa chỉ email <strong>{WebUtility.HtmlEncode(toEmail)}</strong>.
+                        Hệ thống vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản liên kết với địa chỉ email <strong>{System.Net.WebUtility.HtmlEncode(toEmail)}</strong>.
                     </p>
 
                     <div style="background-color: #f9f6f0; border: 1px dashed #d1c7b7; border-radius: 6px; padding: 18px; margin: 24px 0; text-align: center;">
                         <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Mã xác thực OTP của bạn</div>
-                        <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #8c2d19; font-family: monospace;">{otpCode}</div>
+                        <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #003D28; font-family: monospace;">{otpCode}</div>
                         <div style="font-size: 12px; color: #9ca3af; margin-top: 8px;">(Hiệu lực trong vòng 15 phút)</div>
                     </div>
 
                     <div style="text-align: center; margin: 32px 0;">
-                        <a href="{resetLink}" style="display: inline-block; background-color: #8c2d19; color: #ffffff; text-decoration: none; padding: 12px 28px; font-size: 15px; font-weight: 600; border-radius: 6px;">
+                        <a href="{resetLink}" style="display: inline-block; background-color: #003D28; color: #ffffff; text-decoration: none; padding: 12px 28px; font-size: 15px; font-weight: 600; border-radius: 6px;">
                             Đặt Lại Mật Khẩu Ngay
                         </a>
                     </div>
 
                     <p style="color: #6b7280; font-size: 13px; line-height: 1.5;">
                         Nếu nút trên không hoạt động, bạn có thể sao chép và dán liên kết sau vào trình duyệt:<br/>
-                        <a href="{resetLink}" style="color: #8c2d19; word-break: break-all;">{resetLink}</a>
+                        <a href="{resetLink}" style="color: #003D28; word-break: break-all;">{resetLink}</a>
                     </p>
 
                     <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 24px 0;" />
@@ -101,25 +104,39 @@ public sealed class EmailService : IEmailService
                 """
             };
 
-            message.To.Add(new MailAddress(toEmail));
+            message.Body = bodyBuilder.ToMessageBody();
 
-            using var smtp = new SmtpClient(smtpHost, port)
+            using var client = new SmtpClient();
+
+            // Chấp nhận chứng chỉ nếu có cảnh báo tên miền SSL trung gian
+            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+
+            var secureSocketOptions = port switch
             {
-                EnableSsl = enableSsl
+                465 => SecureSocketOptions.SslOnConnect,
+                587 => SecureSocketOptions.StartTls,
+                _ => enableSsl ? SecureSocketOptions.Auto : SecureSocketOptions.None
             };
+
+            await client.ConnectAsync(smtpHost, port, secureSocketOptions, ct);
 
             if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
             {
-                smtp.Credentials = new NetworkCredential(username, password);
+                var cleanPassword = password.Trim().Trim('"', '\'');
+                await client.AuthenticateAsync(username.Trim(), cleanPassword, ct);
             }
 
-            await smtp.SendMailAsync(message, ct);
+            await client.SendAsync(FormatOptions.Default, message, ct);
+            await client.DisconnectAsync(true, ct);
+
             _logger.LogInformation("Password reset email sent successfully to {Email}", toEmail);
+            Console.WriteLine($"[SMTP SUCCESS] Đã gửi email đặt lại mật khẩu thành công tới {toEmail} qua {smtpHost}:{port}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send password reset email to {Email}", toEmail);
+            var errDetail = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;
+            Console.WriteLine($"[SMTP ERROR] Không thể gửi mail qua {smtpHost}:{port} (User: {username}): {errDetail}");
+            _logger.LogError(ex, "Failed to send password reset email to {Email}. Detail: {Detail}", toEmail, errDetail);
         }
     }
 }
-
