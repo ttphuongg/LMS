@@ -25,7 +25,7 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
             .HasDefaultValue(true);
 
         builder.Property(l => l.CreatedAt)
-            .HasDefaultValueSql("SYSDATETIME()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         // UQ: (Aisle, Shelf, RowLevel) phải là tọa độ duy nhất
         builder.HasIndex(l => new { l.Aisle, l.Shelf, l.RowLevel })
@@ -35,8 +35,8 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         // Check constraints
         builder.ToTable("Locations", t =>
         {
-            t.HasCheckConstraint("CK_Locations_RowLevel", "[RowLevel] > 0");
-            t.HasCheckConstraint("CK_Locations_MaxCapacity", "[MaxCapacity] IS NULL OR [MaxCapacity] > 0");
+            t.HasCheckConstraint("CK_Locations_RowLevel", "\"RowLevel\" > 0");
+            t.HasCheckConstraint("CK_Locations_MaxCapacity", "\"MaxCapacity\" IS NULL OR \"MaxCapacity\" > 0");
         });
 
         // Navigation: một Location có nhiều BookCopy

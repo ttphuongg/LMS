@@ -11,7 +11,7 @@ public class FineConfiguration : IEntityTypeConfiguration<Fine>
         builder.HasKey(f => f.Id);
 
         builder.Property(f => f.Amount).HasPrecision(18, 2).IsRequired();
-        builder.Property(f => f.IssuedAt).HasDefaultValueSql("SYSDATETIME()");
+        builder.Property(f => f.IssuedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(f => f.FineType)
             .HasConversion<string>()
@@ -25,9 +25,9 @@ public class FineConfiguration : IEntityTypeConfiguration<Fine>
         // Check constraints
         builder.ToTable("Fines", t =>
         {
-            t.HasCheckConstraint("CK_Fines_Amount", "[Amount] > 0");
-            t.HasCheckConstraint("CK_Fines_FineType", "[FineType] IN (N'Overdue', N'Compensation', N'Other')");
-            t.HasCheckConstraint("CK_Fines_Status", "[Status] IN (N'Unpaid', N'PartiallyPaid', N'Paid', N'Cancelled')");
+            t.HasCheckConstraint("CK_Fines_Amount", "\"Amount\" > 0");
+            t.HasCheckConstraint("CK_Fines_FineType", "\"FineType\" IN ('Overdue', 'Compensation', 'Other')");
+            t.HasCheckConstraint("CK_Fines_Status", "\"Status\" IN ('Unpaid', 'PartiallyPaid', 'Paid', 'Cancelled')");
         });
 
         // Within Billing context — Restrict để bảo toàn dữ liệu kế toán

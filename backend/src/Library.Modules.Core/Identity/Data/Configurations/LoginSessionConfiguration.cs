@@ -20,12 +20,12 @@ public class LoginSessionConfiguration : IEntityTypeConfiguration<LoginSession>
             .HasMaxLength(500);
 
         builder.Property(ls => ls.LoggedInAt)
-            .HasDefaultValueSql("SYSDATETIME()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         // CK_PhienDangNhap_ThoiGian: ExpiresAt > LoggedInAt
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_LoginSessions_ExpiresAt",
-            "[ExpiresAt] > [LoggedInAt]"));
+            "\"ExpiresAt\" > \"LoggedInAt\""));
 
         // FK → Accounts (NO ACTION — giữ lại session để audit)
         builder.HasOne(ls => ls.Account)

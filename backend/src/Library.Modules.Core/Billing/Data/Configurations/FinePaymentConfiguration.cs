@@ -11,7 +11,7 @@ public class FinePaymentConfiguration : IEntityTypeConfiguration<FinePayment>
         builder.HasKey(p => p.Id);
 
         builder.Property(p => p.Amount).HasPrecision(18, 2).IsRequired();
-        builder.Property(p => p.PaidAt).HasDefaultValueSql("SYSDATETIME()");
+        builder.Property(p => p.PaidAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
         builder.Property(p => p.Notes).HasMaxLength(500);
 
         builder.Property(p => p.PaymentMethod)
@@ -21,8 +21,8 @@ public class FinePaymentConfiguration : IEntityTypeConfiguration<FinePayment>
         // Check constraints
         builder.ToTable("FinePayments", t =>
         {
-            t.HasCheckConstraint("CK_FinePayments_Amount", "[Amount] > 0");
-            t.HasCheckConstraint("CK_FinePayments_PaymentMethod", "[PaymentMethod] IN (N'Cash', N'BankTransfer', N'Other')");
+            t.HasCheckConstraint("CK_FinePayments_Amount", "\"Amount\" > 0");
+            t.HasCheckConstraint("CK_FinePayments_PaymentMethod", "\"PaymentMethod\" IN ('Cash', 'BankTransfer', 'Other')");
         });
 
         // FK → Fines (NO ACTION — bảo vệ dữ liệu kế toán)

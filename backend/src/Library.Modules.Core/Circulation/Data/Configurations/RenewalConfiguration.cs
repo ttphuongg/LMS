@@ -11,7 +11,7 @@ public class RenewalConfiguration : IEntityTypeConfiguration<Renewal>
         builder.ToTable("Renewals");
         builder.HasKey(r => r.Id);
 
-        builder.Property(r => r.RequestedAt).HasDefaultValueSql("SYSDATETIME()");
+        builder.Property(r => r.RequestedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
         builder.Property(r => r.Reason).HasMaxLength(500);
         builder.Property(r => r.Status)
             .HasConversion<string>()
@@ -23,15 +23,15 @@ public class RenewalConfiguration : IEntityTypeConfiguration<Renewal>
 
         // CK_GiaHan_LanGiaHan
         builder.ToTable(t => t.HasCheckConstraint(
-            "CK_Renewals_RenewalNumber", "[RenewalNumber] > 0"));
+            "CK_Renewals_RenewalNumber", "\"RenewalNumber\" > 0"));
 
         // CK_GiaHan_NgayMoi
         builder.ToTable(t => t.HasCheckConstraint(
-            "CK_Renewals_NewDueDate", "[NewDueDate] > [OldDueDate]"));
+            "CK_Renewals_NewDueDate", "\"NewDueDate\" > \"OldDueDate\""));
 
         // CK_Renewals_Status
         builder.ToTable(t => t.HasCheckConstraint(
-            "CK_Renewals_Status", "[Status] IN (N'Pending', N'Approved', N'Rejected', N'Cancelled')"));
+            "CK_Renewals_Status", "\"Status\" IN ('Pending', 'Approved', 'Rejected', 'Cancelled')"));
 
         builder.HasOne(r => r.LoanSlipDetail)
             .WithMany(d => d.Renewals)

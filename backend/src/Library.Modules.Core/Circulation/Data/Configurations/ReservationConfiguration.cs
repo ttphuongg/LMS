@@ -12,7 +12,7 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
         builder.ToTable("Reservations");
         builder.HasKey(r => r.Id);
 
-        builder.Property(r => r.ReservedAt).HasDefaultValueSql("SYSDATETIME()");
+        builder.Property(r => r.ReservedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
         builder.Property(r => r.Status)
             .HasConversion<string>()
             .HasMaxLength(20)
@@ -24,8 +24,8 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
         // Check constraints
         builder.ToTable("Reservations", t =>
         {
-            t.HasCheckConstraint("CK_Reservations_ExpiresAt", "[ExpiresAt] IS NULL OR [ExpiresAt] > [ReservedAt]");
-            t.HasCheckConstraint("CK_Reservations_Status", "[Status] IN (N'Waiting', N'Ready', N'Completed', N'Cancelled', N'Expired')");
+            t.HasCheckConstraint("CK_Reservations_ExpiresAt", "\"ExpiresAt\" IS NULL OR \"ExpiresAt\" > \"ReservedAt\"");
+            t.HasCheckConstraint("CK_Reservations_Status", "\"Status\" IN ('Waiting', 'Ready', 'Completed', 'Cancelled', 'Expired')");
         });
     }
 }

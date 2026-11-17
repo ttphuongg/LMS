@@ -46,7 +46,7 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
             .IsRequired();
 
         builder.Property(a => a.CreatedAt)
-            .HasDefaultValueSql("SYSDATETIME()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(a => a.RowVersion)
             .IsRowVersion();
@@ -54,14 +54,14 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
         // Unique constraints
         builder.HasIndex(a => a.Username).IsUnique();
         builder.HasIndex(a => a.Email).IsUnique();
-        builder.HasIndex(a => a.PhoneNumber).IsUnique().HasFilter("[PhoneNumber] IS NOT NULL");
+        builder.HasIndex(a => a.PhoneNumber).IsUnique().HasFilter("\"PhoneNumber\" IS NOT NULL");
 
         // Check constraints
         builder.ToTable("Accounts", t =>
         {
-            t.HasCheckConstraint("CK_Accounts_Role", "[Role] IN (N'Reader', N'Librarian', N'Admin')");
-            t.HasCheckConstraint("CK_Accounts_Status", "[Status] IN (N'Active', N'Locked', N'Inactive')");
-            t.HasCheckConstraint("CK_Accounts_DeactivatedAt", "[DeactivatedAt] IS NULL OR [DeactivatedAt] > [CreatedAt]");
+            t.HasCheckConstraint("CK_Accounts_Role", "\"Role\" IN ('Reader', 'Librarian', 'Admin')");
+            t.HasCheckConstraint("CK_Accounts_Status", "\"Status\" IN ('Active', 'Locked', 'Inactive')");
+            t.HasCheckConstraint("CK_Accounts_DeactivatedAt", "\"DeactivatedAt\" IS NULL OR \"DeactivatedAt\" > \"CreatedAt\"");
         });
 
         // Navigation within Identity context (NO ACTION — giữ sessions để audit)

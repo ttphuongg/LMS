@@ -1,5 +1,5 @@
 using System.Data.Common;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,7 +9,7 @@ public static class PersistenceExtensions
 {
     public static IServiceCollection AddSharedPersistence(this IServiceCollection services, string connectionString)
     {
-        services.AddScoped<DbConnection>(_ => new SqlConnection(connectionString));
+        services.AddScoped<DbConnection>(_ => new NpgsqlConnection(connectionString));
         services.AddScoped<UnitOfWork>();
         return services;
     }
@@ -21,11 +21,11 @@ public static class PersistenceExtensions
         {
             var conn = sp.GetRequiredService<DbConnection>();
             var schema = typeof(TContext).GetField("Schema")?.GetValue(null) as string;
-            options.UseSqlServer(conn, sql =>
+            options.UseNpgsql(conn, npgsql =>
             {
-                sql.MigrationsAssembly("Library.Modules.Core");
+                npgsql.MigrationsAssembly("Library.Modules.Core");
                 if (!string.IsNullOrEmpty(schema))
-                    sql.MigrationsHistoryTable("__EFMigrationsHistory", schema);
+                    npgsql.MigrationsHistoryTable("__EFMigrationsHistory", schema);
             });
         });
         services.AddScoped<DbContext>(sp => sp.GetRequiredService<TContext>());
