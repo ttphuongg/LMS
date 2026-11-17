@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import { Button } from "antd";
 import { ArrowDownOutlined } from "@ant-design/icons";
 import { motion, useScroll, useTransform } from "motion/react";
+import heroBg from "../assets/hero-img.png";
 
 export const HeroSection: React.FC = () => {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -37,10 +38,9 @@ export const HeroSection: React.FC = () => {
         justifyContent: "center", // Căn giữa nội dung theo chiều dọc
         boxSizing: "border-box",
         /* --- NỀN ẢNH THƯ VIỆN --- */
-        // Thay url(...) bằng link ảnh hoặc đường dẫn ảnh thực tế của bạn
         backgroundImage: `
           linear-gradient(rgba(31, 58, 46, 0.65), rgba(20, 10, 4, 0.85)), 
-          url("https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2000&auto=format&fit=crop")
+          url("${heroBg}")
         `,
         backgroundSize: "cover",
         backgroundPosition: "center",

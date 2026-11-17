@@ -15,7 +15,7 @@ export const BRAND = {
   contact: {
     address: 'Tầng 1–5, Tòa nhà Trung tâm Libri',
     phone: '(024) 3869 1234',
-    email: 'thuvien@library.edu.vn',
+    email: 'noreply@libri.id.vn',
     hours: 'Thứ Hai – Thứ Bảy (08:00 – 21:00)',
   },
 } as const
