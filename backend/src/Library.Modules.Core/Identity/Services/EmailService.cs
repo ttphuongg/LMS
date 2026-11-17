@@ -61,14 +61,14 @@ public sealed class EmailService : IEmailService
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(fromName, fromEmail));
             message.To.Add(new MailboxAddress(toEmail, toEmail));
-            message.Subject = "[Libri Library] Yêu cầu đặt lại mật khẩu tài khoản";
+            message.Subject = "[Libri] Yêu cầu đặt lại mật khẩu tài khoản";
 
             var bodyBuilder = new BodyBuilder
             {
                 HtmlBody = $"""
                 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0d8c8; border-radius: 8px; background-color: #ffffff;">
                     <div style="text-align: center; margin-bottom: 24px;">
-                        <h2 style="color: #003D28; margin: 0; font-family: Georgia, serif;">THƯ VIỆN LIBRI</h2>
+                        <h2 style="color: #003D28; margin: 0; font-family: Georgia, serif;">LIBRI</h2>
                         <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Cổng thông tin & quản lý bạn đọc</p>
                     </div>
 
