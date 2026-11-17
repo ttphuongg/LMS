@@ -16,21 +16,13 @@ pipeline {
 
         stage('2. Build Frontend') {
             steps {
-                sh '''
-                    docker build \
-                      -t lms-frontend:ci \
-                      "/opt/libri/jenkins-workspace/${JOB_NAME}/frontend"
-                '''
+                sh 'docker build -t lms-frontend:ci ./frontend'
             }
         }
 
         stage('3. Build Backend') {
             steps {
-                sh '''
-                    docker build \
-                      -t lms-backend:ci \
-                      "/opt/libri/jenkins-workspace/${JOB_NAME}/backend"
-                '''
+                sh 'docker build -t lms-backend:ci ./backend'
             }
         }
 
