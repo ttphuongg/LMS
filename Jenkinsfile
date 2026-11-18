@@ -40,6 +40,14 @@ pipeline {
         }
 
         stage('5. Deploy Backend') {
+            when {
+                anyOf {
+                    changeset 'backend/**'
+                    changeset 'docker-compose.yml'
+                    changeset 'docker-compose.deploy.yml'
+                }
+            }
+
             steps {
                 sh '''
                     set -eu
