@@ -21,8 +21,8 @@ import { CategoryGrid } from '../components/CategoryGrid'
 import { BookShelf } from '../components/BookShelf'
 import { LibraryInfoPanel, NotificationsPanel } from '../components/SidePanels'
 
-// 6 cuốn/kệ: chia hết cho cả lưới 2 và 3 cột nên hàng cuối luôn đầy
-const SHELF_SIZE = 6
+// 8 cuốn/kệ: chia hết cho cả lưới 4 cột (desktop) và 2 cột (tablet/mobile) nên các hàng luôn đầy đủ, không khuyết trống bên phải
+const SHELF_SIZE = 8
 
 export const HomePage: React.FC = () => {
   const { user } = useAuth()
@@ -75,8 +75,10 @@ export const HomePage: React.FC = () => {
         <div className="home-main">
           <MyLoansPanel active={active} onRenew={setRenewTarget} />
 
+          {/* Danh mục sách: Giữ nguyên cấu trúc, vị trí và bố cục ban đầu */}
           <CategoryGrid categories={data.categories} counts={counts} />
 
+          {/* 3 Khu vực kệ sách: Bố cục 4 cột trên Desktop */}
           <BookShelf
             title={recommended.personalized ? 'Gợi ý theo lịch sử mượn' : 'Có thể bạn quan tâm'}
             subtitle={recommended.personalized ? 'Cùng tác giả hoặc cùng danh mục với sách bạn đã mượn' : undefined}

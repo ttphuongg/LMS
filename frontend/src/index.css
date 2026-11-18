@@ -187,6 +187,8 @@ small,
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
   margin-bottom: var(--sp-3);
   border-bottom: 1px dashed var(--border);
   padding-bottom: var(--sp-2);
@@ -465,6 +467,53 @@ button:disabled,
 .ant-btn[disabled],
 .ant-select-disabled .ant-select-selector {
   cursor: not-allowed;
+}
+
+/* ==========================================================================
+   CHUẨN HÓA HIỆU ỨNG HOVER BUTTON TRÊN TOÀN HỆ THỐNG LIBRI
+   - Nền xanh lá đậm Header: #1F3A2E (var(--primary))
+   - Chữ và Icon: Trắng (#ffffff)
+   - Viền: Xanh lá đậm (#1F3A2E)
+   - Hiệu ứng chuyển màu mượt mà: 0.25s
+   - Bảo toàn: Primary button (đã có nền xanh lá đậm sẵn),
+     Danger/Delete (đỏ), Warning (vàng/cam), Disabled (mờ, not-allowed).
+   ========================================================================== */
+
+/* Chuyển động mượt mà cho button thông thường */
+.ant-btn:not(.ant-btn-dangerous):not(:disabled):not(.ant-btn-disabled) {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+/* Hover cho button thông thường (default, outline, ghost) */
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-dangerous):not(.ant-btn-text):not(.ant-btn-link):not(:disabled):not(.ant-btn-disabled):hover {
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
+  border-color: var(--primary) !important;
+}
+
+/* Đảm bảo toàn bộ chữ, icon, icon svg bên trong button chuyển sang màu trắng rõ nét */
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-dangerous):not(.ant-btn-text):not(.ant-btn-link):not(:disabled):not(.ant-btn-disabled):hover *,
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-dangerous):not(.ant-btn-text):not(.ant-btn-link):not(:disabled):not(.ant-btn-disabled):hover .anticon,
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-dangerous):not(.ant-btn-text):not(.ant-btn-link):not(:disabled):not(.ant-btn-disabled):hover .anticon svg {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Trạng thái nhấn (active) */
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-dangerous):not(.ant-btn-text):not(.ant-btn-link):not(:disabled):not(.ant-btn-disabled):active {
+  background-color: #183025 !important;
+  color: #ffffff !important;
+  border-color: #183025 !important;
+}
+
+/* Bảo toàn tuyệt đối button vô hiệu hóa (disabled) */
+.ant-btn:disabled,
+.ant-btn.ant-btn-disabled,
+button:disabled {
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  opacity: 0.55 !important;
+  transition: none !important;
 }
 
 

@@ -108,13 +108,15 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
             color: 'var(--foreground)',
             lineHeight: 1.35,
             fontWeight: 600,
+            wordBreak: 'break-word',
+            overflowWrap: 'break-word',
           }}
         >
           {book.title}
         </h3>
 
         {/* Author */}
-        <div style={{ color: 'var(--muted-foreground)', fontSize: 13, marginBottom: 'var(--sp-2)', fontStyle: 'italic' }}>
+        <div style={{ color: 'var(--muted-foreground)', fontSize: 13, marginBottom: 'var(--sp-2)', fontStyle: 'italic', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
           Tác giả: {book.authorName}
         </div>
 
@@ -146,6 +148,8 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          gap: 'var(--sp-1)',
+          flexWrap: 'wrap',
           fontSize: 12,
         }}
       >

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Row, Col, Table, Tag, Descriptions, Alert } from 'antd'
+import { Card, Row, Col, Table, Tag, Descriptions, Alert, Button } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { catalogApi } from '../api'
 import type { BookDto, BookCopyDto } from '../types'
@@ -14,7 +14,7 @@ import { PageHeader } from '@/shared/components/PageHeader'
 import { LoadingState } from '@/shared/components/LoadingState'
 import { ErrorState } from '@/shared/components/ErrorState'
 import { useStableCallback, useRequestGuard } from '@/shared/hooks'
-import { monoStyle, primaryTagStyle } from '@/shared/styles/ui'
+import { monoStyle, primaryTagStyle, radiusStyle } from '@/shared/styles/ui'
 import { getErrorMessage } from '@/shared/utils/format'
 
 export const BookDetailPage: React.FC = () => {
@@ -100,21 +100,12 @@ export const BookDetailPage: React.FC = () => {
           { title: book.title },
         ]}
         extra={
-          <button
-            type="button"
+          <Button
             onClick={() => navigate('/books')}
-            style={{
-              background: 'var(--card)',
-              border: '1px solid var(--border-strong)',
-              color: 'var(--foreground)',
-              padding: '6px var(--sp-4)',
-              borderRadius: 'var(--radius)',
-              cursor: 'pointer',
-              fontWeight: 500,
-            }}
+            style={radiusStyle}
           >
             Quay lại mục lục
-          </button>
+          </Button>
         }
       />
 

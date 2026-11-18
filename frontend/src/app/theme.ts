@@ -45,6 +45,12 @@ export const libraryTheme: ThemeConfig = {
       defaultBg: '#FBF7EC',
       defaultColor: '#2A2118',
       defaultBorderColor: '#DECFAA',
+      defaultHoverBg: '#1F3A2E',
+      defaultHoverColor: '#FFFFFF',
+      defaultHoverBorderColor: '#1F3A2E',
+      defaultActiveBg: '#183025',
+      defaultActiveColor: '#FFFFFF',
+      defaultActiveBorderColor: '#183025',
     },
 
     Card: {

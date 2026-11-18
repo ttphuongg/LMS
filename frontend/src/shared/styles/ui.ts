@@ -20,6 +20,7 @@ export const outlineButtonStyle: CSSProperties = {
   borderColor: 'var(--border-strong)',
   color: 'var(--primary)',
   borderRadius: 'var(--radius)',
+  transition: 'all 0.25s ease',
 }
 
 /** Tiêu đề serif trong Modal. */
