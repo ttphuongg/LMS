@@ -20,11 +20,13 @@ export const ResetPasswordPage: React.FC = () => {
 
   useEffect(() => {
     const emailParam = searchParams.get('email') || ''
-    const tokenParam = searchParams.get('token') || ''
+    // Chỉ tự động điền mã OTP gồm 6 chữ số, tuyệt đối không hiển thị mã token dài
+    const candidate = searchParams.get('otp') || searchParams.get('code') || searchParams.get('token') || ''
+    const otpParam = /^\d{6}$/.test(candidate.trim()) ? candidate.trim() : ''
 
     form.setFieldsValue({
       email: emailParam,
-      tokenOrOtp: tokenParam,
+      tokenOrOtp: otpParam,
     })
   }, [searchParams, form])
 
@@ -134,14 +136,18 @@ export const ResetPasswordPage: React.FC = () => {
               </Form.Item>
 
               <Form.Item
-                label="Mã xác thực (Token hoặc OTP 6 số)"
+                label="Mã xác thực OTP"
                 name="tokenOrOtp"
-                extra="Nhập mã OTP gồm 6 chữ số hoặc mã token từ liên kết gửi tới email của bạn."
-                rules={[{ required: true, message: 'Vui lòng nhập mã Token hoặc mã OTP xác thực' }]}
+                extra="Mã OTP gồm 6 chữ số được gửi tới hộp thư của bạn."
+                rules={[
+                  { required: true, message: 'Vui lòng nhập mã OTP xác thực' },
+                  { pattern: /^\d{6}$/, message: 'Mã OTP phải gồm đúng 6 chữ số' },
+                ]}
               >
                 <Input
                   prefix={<KeyOutlined style={mutedTextStyle} />}
-                  placeholder="Nhập mã OTP 6 số hoặc Token..."
+                  placeholder="Nhập mã OTP 6 số (ví dụ: 123456)..."
+                  maxLength={6}
                   size="large"
                   style={radiusStyle}
                 />

@@ -106,7 +106,7 @@ public sealed class EmailService : IEmailService
             ?? Environment.GetEnvironmentVariable("FRONTEND_URL")
             ?? "https://libri.id.vn";
 
-        var resetLink = $"{frontendUrl.TrimEnd('/')}/reset-password?email={Uri.EscapeDataString(toEmail)}&token={resetToken}";
+        var resetLink = $"{frontendUrl.TrimEnd('/')}/reset-password?email={Uri.EscapeDataString(toEmail)}&otp={otpCode}";
 
         // In rõ mã OTP và link reset ra Console phục vụ test nhanh ngay trên Terminal / Docker log
         var resetNotice = $"""
