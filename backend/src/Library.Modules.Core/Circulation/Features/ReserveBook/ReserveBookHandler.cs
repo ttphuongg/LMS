@@ -131,6 +131,14 @@ public sealed class ReserveBookHandler : IRequestHandler<ReserveBookRequest, Api
         _db.Reservations.Add(reservation);
         await _db.SaveChangesAsync(ct);
 
+        // Bắn sự kiện đặt trước sách thành công (cho email / thông báo xác nhận)
+        await _mediator.Publish(new ReservationCreatedEvent(
+            reservation.Id,
+            reservation.AccountId,
+            reservation.BookId,
+            isReady,
+            reservation.ExpiresAt), ct);
+
         if (isReady && assignedCopy != null)
         {
             await _mediator.Publish(new ReservationReadyEvent(

@@ -18,4 +18,4 @@ public record UserSummary(
 );
 
 public record ChangeRoleRequest(int AccountId, AccountRole NewRole) : IRequest<ApiResponse<bool>>;
-public record ChangeStatusRequest(int AccountId, AccountStatus NewStatus) : IRequest<ApiResponse<bool>>;
+public record ChangeStatusRequest(int AccountId, AccountStatus NewStatus, string? Reason = null) : IRequest<ApiResponse<bool>>;

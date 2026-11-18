@@ -9,3 +9,18 @@ public record SearchAccountIdsQuery(string Keyword) : IRequest<List<int>>;
 public record GetTotalAccountsCountQuery() : IRequest<int>;
 public record SeedDefaultAdminCommand : IRequest<bool>;
 
+// ── Contact Contracts (Cho he thong Thong bao & Gui Email) ───────────────────
+public record AccountContactDto(
+    int AccountId,
+    string FullName,
+    string Email,
+    string Username,
+    string Status,
+    string? PhoneNumber
+);
+
+public record GetAccountContactQuery(int AccountId) : IRequest<AccountContactDto?>;
+
+public record GetAccountContactsQuery(IReadOnlyCollection<int> AccountIds) 
+    : IRequest<IReadOnlyDictionary<int, AccountContactDto>>;
+

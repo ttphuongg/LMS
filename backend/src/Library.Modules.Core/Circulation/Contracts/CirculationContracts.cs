@@ -7,6 +7,7 @@ namespace Library.Modules.Core.Circulation.Contracts;
 public record HasActiveLoanForCopyQuery(int CopyId) : IRequest<bool>;
 public record ReleaseCopyCommand(int BookId, int CopyId, long? ExcludeReservationId = null) : IRequest<CopyStatus>;
 public record ProcessOverdueLoansCommand : IRequest<int>, ITransactionalCommand;
+public record ProcessDueSoonLoansCommand : IRequest<int>;
 public record ExpireReservationsCommand : IRequest<int>, ITransactionalCommand;
 public record CirculationStatsDto(
     int TotalActiveLoans,
