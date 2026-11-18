@@ -186,7 +186,7 @@ export const BookListPage: React.FC = () => {
         <>
           <Row gutter={[20, 20]}>
             {books.map((book) => (
-              <Col xs={24} sm={12} lg={6} key={book.id}>
+              <Col xs={12} sm={8} md={6} lg={6} key={book.id}>
                 <BookCard book={book} />
               </Col>
             ))}
