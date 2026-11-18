@@ -23,8 +23,8 @@ public sealed class UpdateProfileValidator : AbstractValidator<UpdateProfileRequ
             .When(x => !string.IsNullOrEmpty(x.Address));
 
         RuleFor(x => x.DateOfBirth)
-            .LessThan(DateOnly.FromDateTime(DateTime.Today))
-            .WithMessage("Ngày sinh phải trước ngày hiện tại.")
+            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today))
+            .WithMessage("Ngày sinh không được lớn hơn ngày hiện tại.")
             .When(x => x.DateOfBirth.HasValue);
     }
 }

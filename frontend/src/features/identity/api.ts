@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/api/client'
+import { normalizeDateToIso } from '@/shared/utils/format'
 import type { ApiResponse, CurrentUser, UserRole } from '@/shared/api/types'
 import type {
   LoginRequest,
@@ -75,7 +76,7 @@ export const identityApi = {
       fullName: data.fullName,
       phoneNumber: data.phoneNumber || data.phone || null,
       address: data.address || null,
-      dateOfBirth: data.dateOfBirth ? data.dateOfBirth.split('T')[0] : null,
+      dateOfBirth: normalizeDateToIso(data.dateOfBirth),
     }
     await apiClient.put<ApiResponse<boolean>>('/api/identity/profile', payload)
     // Tải lại thông tin hồ sơ mới nhất từ server

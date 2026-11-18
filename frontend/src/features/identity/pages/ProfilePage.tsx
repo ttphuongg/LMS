@@ -11,7 +11,7 @@ import { LoadingState } from '@/shared/components/LoadingState'
 import type { CurrentUser } from '@/shared/api/types'
 import { useStableCallback } from '@/shared/hooks'
 import { cardStyle, mutedTextStyle, primaryButtonStyle, radiusStyle } from '@/shared/styles/ui'
-import { getErrorMessage } from '@/shared/utils/format'
+import { getErrorMessage, normalizeDateToIso, validateDateOfBirth } from '@/shared/utils/format'
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate()
@@ -52,14 +52,29 @@ export const ProfilePage: React.FC = () => {
   const handleUpdate = async (values: { fullName: string; phone?: string; address?: string; dateOfBirth?: string }) => {
     try {
       setSaving(true)
-      const updated = await identityApi.updateProfile(values)
+      const normalizedDob = normalizeDateToIso(values.dateOfBirth)
+      const payload = {
+        ...values,
+        dateOfBirth: normalizedDob || undefined,
+      }
+      const updated = await identityApi.updateProfile(payload)
       setProfile(updated)
       if (authUser) {
         setAuth({ ...authUser, ...updated }, sessionStorage.getItem('lms_access_token') || '')
       }
-      message.success('Cập nhật hồ sơ bạn đọc thành công')
+      form.setFieldsValue({
+        fullName: updated.fullName,
+        phone: updated.phone || updated.phoneNumber,
+        address: updated.address,
+        dateOfBirth: updated.dateOfBirth || '',
+      })
+      message.success('Cập nhật hồ sơ thành công!')
     } catch (err: unknown) {
-      message.error(getErrorMessage(err, 'Lỗi khi cập nhật'))
+      const errorMsg = getErrorMessage(err, 'Cập nhật hồ sơ thất bại. Vui lòng thử lại sau!')
+      if (errorMsg.includes('Ngày sinh') || errorMsg.includes('dateOfBirth')) {
+        form.setFields([{ name: 'dateOfBirth', errors: [errorMsg] }])
+      }
+      message.error(errorMsg)
     } finally {
       setSaving(false)
     }
@@ -207,8 +222,27 @@ export const ProfilePage: React.FC = () => {
                 <Input prefix={<HomeOutlined style={mutedTextStyle} />} placeholder="Số nhà, đường, quận/huyện..." style={radiusStyle} />
               </Form.Item>
 
-              <Form.Item label="Ngày sinh" name="dateOfBirth">
-                <Input prefix={<CalendarOutlined style={mutedTextStyle} />} placeholder="YYYY-MM-DD (VD: 2000-01-15)" style={radiusStyle} />
+              <Form.Item
+                label="Ngày sinh"
+                name="dateOfBirth"
+                validateTrigger={['onChange', 'onBlur']}
+                rules={[
+                  {
+                    validator: (_, value) => validateDateOfBirth(value),
+                  },
+                ]}
+                extra={
+                  <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
+                    Định dạng: DD/MM/YYYY (VD: 15/01/2000) hoặc YYYY-MM-DD
+                  </span>
+                }
+              >
+                <Input
+                  prefix={<CalendarOutlined style={mutedTextStyle} />}
+                  placeholder="DD/MM/YYYY (VD: 15/01/2000)"
+                  style={radiusStyle}
+                  allowClear
+                />
               </Form.Item>
 
               <Form.Item>
