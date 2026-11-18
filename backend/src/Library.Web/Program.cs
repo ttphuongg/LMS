@@ -1,3 +1,7 @@
+using System.Net;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -78,7 +82,8 @@ var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
 
 if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Trim().Length < 32)
 {
-    jwtKey = "LibrarySystem_SuperSecretKey_ChangeInProduction_MinLength32!";
+    throw new InvalidOperationException(
+        "JWT Secret must contain at least 32 characters.");
 }
 
 builder.Services.AddMemoryCache();
@@ -194,13 +199,82 @@ builder.Services.AddCors(options =>
 });
 
 // ── Background Jobs ───────────────────────────────────────────────────────────
-builder.Services.AddHostedService<Library.Web.BackgroundJobs.OverdueCheckWorker>();
-builder.Services.AddHostedService<Library.Web.BackgroundJobs.ReservationExpiryWorker>();
+if (!builder.Environment.IsEnvironment("RateLimitTest"))
+{
+    builder.Services.AddHostedService<Library.Web.BackgroundJobs.OverdueCheckWorker>();
+    builder.Services.AddHostedService<Library.Web.BackgroundJobs.ReservationExpiryWorker>();
+}
+
 builder.Services.AddHealthChecks();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor;
+    options.ForwardLimit = 1;
+    var trustedProxyIp = builder.Configuration["RateLimiting:TrustedProxyIp"]
+        ?? "172.18.0.1";
+
+    options.KnownProxies.Add(IPAddress.Parse(trustedProxyIp));
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var path = context.Request.Path;
+        var method = context.Request.Method;
+
+        if (HttpMethods.IsOptions(method) ||
+            path.StartsWithSegments("/health"))
+        {
+            return RateLimitPartition.GetNoLimiter("excluded");
+        }
+
+        if (!path.StartsWithSegments("/api"))
+        {
+            return RateLimitPartition.GetNoLimiter("non-api");
+        }
+
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        var authStrict = HttpMethods.IsPost(method) &&
+            (path.Equals("/api/identity/login", StringComparison.OrdinalIgnoreCase) ||
+             path.Equals("/api/identity/register", StringComparison.OrdinalIgnoreCase) ||
+             path.Equals("/api/identity/forgot-password", StringComparison.OrdinalIgnoreCase) ||
+             path.Equals("/api/identity/reset-password", StringComparison.OrdinalIgnoreCase));
+
+        var policy = authStrict ? "AuthStrictPolicy" : "GeneralPolicy";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            $"{policy}:{ip}",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = authStrict ? 5 : 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+    });
+
+    options.OnRejected = (context, cancellationToken) =>
+    {
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter =
+                Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds)).ToString();
+        }
+
+        return ValueTask.CompletedTask;
+    };
+});
 
 var app = builder.Build();
 
 // ── Auto-migrate + Admin Seeder + Book Seeder ─────────────────────────────────
+if (!app.Environment.IsEnvironment("RateLimitTest"))
+{
 using (var scope = app.Services.CreateScope())
 {
     var identityDb = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
@@ -310,13 +384,17 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
+}
 
 // Bật Swagger ở mọi môi trường để có thể test khi chạy Docker
+app.UseForwardedHeaders();
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseMiddleware<Library.Web.Middleware.GlobalExceptionMiddleware>();
+app.UseRouting();
 app.UseCors();
+app.UseRateLimiter();
 app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();
