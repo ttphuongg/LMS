@@ -103,7 +103,7 @@ public sealed class EmailService : IEmailService
         var frontendUrl = _cfg["FrontendUrl"]
             ?? _cfg["AppUrl"]
             ?? Environment.GetEnvironmentVariable("FRONTEND_URL")
-            ?? "http://localhost:5173";
+            ?? "https://libri.id.vn/";
 
         var resetLink = $"{frontendUrl.TrimEnd('/')}/reset-password?email={Uri.EscapeDataString(toEmail)}&token={resetToken}";
 
