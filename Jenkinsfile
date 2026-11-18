@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -15,19 +14,57 @@ pipeline {
             }
         }
 
-        stage('2. Build Frontend') {
+        // CHI CHAY khi co thay doi o Backend
+        stage('2. Run Backend Unit Tests') {
+            when {
+                anyOf {
+                    changeset 'backend/**'
+                    changeset 'Jenkinsfile'
+                }
+            }
+            steps {
+                sh 'dotnet test backend/LibrarySystem.slnx --configuration Release --logger "junit;LogFilePath=test-results.xml"'
+            }
+        }
+
+        // CHI CHAY khi co thay doi o Frontend
+        stage('3. Verify Frontend Build') {
+            when {
+                anyOf {
+                    changeset 'frontend/**'
+                    changeset 'Jenkinsfile'
+                }
+            }
             steps {
                 sh 'docker build -t lms-frontend:ci ./frontend'
             }
         }
 
-        stage('3. Build Backend') {
+        // CHI BUILD Backend khi co thay doi lien quan
+        stage('4. Build Backend') {
+            when {
+                anyOf {
+                    changeset 'backend/**'
+                    changeset 'docker-compose.yml'
+                    changeset 'docker-compose.deploy.yml'
+                    changeset 'Jenkinsfile'
+                }
+            }
             steps {
                 sh 'docker build -t lms-backend:ci ./backend'
             }
         }
 
-        stage('4. Verify Compose') {
+        // Kiem tra cau hinh Docker Compose tren VPS
+        stage('5. Verify Compose') {
+            when {
+                anyOf {
+                    changeset 'backend/**'
+                    changeset 'docker-compose.yml'
+                    changeset 'docker-compose.deploy.yml'
+                    changeset 'Jenkinsfile'
+                }
+            }
             steps {
                 sh '''
                     docker compose \
@@ -39,7 +76,8 @@ pipeline {
             }
         }
 
-        stage('5. Deploy Backend') {
+        // Trien khai Backend len VPS voi co che Rollback & Health Check
+        stage('6. Deploy Backend') {
             when {
                 anyOf {
                     changeset 'backend/**'
@@ -52,15 +90,15 @@ pipeline {
                 sh '''
                     set -eu
 
-                    # Chi deploy revision main
+                    # Chi deploy tren nhanh main
                     test "$(git rev-parse HEAD)" = \
                          "$(git rev-parse refs/remotes/origin/main)"
 
-                    # Luu image cua container dang chay
-                    PREVIOUS_IMAGE=$(docker inspect \
-                      --format '{{.Image}}' thuvien_api)
-
-                    docker tag "$PREVIOUS_IMAGE" lms-api:rollback
+                    # Luu image cu phong ngua (khong crash neu day la lan dau deploy)
+                    PREVIOUS_IMAGE=$(docker inspect --format '{{.Image}}' thuvien_api 2>/dev/null || true)
+                    if [ -n "$PREVIOUS_IMAGE" ]; then
+                        docker tag "$PREVIOUS_IMAGE" lms-api:rollback
+                    fi
 
                     # Gan image CI thanh Production
                     docker tag lms-backend:ci lms-api:latest
@@ -74,17 +112,18 @@ pipeline {
                           up -d --no-deps --no-build --force-recreate api
                     }
 
-                    # Khoi phuc khi Compose deploy that bai
+                    # Rollback neu deploy that bai
                     if ! deploy_api; then
                         echo "Deploy failed. Rolling back..."
-                        docker tag lms-api:rollback lms-api:latest
-                        deploy_api || true
+                        if [ -n "$PREVIOUS_IMAGE" ]; then
+                            docker tag lms-api:rollback lms-api:latest
+                            deploy_api || true
+                        fi
                         exit 1
                     fi
 
-                    # Kiem tra API sau deploy
+                    # Kiem tra Health Check API
                     HEALTHY=0
-
                     for attempt in $(seq 1 12); do
                         if curl -fsS -o /dev/null \
                           --connect-timeout 5 \
@@ -94,15 +133,17 @@ pipeline {
                             break
                         fi
 
-                        echo "API not ready. Retrying..."
+                        echo "API not ready. Retrying in 5s..."
                         sleep 5
                     done
 
-                    # Rollback neu API khong phan hoi
+                    # Rollback neu API khong phan hoi sau 60s
                     if [ "$HEALTHY" -ne 1 ]; then
                         echo "Health check failed. Rolling back..."
-                        docker tag lms-api:rollback lms-api:latest
-                        deploy_api || true
+                        if [ -n "$PREVIOUS_IMAGE" ]; then
+                            docker tag lms-api:rollback lms-api:latest
+                            deploy_api || true
+                        fi
                         exit 1
                     fi
 
@@ -113,6 +154,13 @@ pipeline {
     }
 
     post {
+        always {
+            // allowEmptyResults: true giup build khong bi loi khi stage Unit Test bi skip
+            junit allowEmptyResults: true, testResults: '**/test-results.xml'
+            // Tu dong don dep layer Docker thua
+            sh 'docker image prune -f || true'
+        }
+
         success {
             echo 'CI/CD PIPELINE SUCCESS'
         }
