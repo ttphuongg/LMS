@@ -92,14 +92,4 @@ pipeline {
             echo 'PIPELINE FAILED'
         }
     }
-    }
-
-    post {
-        success {
-            echo 'CI BUILD SUCCESS'
-        }
-        failure {
-            echo 'CI BUILD FAILED'
-        }
-    }
 }
