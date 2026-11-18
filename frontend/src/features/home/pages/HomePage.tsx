@@ -75,24 +75,26 @@ export const HomePage: React.FC = () => {
         <div className="home-main">
           <MyLoansPanel active={active} onRenew={setRenewTarget} />
 
-          {/* Danh mục sách: Giữ nguyên cấu trúc, vị trí và bố cục ban đầu */}
+          {/* Danh mục sách: Giữ nguyên cấu trúc, vị trí và bố cục ban đầu trong home-main */}
           <CategoryGrid categories={data.categories} counts={counts} />
-
-          {/* 3 Khu vực kệ sách: Bố cục 4 cột trên Desktop */}
-          <BookShelf
-            title={recommended.personalized ? 'Gợi ý theo lịch sử mượn' : 'Có thể bạn quan tâm'}
-            subtitle={recommended.personalized ? 'Cùng tác giả hoặc cùng danh mục với sách bạn đã mượn' : undefined}
-            books={recommended.items}
-            loading={data.loading}
-          />
-          <BookShelf title="Sách mới" books={newest} loading={data.loading} />
-          <BookShelf title="Sách nổi bật" subtitle="Được bạn đọc mượn nhiều" books={popular} loading={data.loading} />
         </div>
 
         <aside className="home-aside">
           <NotificationsPanel items={data.notifications} />
           <LibraryInfoPanel totalBooks={data.totalBooks} availableTitles={availableTitles} />
         </aside>
+      </div>
+
+      {/* 3 Khu vực kệ sách: Chiếm toàn bộ 100% chiều rộng khả dụng của container trang chủ (1240px) */}
+      <div className="home-shelves-full">
+        <BookShelf
+          title={recommended.personalized ? 'Gợi ý theo lịch sử mượn' : 'Có thể bạn quan tâm'}
+          subtitle={recommended.personalized ? 'Cùng tác giả hoặc cùng danh mục với sách bạn đã mượn' : undefined}
+          books={recommended.items}
+          loading={data.loading}
+        />
+        <BookShelf title="Sách mới" books={newest} loading={data.loading} />
+        <BookShelf title="Sách nổi bật" subtitle="Được bạn đọc mượn nhiều" books={popular} loading={data.loading} />
       </div>
 
       <RenewModal

@@ -297,8 +297,16 @@
   color: rgba(251, 247, 236, 0.92);
 }
 
-/* ---------- KỆ SÁCH (3 KHU VỰC SÁCH TRANG CHỦ) ----------
-   Bố cục chuẩn 4 cột trên Desktop, tận dụng toàn bộ chiều rộng khu vực nội dung */
+/* ---------- KHU VỰC KỆ SÁCH TOÀN CHIỀU RỘNG (3 KHU VỰC SÁCH TRANG CHỦ) ----------
+   Tận dụng toàn bộ chiều rộng khả dụng của container trang chủ (tối đa 1240px),
+   không bị giới hạn trong cột bên trái của .home-layout */
+.home-shelves-full {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
 .home-shelf-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -385,14 +393,6 @@
 }
 
 /* ---------- RESPONSIVE ---------- */
-/* Laptop / Desktop nhỏ (1024px - 1199px): 3 cột khi aside 320px đang chiếm chỗ */
-@media (max-width: 1199px) and (min-width: 1024px) {
-  .home-shelf-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--sp-4);
-  }
-}
-
 /* Tablet và màn hình vừa (<= 1023px): aside rớt xuống dưới, main chiếm toàn chiều rộng */
 @media (max-width: 1023px) {
   .home-layout {
