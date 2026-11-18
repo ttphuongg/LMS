@@ -176,7 +176,7 @@ public static class EmailTemplates
 
         var note = "Nếu bạn cần giải đáp thắc mắc hoặc xử lý các nghĩa vụ quá hạn / bồi hoàn để mở lại tài khoản, vui lòng liên hệ trực tiếp quầy thủ thư hoặc gửi email hỗ trợ.";
 
-        return WrapLayout(title, badgeText, badgeColor, body, "Xem chi tiết tài khoản", $"{appUrl.TrimEnd('/')}/my-loans", note);
+        return WrapLayout(title, badgeText, badgeColor, body, "Xem thông tin tài khoản", $"{appUrl.TrimEnd('/')}/profile", note);
     }
 
     /// <summary>

@@ -81,7 +81,7 @@ public class LoanDueSoonEmailHandler : INotificationHandler<LoanDueSoonEvent>
             await _db.SaveChangesAsync(ct);
 
             // 5. Soạn email nhắc nhở chuẩn nhận diện thương hiệu Libri
-            var appUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
+            var appUrl = _config["FrontendUrl"] ?? _config["FRONTEND_URL"] ?? Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "https://libri.id.vn";
             var subject = $"[Libri] Nhắc nhở: Sách '{bookTitle}' sắp đến hạn trả trong {notification.DaysUntilDue} ngày tới";
             var html = EmailTemplates.LoanDueSoon(
                 readerName: account.FullName,

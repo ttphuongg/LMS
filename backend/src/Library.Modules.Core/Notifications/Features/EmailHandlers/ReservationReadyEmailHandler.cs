@@ -57,7 +57,7 @@ public class ReservationReadyEmailHandler : INotificationHandler<ReservationRead
             }
 
             // 3. Soạn email thông báo sách sẵn sàng tại quầy nhận trong 48h
-            var appUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
+            var appUrl = _config["FrontendUrl"] ?? _config["FRONTEND_URL"] ?? Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "https://libri.id.vn";
             var subject = "[Libri] Sách đặt trước đã sẵn sàng nhận tại quầy";
             var html = EmailTemplates.ReservationCreated(
                 readerName: account.FullName,

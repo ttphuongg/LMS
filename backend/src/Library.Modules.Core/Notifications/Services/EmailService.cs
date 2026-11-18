@@ -101,9 +101,10 @@ public sealed class EmailService : IEmailService
     public async Task SendPasswordResetEmailAsync(string toEmail, string resetToken, string otpCode, CancellationToken ct = default)
     {
         var frontendUrl = _cfg["FrontendUrl"]
+            ?? _cfg["FRONTEND_URL"]
             ?? _cfg["AppUrl"]
             ?? Environment.GetEnvironmentVariable("FRONTEND_URL")
-            ?? "https://libri.id.vn/";
+            ?? "https://libri.id.vn";
 
         var resetLink = $"{frontendUrl.TrimEnd('/')}/reset-password?email={Uri.EscapeDataString(toEmail)}&token={resetToken}";
 

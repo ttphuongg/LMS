@@ -78,7 +78,7 @@ public class LoanOverdueEmailHandler : INotificationHandler<LoanOverdueEvent>
             var fineAmount = daysOverdue * 5000m;
 
             // 5. Soạn thảo email
-            var appUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
+            var appUrl = _config["FrontendUrl"] ?? _config["FRONTEND_URL"] ?? Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "https://libri.id.vn";
             var subject = $"[Libri] Cảnh báo: Sách '{bookTitle}' đã quá hạn trả {daysOverdue} ngày";
             var html = EmailTemplates.LoanOverdue(
                 readerName: account.FullName,
