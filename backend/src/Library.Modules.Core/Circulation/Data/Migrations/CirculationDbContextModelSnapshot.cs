@@ -3,8 +3,8 @@ using System;
 using Library.Modules.Core.Circulation.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -19,9 +19,9 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
             modelBuilder
                 .HasDefaultSchema("circulation")
                 .HasAnnotation("ProductVersion", "10.0.11")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Library.Modules.Core.Circulation.Data.Incident", b =>
                 {
@@ -29,47 +29,47 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<decimal>("CompensationAmount")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("numeric(18,2)")
                         .HasDefaultValue(0m);
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<string>("IncidentType")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<int?>("LibrarianId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<long>("LoanSlipDetailId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("RecordedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("SYSDATETIME()");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Severity")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasDefaultValue("Recorded");
 
                     b.HasKey("Id");
@@ -78,13 +78,13 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
 
                     b.ToTable("Incidents", "circulation", t =>
                         {
-                            t.HasCheckConstraint("CK_Incidents_CompensationAmount", "[CompensationAmount] >= 0");
+                            t.HasCheckConstraint("CK_Incidents_CompensationAmount", "\"CompensationAmount\" >= 0");
 
-                            t.HasCheckConstraint("CK_Incidents_IncidentType", "[IncidentType] IN (N'Lost', N'Damaged')");
+                            t.HasCheckConstraint("CK_Incidents_IncidentType", "\"IncidentType\" IN ('Lost', 'Damaged')");
 
-                            t.HasCheckConstraint("CK_Incidents_Severity", "[Severity] IN (N'Minor', N'Major', N'TotalLoss')");
+                            t.HasCheckConstraint("CK_Incidents_Severity", "\"Severity\" IN ('Minor', 'Major', 'TotalLoss')");
 
-                            t.HasCheckConstraint("CK_Incidents_Status", "[Status] IN (N'Recorded', N'Resolved', N'Cancelled')");
+                            t.HasCheckConstraint("CK_Incidents_Status", "\"Status\" IN ('Recorded', 'Resolved', 'Cancelled')");
                         });
                 });
 
@@ -94,52 +94,52 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<int>("AccountId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("BorrowedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("SYSDATETIME()");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateOnly>("DueDate")
                         .HasColumnType("date");
 
                     b.Property<int?>("LibrarianId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)");
 
-                    b.Property<byte[]>("RowVersion")
+                    b.Property<uint>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasDefaultValue("Borrowing");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.ToTable("LoanSlips", "circulation", t =>
                         {
-                            t.HasCheckConstraint("CK_LoanSlips_DueDate", "[DueDate] >= CAST([BorrowedAt] AS DATE)");
+                            t.HasCheckConstraint("CK_LoanSlips_DueDate", "\"DueDate\" >= CAST(\"BorrowedAt\" AS DATE)");
 
-                            t.HasCheckConstraint("CK_LoanSlips_Status", "[Status] IN (N'Pending', N'Borrowing', N'Returned', N'Overdue', N'Cancelled')");
+                            t.HasCheckConstraint("CK_LoanSlips_Status", "\"Status\" IN ('Pending', 'Borrowing', 'Returned', 'Overdue', 'Cancelled')");
                         });
                 });
 
@@ -149,13 +149,13 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateOnly?>("ActualReturnDate")
                         .HasColumnType("date");
 
                     b.Property<int>("BookCopyId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<DateOnly?>("DueDate")
                         .HasColumnType("date");
@@ -165,20 +165,20 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasDefaultValue("Borrowing");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -187,7 +187,7 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
 
                     b.ToTable("LoanSlipDetails", "circulation", t =>
                         {
-                            t.HasCheckConstraint("CK_LoanSlipDetails_Status", "[Status] IN (N'Borrowing', N'Returned', N'Lost', N'Damaged')");
+                            t.HasCheckConstraint("CK_LoanSlipDetails_Status", "\"Status\" IN ('Borrowing', 'Returned', 'Lost', 'Damaged')");
                         });
                 });
 
@@ -197,10 +197,10 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<int?>("LibrarianId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<long>("LoanSlipDetailId")
                         .HasColumnType("bigint");
@@ -213,24 +213,24 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
 
                     b.Property<string>("Reason")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<byte>("RenewalNumber")
-                        .HasColumnType("tinyint");
+                        .HasColumnType("smallint");
 
                     b.Property<DateTime>("RequestedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("SYSDATETIME()");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasDefaultValue("Pending");
 
                     b.HasKey("Id");
@@ -240,11 +240,11 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
 
                     b.ToTable("Renewals", "circulation", t =>
                         {
-                            t.HasCheckConstraint("CK_Renewals_NewDueDate", "[NewDueDate] > [OldDueDate]");
+                            t.HasCheckConstraint("CK_Renewals_NewDueDate", "\"NewDueDate\" > \"OldDueDate\"");
 
-                            t.HasCheckConstraint("CK_Renewals_RenewalNumber", "[RenewalNumber] > 0");
+                            t.HasCheckConstraint("CK_Renewals_RenewalNumber", "\"RenewalNumber\" > 0");
 
-                            t.HasCheckConstraint("CK_Renewals_Status", "[Status] IN (N'Pending', N'Approved', N'Rejected', N'Cancelled')");
+                            t.HasCheckConstraint("CK_Renewals_Status", "\"Status\" IN ('Pending', 'Approved', 'Rejected', 'Cancelled')");
                         });
                 });
 
@@ -254,48 +254,48 @@ namespace Library.Modules.Core.Circulation.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<int>("AccountId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int?>("BookCopyId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("BookId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("CancelledAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("ExpiresAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("ReservedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("SYSDATETIME()");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-                    b.Property<byte[]>("RowVersion")
+                    b.Property<uint>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasDefaultValue("Waiting");
 
                     b.HasKey("Id");
 
                     b.ToTable("Reservations", "circulation", t =>
                         {
-                            t.HasCheckConstraint("CK_Reservations_ExpiresAt", "[ExpiresAt] IS NULL OR [ExpiresAt] > [ReservedAt]");
+                            t.HasCheckConstraint("CK_Reservations_ExpiresAt", "\"ExpiresAt\" IS NULL OR \"ExpiresAt\" > \"ReservedAt\"");
 
-                            t.HasCheckConstraint("CK_Reservations_Status", "[Status] IN (N'Waiting', N'Ready', N'Completed', N'Cancelled', N'Expired')");
+                            t.HasCheckConstraint("CK_Reservations_Status", "\"Status\" IN ('Waiting', 'Ready', 'Completed', 'Cancelled', 'Expired')");
                         });
                 });
 

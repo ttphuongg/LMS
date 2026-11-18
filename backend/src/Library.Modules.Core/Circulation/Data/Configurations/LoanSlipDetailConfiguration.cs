@@ -24,7 +24,7 @@ public class LoanSlipDetailConfiguration : IEntityTypeConfiguration<LoanSlipDeta
         // Check constraint
         builder.ToTable("LoanSlipDetails", t =>
         {
-            t.HasCheckConstraint("CK_LoanSlipDetails_Status", "[Status] IN (N'Borrowing', N'Returned', N'Lost', N'Damaged')");
+            t.HasCheckConstraint("CK_LoanSlipDetails_Status", "\"Status\" IN ('Borrowing', 'Returned', 'Lost', 'Damaged')");
         });
 
         // Within Circulation

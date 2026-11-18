@@ -14,10 +14,9 @@ public class AuthorConfiguration : IEntityTypeConfiguration<Author>
             .HasMaxLength(150)
             .IsRequired();
 
-        builder.Property(a => a.Biography)
-            .HasColumnType("nvarchar(max)");
+        builder.Property(a => a.Biography);
 
         builder.Property(a => a.CreatedAt)
-            .HasDefaultValueSql("SYSDATETIME()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
     }
 }

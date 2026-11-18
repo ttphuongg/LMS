@@ -23,10 +23,10 @@ public class BookCopyConfiguration : IEntityTypeConfiguration<BookCopy>
             .HasDefaultValue(CopyStatus.Available);
 
         builder.Property(c => c.AcquiredDate)
-            .HasDefaultValueSql("CAST(GETDATE() AS DATE)");
+            .HasDefaultValueSql("CURRENT_DATE");
 
         builder.Property(c => c.CreatedAt)
-            .HasDefaultValueSql("SYSDATETIME()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(c => c.RowVersion)
             .IsRowVersion();
@@ -36,8 +36,8 @@ public class BookCopyConfiguration : IEntityTypeConfiguration<BookCopy>
         // Check constraints
         builder.ToTable("BookCopies", t =>
         {
-            t.HasCheckConstraint("CK_BookCopies_Condition", "[Condition] IN (N'Good', N'MinorDamage', N'MajorDamage', N'Lost')");
-            t.HasCheckConstraint("CK_BookCopies_Status", "[Status] IN (N'Available', N'Reserved', N'Borrowed', N'Maintenance', N'Lost', N'Inactive')");
+            t.HasCheckConstraint("CK_BookCopies_Condition", "\"Condition\" IN ('Good', 'MinorDamage', 'MajorDamage', 'Lost')");
+            t.HasCheckConstraint("CK_BookCopies_Status", "\"Status\" IN ('Available', 'Reserved', 'Borrowed', 'Maintenance', 'Lost', 'Inactive')");
         });
 
         builder.HasOne(c => c.Book)

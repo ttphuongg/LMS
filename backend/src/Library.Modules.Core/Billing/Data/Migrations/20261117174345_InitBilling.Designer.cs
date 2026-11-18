@@ -3,16 +3,16 @@ using System;
 using Library.Modules.Core.Billing.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace Library.Modules.Core.Billing.Data.Migrations
 {
     [DbContext(typeof(BillingDbContext))]
-    [Migration("20261109140328_InitBilling")]
+    [Migration("20261117174345_InitBilling")]
     partial class InitBilling
     {
         /// <inheritdoc />
@@ -22,9 +22,9 @@ namespace Library.Modules.Core.Billing.Data.Migrations
             modelBuilder
                 .HasDefaultSchema("billing")
                 .HasAnnotation("ProductVersion", "10.0.11")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Library.Modules.Core.Billing.Data.Fine", b =>
                 {
@@ -32,27 +32,27 @@ namespace Library.Modules.Core.Billing.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<int>("AccountId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("FineType")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasColumnType("character varying(30)");
 
                     b.Property<long?>("IncidentId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("IssuedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("SYSDATETIME()");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<long?>("LoanSlipDetailId")
                         .HasColumnType("bigint");
@@ -64,24 +64,24 @@ namespace Library.Modules.Core.Billing.Data.Migrations
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasDefaultValue("Unpaid");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.ToTable("Fines", "billing", t =>
                         {
-                            t.HasCheckConstraint("CK_Fines_Amount", "[Amount] > 0");
+                            t.HasCheckConstraint("CK_Fines_Amount", "\"Amount\" > 0");
 
-                            t.HasCheckConstraint("CK_Fines_FineType", "[FineType] IN (N''Overdue'', N''Compensation'', N''Other'')");
+                            t.HasCheckConstraint("CK_Fines_FineType", "\"FineType\" IN ('Overdue', 'Compensation', 'Other')");
 
-                            t.HasCheckConstraint("CK_Fines_Status", "[Status] IN (N''Unpaid'', N''PartiallyPaid'', N''Paid'', N''Cancelled'')");
+                            t.HasCheckConstraint("CK_Fines_Status", "\"Status\" IN ('Unpaid', 'PartiallyPaid', 'Paid', 'Cancelled')");
                         });
                 });
 
@@ -91,31 +91,31 @@ namespace Library.Modules.Core.Billing.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<long>("FineId")
                         .HasColumnType("bigint");
 
                     b.Property<int?>("LibrarianId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTime>("PaidAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("SYSDATETIME()");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasColumnType("character varying(30)");
 
                     b.HasKey("Id");
 
@@ -123,9 +123,9 @@ namespace Library.Modules.Core.Billing.Data.Migrations
 
                     b.ToTable("FinePayments", "billing", t =>
                         {
-                            t.HasCheckConstraint("CK_FinePayments_Amount", "[Amount] > 0");
+                            t.HasCheckConstraint("CK_FinePayments_Amount", "\"Amount\" > 0");
 
-                            t.HasCheckConstraint("CK_FinePayments_PaymentMethod", "[PaymentMethod] IN (N'Cash', N'BankTransfer', N'Other')");
+                            t.HasCheckConstraint("CK_FinePayments_PaymentMethod", "\"PaymentMethod\" IN ('Cash', 'BankTransfer', 'Other')");
                         });
                 });
 

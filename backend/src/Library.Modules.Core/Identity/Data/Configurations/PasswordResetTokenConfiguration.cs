@@ -18,7 +18,7 @@ public class PasswordResetTokenConfiguration : IEntityTypeConfiguration<Password
             .HasMaxLength(256);
 
         builder.Property(t => t.CreatedAt)
-            .HasDefaultValueSql("SYSDATETIME()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(t => t.ExpiresAt)
             .IsRequired();

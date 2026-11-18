@@ -25,7 +25,7 @@ public class BookCopy
     public int? CreatedBy { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int? UpdatedBy { get; set; }
-    public byte[] RowVersion { get; set; } = default!;
+    public uint RowVersion { get; set; }
 }
 
 /// <summary>TOT → Good | HONG_NHE → MinorDamage | HONG_NANG → MajorDamage | MAT → Lost</summary>

@@ -1,57 +1,124 @@
+
 pipeline {
     agent any
 
     options {
-        timeout(time: 20, unit: 'MINUTES')
+        timeout(time: 40, unit: 'MINUTES')
         disableConcurrentBuilds()
+        skipDefaultCheckout(true)
     }
 
     stages {
         stage('1. Checkout Code') {
             steps {
-                echo '📥 [Stage 1] Lấy mã nguồn từ Git Repository...'
                 checkout scm
             }
         }
 
-        stage('2. Build Frontend (React / Vite)') {
+        stage('2. Build Frontend') {
             steps {
-                echo '⚛️ [Stage 2] Đang kiểm tra TypeScript và đóng gói Frontend...'
                 sh 'docker build -t lms-frontend:ci ./frontend'
             }
         }
 
-        stage('3. Build Backend (.NET 10)') {
+        stage('3. Build Backend') {
             steps {
-                echo '🚀 [Stage 3] Đang biên dịch mã nguồn và đóng gói Backend API...'
                 sh 'docker build -t lms-backend:ci ./backend'
             }
         }
 
-        stage('4. Verify Compose Configuration') {
+        stage('4. Verify Compose') {
             steps {
-                echo '🐳 [Stage 4] Kiểm tra cấu trúc file cấu hình Docker Compose...'
-                sh 'docker compose -f docker-compose.yml config'
+                sh '''
+                    docker compose \
+                      -f /opt/libri/LMS/docker-compose.yml \
+                      -f /opt/libri/LMS/docker-compose.deploy.yml \
+                      --project-directory /opt/libri/LMS \
+                      config --quiet
+                '''
+            }
+        }
+
+        stage('5. Deploy Backend') {
+            when {
+                anyOf {
+                    changeset 'backend/**'
+                    changeset 'docker-compose.yml'
+                    changeset 'docker-compose.deploy.yml'
+                }
+            }
+
+            steps {
+                sh '''
+                    set -eu
+
+                    # Chi deploy revision main
+                    test "$(git rev-parse HEAD)" = \
+                         "$(git rev-parse refs/remotes/origin/main)"
+
+                    # Luu image cua container dang chay
+                    PREVIOUS_IMAGE=$(docker inspect \
+                      --format '{{.Image}}' thuvien_api)
+
+                    docker tag "$PREVIOUS_IMAGE" lms-api:rollback
+
+                    # Gan image CI thanh Production
+                    docker tag lms-backend:ci lms-api:latest
+
+                    deploy_api() {
+                        docker compose \
+                          -p lms \
+                          -f /opt/libri/LMS/docker-compose.yml \
+                          -f /opt/libri/LMS/docker-compose.deploy.yml \
+                          --project-directory /opt/libri/LMS \
+                          up -d --no-deps --no-build --force-recreate api
+                    }
+
+                    # Khoi phuc khi Compose deploy that bai
+                    if ! deploy_api; then
+                        echo "Deploy failed. Rolling back..."
+                        docker tag lms-api:rollback lms-api:latest
+                        deploy_api || true
+                        exit 1
+                    fi
+
+                    # Kiem tra API sau deploy
+                    HEALTHY=0
+
+                    for attempt in $(seq 1 12); do
+                        if curl -fsS -o /dev/null \
+                          --connect-timeout 5 \
+                          --max-time 15 \
+                          "https://api.libri.id.vn/health"; then
+                            HEALTHY=1
+                            break
+                        fi
+
+                        echo "API not ready. Retrying..."
+                        sleep 5
+                    done
+
+                    # Rollback neu API khong phan hoi
+                    if [ "$HEALTHY" -ne 1 ]; then
+                        echo "Health check failed. Rolling back..."
+                        docker tag lms-api:rollback lms-api:latest
+                        deploy_api || true
+                        exit 1
+                    fi
+
+                    echo "Backend deployed successfully."
+                '''
             }
         }
     }
 
     post {
-        always {
-            echo '🧹 [Cleanup] Dọn dẹp các image kiểm thử tạm thời...'
-            sh 'docker rmi -f lms-frontend:ci lms-backend:ci || true'
-        }
         success {
-            echo '=================================================='
-            echo '🎉 [SUCCESS] CI PIPELINE BUILD THÀNH CÔNG!'
-            echo 'Frontend, Backend API và Dockerfile đều hợp lệ.'
-            echo '=================================================='
+            echo 'CI/CD PIPELINE SUCCESS'
         }
+
         failure {
-            echo '=================================================='
-            echo '❌ [FAILURE] CI PIPELINE BUILD THẤT BẠI!'
-            echo 'Vui lòng kiểm tra Console Output để xem chi tiết lỗi.'
-            echo '=================================================='
+            echo 'CI/CD PIPELINE FAILED'
         }
     }
 }

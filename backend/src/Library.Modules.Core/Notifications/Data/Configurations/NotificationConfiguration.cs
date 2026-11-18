@@ -12,9 +12,9 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.HasKey(n => n.Id);
 
         builder.Property(n => n.Title).HasMaxLength(200).IsRequired();
-        builder.Property(n => n.Content).HasColumnType("nvarchar(max)").IsRequired();
+        builder.Property(n => n.Content).IsRequired();
         builder.Property(n => n.IsRead).HasDefaultValue(false);
-        builder.Property(n => n.CreatedAt).HasDefaultValueSql("SYSDATETIME()");
+        builder.Property(n => n.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(n => n.NotificationType)
             .HasConversion<string>()
@@ -22,7 +22,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
 
         builder.ToTable("Notifications", t =>
         {
-            t.HasCheckConstraint("CK_Notifications_NotificationType", "[NotificationType] IN (N'Reserve', N'Borrow', N'Return', N'Fine', N'System')");
+            t.HasCheckConstraint("CK_Notifications_NotificationType", "\"NotificationType\" IN ('Reserve', 'Borrow', 'Return', 'Fine', 'System')");
         });
     }
 }

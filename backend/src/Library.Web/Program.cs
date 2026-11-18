@@ -30,6 +30,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ──────────────────────────────────────────────────────────────────
@@ -156,6 +158,7 @@ builder.Services.AddCors(options =>
 // ── Background Jobs ───────────────────────────────────────────────────────────
 builder.Services.AddHostedService<Library.Web.BackgroundJobs.OverdueCheckWorker>();
 builder.Services.AddHostedService<Library.Web.BackgroundJobs.ReservationExpiryWorker>();
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -331,6 +334,8 @@ MarkAsReadEndpoint.Map(app);
 Library.Modules.Core.Notifications.Features.GetMyNotifications.GetMyNotificationsEndpoint.Map(app);
 Library.Modules.Core.Search.Features.GetMySearchHistory.GetMySearchHistoryEndpoint.Map(app);
 Library.Modules.Core.Dashboard.Features.GetDashboardStats.GetDashboardStatsEndpoint.Map(app);
+
+app.MapHealthChecks("/health").AllowAnonymous();
 
 app.Run();
 

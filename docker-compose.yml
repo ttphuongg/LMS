@@ -1,57 +1,68 @@
 services:
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: thuvien_sqlserver
-    user: root
-    restart: always
+  postgres:
+    image: postgres:16-alpine
+    container_name: thuvien_postgres
+    restart: unless-stopped
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
-      - MSSQL_PID=Developer
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-YourPassword123!}
+      POSTGRES_DB: ${POSTGRES_DB:-LibraryManagementDB}
     ports:
-      - "${SQL_PORT:-1434}:1433"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - sqlserver_data:/var/opt/mssql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q 'SELECT 1' 2>/dev/null || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -Q 'SELECT 1' 2>/dev/null || exit 1" ]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-LibraryManagementDB}"]
+      interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 15s
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
 
   api:
+    image: lms-api:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: thuvien_api
-    restart: always
+    restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__Default=Server=sqlserver,1433;Database=${DB_NAME:-LibraryManagementDB};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
-      - JwtSettings__SecretKey=${JWT_SECRET_KEY:-LibrarySystem_SuperSecretKey_ChangeInProduction_MinLength32!}
+      - ConnectionStrings__Default=Host=postgres;Port=5432;Database=${POSTGRES_DB:?POSTGRES_DB is required};Username=${POSTGRES_USER:?POSTGRES_USER is required};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      - JwtSettings__SecretKey=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
       - AdminSeed__Username=${ADMIN_USERNAME}
-      - AdminSeed__Password=${ADMIN_PASSWORD}
+      - AdminSeed__Password=${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
       - AdminSeed__Email=${ADMIN_EMAIL}
       - AdminSeed__FullName=${ADMIN_FULLNAME}
       - CloudflareR2__AccountId=${R2_ACCOUNT_ID}
       - CloudflareR2__AccessKeyId=${R2_ACCESS_KEY_ID}
-      - CloudflareR2__SecretAccessKey=${R2_SECRET_ACCESS_KEY}
+      - CloudflareR2__SecretAccessKey=${R2_SECRET_ACCESS_KEY:?R2_SECRET_ACCESS_KEY is required}
       - CloudflareR2__BucketName=${R2_BUCKET_NAME}
       - CloudflareR2__PublicUrl=${R2_PUBLIC_URL:-https://images.libri.id.vn}
+      - Cors__AllowedOrigins__0=https://libri.id.vn
       - Smtp__Host=${SMTP_HOST}
       - Smtp__Port=${SMTP_PORT:-587}
       - Smtp__Username=${SMTP_USERNAME}
-      - Smtp__Password=${SMTP_PASSWORD}
+      - Smtp__Password=${SMTP_PASSWORD:?SMTP_PASSWORD is required}
       - Smtp__FromEmail=${SMTP_FROM_EMAIL}
       - Smtp__FromName=${SMTP_FROM_NAME}
       - Smtp__EnableSsl=${SMTP_ENABLE_SSL:-true}
-      - FrontendUrl=${FRONTEND_URL:-http://localhost:5173}
+      - FrontendUrl=${FRONTEND_URL:-https://libri.id.vn}
     ports:
-      - "${API_PORT:-8081}:8080"
+      - "127.0.0.1:${API_PORT:-8081}:8080"
     depends_on:
-      sqlserver:
+      postgres:
         condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
 
 volumes:
-  sqlserver_data:
-    name: thuvien_sqlserver_data
+  postgres_data:
+    name: thuvien_postgres_data
