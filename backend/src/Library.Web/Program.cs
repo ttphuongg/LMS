@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentValidation;
+using Microsoft.Extensions.Caching.Memory;
 using Library.Modules.Core.Billing.Data;
 using Library.Modules.Core.Catalog.Data;
 using Library.Modules.Core.Circulation.Data;
@@ -78,6 +80,8 @@ if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Trim().Length < 32)
     jwtKey = "LibrarySystem_SuperSecretKey_ChangeInProduction_MinLength32!";
 }
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -95,6 +99,39 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["JwtSettings:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         ClockSkew = TimeSpan.FromMinutes(1)
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var userIdStr = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                         ?? context.Principal?.FindFirst("sub")?.Value;
+
+            if (int.TryParse(userIdStr, out var accountId))
+            {
+                var cache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+                var cacheKey = $"account_locked_{accountId}";
+
+                if (!cache.TryGetValue(cacheKey, out bool isLocked))
+                {
+                    var db = context.HttpContext.RequestServices.GetRequiredService<IdentityDbContext>();
+                    var status = await db.Accounts
+                        .AsNoTracking()
+                        .Where(a => a.Id == accountId)
+                        .Select(a => a.Status)
+                        .FirstOrDefaultAsync();
+
+                    isLocked = status == AccountStatus.Locked || status == AccountStatus.Inactive;
+                    cache.Set(cacheKey, isLocked, TimeSpan.FromSeconds(30));
+                }
+
+                if (isLocked)
+                {
+                    context.Fail("Tài khoản của bạn đã bị khóa hoặc ngừng hoạt động.");
+                }
+            }
+        }
     };
 });
 
