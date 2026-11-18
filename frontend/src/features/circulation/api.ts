@@ -11,6 +11,7 @@ import type {
   ReturnLoanRequest,
   ApproveRenewalRequest,
   ReportIncidentRequest,
+  CirculationEligibilityResult,
 } from './types'
 
 export const circulationApi = {
@@ -340,5 +341,17 @@ export const circulationApi = {
       description: data.description || null,
       compensationAmount: Number(data.compensationAmount),
     })
+  },
+
+  // ── Kiểm tra tình trạng lưu thông của bạn đọc hiện tại ──────────────────────
+  getMyCirculationEligibility: async (): Promise<CirculationEligibilityResult> => {
+    const res = await apiClient.get<ApiResponse<CirculationEligibilityResult>>('/api/circulation/my-eligibility')
+    return res.data.data!
+  },
+
+  // ── Cho Thủ thư kiểm tra tình trạng bạn đọc tại quầy ───────────────────────
+  getCirculationEligibility: async (accountId: number): Promise<CirculationEligibilityResult> => {
+    const res = await apiClient.get<ApiResponse<CirculationEligibilityResult>>(`/api/circulation/eligibility/${accountId}`)
+    return res.data.data!
   },
 }

@@ -6,7 +6,8 @@ import { catalogApi } from '../api'
 import type { BookDto, BookCopyDto } from '../types'
 import { BookDescription } from '../components/BookDescription'
 import { API_BASE_URL } from '@/shared/api/client'
-import { ReserveButton } from '@/features/circulation'
+import { ReserveButton, CirculationRestrictionBanner } from '@/features/circulation'
+import { useAuth } from '@/features/identity'
 import { CatalogCode } from '@/shared/components/CatalogCode'
 import { SpineTag } from '@/shared/components/SpineTag'
 import { PageHeader } from '@/shared/components/PageHeader'
@@ -19,6 +20,7 @@ import { getErrorMessage } from '@/shared/utils/format'
 export const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [book, setBook] = useState<BookDto | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -270,6 +272,12 @@ export const BookDetailPage: React.FC = () => {
             </p>
 
             <div style={{ textAlign: 'center', padding: 'var(--sp-2) 0' }}>
+              {/* Banner cảnh báo hạn chế lưu thông — hiện ngay trên nút Đặt trước */}
+              {user?.role === 'Reader' && (
+                <div style={{ textAlign: 'left', marginBottom: 'var(--sp-3)' }}>
+                  <CirculationRestrictionBanner />
+                </div>
+              )}
               <ReserveButton
                 bookId={book.id}
                 bookTitle={book.title}

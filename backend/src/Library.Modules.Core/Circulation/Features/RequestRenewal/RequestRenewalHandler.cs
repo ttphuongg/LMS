@@ -1,4 +1,5 @@
 using FluentValidation;
+using Library.Modules.Core.Billing.Contracts;
 using Library.Modules.Core.Circulation.Data;
 using Library.Modules.Core.Shared;
 using MediatR;
@@ -9,12 +10,14 @@ namespace Library.Modules.Core.Circulation.Features.RequestRenewal;
 public sealed class RequestRenewalHandler : IRequestHandler<RequestRenewalRequest, ApiResponse<long>>
 {
     private readonly CirculationDbContext _db;
+    private readonly ISender _sender;
     private readonly IValidator<RequestRenewalRequest> _validator;
     private const int MaxRenewals = 3; // số lần gia hạn tối đa
 
-    public RequestRenewalHandler(CirculationDbContext db, IValidator<RequestRenewalRequest> validator)
+    public RequestRenewalHandler(CirculationDbContext db, ISender sender, IValidator<RequestRenewalRequest> validator)
     {
         _db = db;
+        _sender = sender;
         _validator = validator;
     }
 
@@ -23,6 +26,11 @@ public sealed class RequestRenewalHandler : IRequestHandler<RequestRenewalReques
         var validation = await _validator.ValidateAsync(request, ct);
         if (!validation.IsValid)
             return ApiResponse<long>.Fail(string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)));
+
+        // Kiểm tra hóa đơn phạt quá hạn thanh toán
+        var fineRestriction = await _sender.Send(new CheckCirculationFineRestrictionQuery(request.AccountId, GraceDays: 2), ct);
+        if (fineRestriction.IsRestricted)
+            return ApiResponse<long>.Fail("Bạn đang có khoản phạt quá hạn thanh toán, không thể yêu cầu gia hạn sách. Vui lòng thanh toán nợ phạt trước.");
 
         var detail = await _db.LoanSlipDetails
             .Include(d => d.LoanSlip)

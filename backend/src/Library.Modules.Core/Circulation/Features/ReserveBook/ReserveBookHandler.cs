@@ -53,11 +53,12 @@ public sealed class ReserveBookHandler : IRequestHandler<ReserveBookRequest, Api
             d.Status == LoanDetailStatus.Borrowing &&
             (d.DueDate != null ? d.DueDate < today : d.LoanSlip.DueDate < today), ct);
         if (hasOverdue)
-            return ApiResponse<long>.Fail("Bạn đang có sách quá hạn trả. Vui lòng hoàn trả sách quá hạn trước khi đặt trước hoặc mượn thêm.");
+            return ApiResponse<long>.Fail("Bạn đang có sách quá hạn trả. Chức năng đặt trước tạm thời bị khóa cho đến khi hoàn trả sách quá hạn.");
 
-        var hasUnpaidFine = await _sender.Send(new HasUnpaidFinesQuery(request.AccountId), ct);
-        if (hasUnpaidFine)
-            return ApiResponse<long>.Fail("Tài khoản của bạn còn khoản phạt chưa thanh toán. Vui lòng xử lý nợ phạt trước khi đặt trước hoặc mượn sách.");
+        // Kiểm tra hóa đơn phạt quá hạn thanh toán (ân hạn 1-3 ngày, mặc định 2 ngày)
+        var fineRestriction = await _sender.Send(new CheckCirculationFineRestrictionQuery(request.AccountId, GraceDays: 2), ct);
+        if (fineRestriction.IsRestricted)
+            return ApiResponse<long>.Fail(fineRestriction.Reason ?? "Tài khoản của bạn đang bị khóa chức năng đặt trước do có khoản phạt quá hạn thanh toán.");
 
         // ── Giới hạn số lượng đặt trước (Tối đa 3 yêu cầu đang hoạt động: Waiting hoặc Ready) ──
         const int MaxActiveReservations = 3;

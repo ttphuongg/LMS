@@ -133,3 +133,14 @@ export interface ReportIncidentRequest {
   description: string
   compensationAmount: number
 }
+
+// ── Kết quả kiểm tra tình trạng lưu thông sách của bạn đọc ──────────────────
+export interface CirculationEligibilityResult {
+  isEligible: boolean
+  restrictionReason?: string | null
+  hasOverdueLoans: boolean
+  overdueLoansCount: number
+  hasOverdueFines: boolean
+  overdueFinesCount: number
+  totalOverdueFineAmount: number
+}
