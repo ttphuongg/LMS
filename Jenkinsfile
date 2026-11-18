@@ -81,7 +81,7 @@ pipeline {
                         if curl -fsS -o /dev/null \
                           --connect-timeout 5 \
                           --max-time 15 \
-                          "http://127.0.0.1:8081/swagger/index.html"; then
+                          "https://api.libri.id.vn/swagger/index.html"; then
                             HEALTHY=1
                             break
                         fi
