@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -5,14 +6,6 @@ pipeline {
         timeout(time: 40, unit: 'MINUTES')
         disableConcurrentBuilds()
         skipDefaultCheckout(true)
-    }
-
-    parameters {
-        booleanParam(
-            name: 'DEPLOY_BACKEND',
-            defaultValue: false,
-            description: 'Triển khai Backend lên VPS sau khi CI thành công'
-        )
     }
 
     stages {
@@ -47,37 +40,65 @@ pipeline {
         }
 
         stage('5. Deploy Backend') {
-            when {
-                expression { params.DEPLOY_BACKEND }
-            }
-
             steps {
                 sh '''
                     set -eu
 
-                    # Chi cho phep commit tren main duoc deploy
+                    # Chi deploy revision main
                     test "$(git rev-parse HEAD)" = \
                          "$(git rev-parse refs/remotes/origin/main)"
 
-                    # Giu image hien tai de co the rollback
-                    if docker image inspect lms-api:latest >/dev/null 2>&1; then
-                        docker tag lms-api:latest lms-api:rollback
-                    fi
+                    # Luu image cua container dang chay
+                    PREVIOUS_IMAGE=$(docker inspect \
+                      --format '{{.Image}}' thuvien_api)
 
-                    # Chuyen image da build thanh image Production
+                    docker tag "$PREVIOUS_IMAGE" lms-api:rollback
+
+                    # Gan image CI thanh Production
                     docker tag lms-backend:ci lms-api:latest
 
-                    # Chi cap nhat API, khong tao lai PostgreSQL
-                    docker compose \
-                      -p lms \
-                      -f /opt/libri/LMS/docker-compose.yml \
-                      -f /opt/libri/LMS/docker-compose.deploy.yml \
-                      --project-directory /opt/libri/LMS \
-                      up -d --no-deps --no-build --force-recreate api
+                    deploy_api() {
+                        docker compose \
+                          -p lms \
+                          -f /opt/libri/LMS/docker-compose.yml \
+                          -f /opt/libri/LMS/docker-compose.deploy.yml \
+                          --project-directory /opt/libri/LMS \
+                          up -d --no-deps --no-build --force-recreate api
+                    }
 
-                    docker inspect \
-                      --format '{{.State.Running}}' \
-                      thuvien_api | grep -qx true
+                    # Khoi phuc khi Compose deploy that bai
+                    if ! deploy_api; then
+                        echo "Deploy failed. Rolling back..."
+                        docker tag lms-api:rollback lms-api:latest
+                        deploy_api || true
+                        exit 1
+                    fi
+
+                    # Kiem tra API sau deploy
+                    HEALTHY=0
+
+                    for attempt in $(seq 1 12); do
+                        if curl -fsS -o /dev/null \
+                          --connect-timeout 5 \
+                          --max-time 15 \
+                          "http://127.0.0.1:8081/swagger/index.html"; then
+                            HEALTHY=1
+                            break
+                        fi
+
+                        echo "API not ready. Retrying..."
+                        sleep 5
+                    done
+
+                    # Rollback neu API khong phan hoi
+                    if [ "$HEALTHY" -ne 1 ]; then
+                        echo "Health check failed. Rolling back..."
+                        docker tag lms-api:rollback lms-api:latest
+                        deploy_api || true
+                        exit 1
+                    fi
+
+                    echo "Backend deployed successfully."
                 '''
             }
         }
@@ -85,11 +106,11 @@ pipeline {
 
     post {
         success {
-            echo 'PIPELINE SUCCESS'
+            echo 'CI/CD PIPELINE SUCCESS'
         }
 
         failure {
-            echo 'PIPELINE FAILED'
+            echo 'CI/CD PIPELINE FAILED'
         }
     }
 }
