@@ -3,4 +3,7 @@
     <Project Path="src/Library.Modules.Core/Library.Modules.Core.csproj" />
     <Project Path="src/Library.Web/Library.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Library.UnitTests/Library.UnitTests.csproj" />
+  </Folder>
 </Solution>

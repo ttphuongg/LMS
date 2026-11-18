@@ -23,7 +23,19 @@ pipeline {
                 }
             }
             steps {
-                sh 'dotnet test backend/LibrarySystem.slnx --configuration Release --logger "junit;LogFilePath=test-results.xml"'
+                sh '''
+                    if command -v dotnet >/dev/null 2>&1; then
+                        dotnet test backend/LibrarySystem.slnx --configuration Release --logger "junit;LogFilePath=test-results.xml"
+                    else
+                        # Chay bang container .NET 10 SDK neu may chu Jenkins chua cai .NET CLI
+                        HOST_DIR=$(pwd | sed 's|/var/jenkins_home/workspace|/opt/libri/jenkins-workspace|')
+                        docker run --rm \
+                          -v "${HOST_DIR}:/workspace" \
+                          -w /workspace \
+                          mcr.microsoft.com/dotnet/sdk:10.0 \
+                          dotnet test backend/LibrarySystem.slnx --configuration Release --logger "junit;LogFilePath=test-results.xml"
+                    fi
+                '''
             }
         }
 

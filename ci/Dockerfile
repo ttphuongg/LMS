@@ -13,6 +13,10 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Cài đặt .NET 10 SDK vào Jenkins container
+RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 10.0 --install-dir /usr/share/dotnet && \
+    ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+
 # Cấp quyền cho user jenkins điều khiển Docker
 RUN groupadd -f docker && usermod -aG docker jenkins
 

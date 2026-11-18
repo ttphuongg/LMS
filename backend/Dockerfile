@@ -6,12 +6,14 @@ WORKDIR /repo
 COPY LibrarySystem.slnx ./
 COPY src/Library.Web/Library.Web.csproj                   src/Library.Web/
 COPY src/Library.Modules.Core/Library.Modules.Core.csproj src/Library.Modules.Core/
+COPY tests/Library.UnitTests/Library.UnitTests.csproj     tests/Library.UnitTests/
 
 # Restore tat ca projects qua solution
 RUN dotnet restore LibrarySystem.slnx
 
 # Copy toan bo source
 COPY src/ src/
+COPY tests/ tests/
 
 # Publish
 RUN dotnet publish src/Library.Web/Library.Web.csproj -c Release -o /app/publish
