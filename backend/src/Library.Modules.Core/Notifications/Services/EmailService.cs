@@ -4,7 +4,7 @@ using MimeKit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Library.Modules.Core.Identity.Services;
+namespace Library.Modules.Core.Notifications.Services;
 
 public sealed class EmailService : IEmailService
 {
@@ -161,3 +161,4 @@ public sealed class EmailService : IEmailService
         await SendEmailAsync(toEmail, "[Libri] Yêu cầu đặt lại mật khẩu tài khoản", htmlBody, ct);
     }
 }
+

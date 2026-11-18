@@ -1,35 +1,37 @@
 using Library.Modules.Core.Identity.Contracts;
-using Library.Modules.Core.Identity.Services;
 using Library.Modules.Core.Notifications.Data;
+using Library.Modules.Core.Notifications.Services;
 using Library.Modules.Core.Shared.Events;
 using MediatR;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Library.Modules.Core.Notifications.Features.EmailHandlers;
 
 /// <summary>
 /// Xử lý gửi email và tạo thông báo hệ thống khi tài khoản độc giả bị tạm khóa.
+/// Gửi email non-blocking qua IServiceScopeFactory để Admin thao tác tức thì.
 /// </summary>
 public class AccountLockedEmailHandler : INotificationHandler<AccountLockedEvent>
 {
     private readonly ISender _sender;
-    private readonly IEmailService _emailService;
     private readonly NotificationsDbContext _db;
     private readonly IConfiguration _config;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<AccountLockedEmailHandler> _logger;
 
     public AccountLockedEmailHandler(
         ISender sender,
-        IEmailService emailService,
         NotificationsDbContext db,
         IConfiguration config,
+        IServiceScopeFactory scopeFactory,
         ILogger<AccountLockedEmailHandler> logger)
     {
         _sender = sender;
-        _emailService = emailService;
         _db = db;
         _config = config;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
@@ -45,7 +47,7 @@ public class AccountLockedEmailHandler : INotificationHandler<AccountLockedEvent
                 return;
             }
 
-            // 2. Thêm thông báo trên web cho tài khoản độc giả
+            // 2. Thêm thông báo trên web cho tài khoản độc giả (nhanh ~2ms)
             var notif = new Notification
             {
                 AccountId = notification.AccountId,
@@ -67,14 +69,27 @@ public class AccountLockedEmailHandler : INotificationHandler<AccountLockedEvent
                 lockedAt: notification.LockedAt,
                 appUrl: appUrl);
 
-            await _emailService.SendEmailAsync(account.Email, subject, html, ct);
-            _logger.LogInformation("Đã gửi email thông báo khóa tài khoản tới {Email} (Lý do: {Reason})", account.Email, notification.Reason);
+            // 4. Gửi email bất đồng bộ nền (Non-blocking)
+            var toEmail = account.Email;
+            var reason = notification.Reason;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = _scopeFactory.CreateScope();
+                    var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                    await emailService.SendEmailAsync(toEmail, subject, html, CancellationToken.None);
+                    _logger.LogInformation("Background: Đã gửi email thông báo khóa tài khoản tới {Email} (Lý do: {Reason})", toEmail, reason);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Background: Lỗi khi gửi email thông báo khóa tài khoản tới {Email}", toEmail);
+                }
+            });
         }
         catch (Exception ex)
         {
-            // An toàn không làm đứt gãy luồng xử lý của quản trị viên
-            _logger.LogError(ex, "Lỗi xảy ra khi xử lý gửi email cho AccountLockedEvent (AccountId: {AccountId})", notification.AccountId);
+            _logger.LogError(ex, "Lỗi xảy ra trong AccountLockedEmailHandler (AccountId: {AccountId})", notification.AccountId);
         }
     }
 }
-

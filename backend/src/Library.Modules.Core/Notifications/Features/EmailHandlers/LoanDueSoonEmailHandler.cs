@@ -1,38 +1,40 @@
 using Library.Modules.Core.Catalog.Contracts;
 using Library.Modules.Core.Identity.Contracts;
-using Library.Modules.Core.Identity.Services;
 using Library.Modules.Core.Notifications.Data;
+using Library.Modules.Core.Notifications.Services;
 using Library.Modules.Core.Shared.Events;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Library.Modules.Core.Notifications.Features.EmailHandlers;
 
 /// <summary>
 /// Xử lý gửi email nhắc nhở độc giả khi sách mượn sắp đến hạn trả trong 3 - 5 ngày.
-/// Có cơ chế chống spam (chỉ nhắc 1 lần trong vòng 3 ngày cho mỗi cuốn sách).
+/// Có cơ chế chống spam 5 ngày theo yêu cầu.
+/// Gửi email nền qua IServiceScopeFactory (non-blocking).
 /// </summary>
 public class LoanDueSoonEmailHandler : INotificationHandler<LoanDueSoonEvent>
 {
     private readonly ISender _sender;
-    private readonly IEmailService _emailService;
     private readonly NotificationsDbContext _db;
     private readonly IConfiguration _config;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<LoanDueSoonEmailHandler> _logger;
 
     public LoanDueSoonEmailHandler(
         ISender sender,
-        IEmailService emailService,
         NotificationsDbContext db,
         IConfiguration config,
+        IServiceScopeFactory scopeFactory,
         ILogger<LoanDueSoonEmailHandler> logger)
     {
         _sender = sender;
-        _emailService = emailService;
         _db = db;
         _config = config;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
@@ -40,24 +42,22 @@ public class LoanDueSoonEmailHandler : INotificationHandler<LoanDueSoonEvent>
     {
         try
         {
-            // 1. Lấy thông tin bản sao và tên sách từ Catalog Module
-            var copies = await _sender.Send(new GetCopyInfosQuery(new[] { notification.BookCopyId }), ct);
-            var bookTitle = copies.TryGetValue(notification.BookCopyId, out var copy) ? copy.BookTitle : "Sách mượn";
-
-            // 2. Cơ chế chống spam: Kiểm tra xem trong 3 ngày qua đã gửi thông báo sắp đến hạn cho cuốn sách này chưa
-            var cutoff = DateTime.UtcNow.AddDays(-3);
+            // 1. Cơ chế chống spam 5 ngày: Kiểm tra xem đã gửi thông báo sắp đến hạn cho độc giả này trong vòng 5 ngày qua chưa
+            var cutoff = DateTime.UtcNow.AddDays(-5);
             var alreadyNotified = await _db.Notifications.AnyAsync(n =>
                 n.AccountId == notification.AccountId &&
-                n.NotificationType == NotificationType.Borrow &&
-                n.Content.Contains(bookTitle) &&
                 n.Title.Contains("sắp đến hạn") &&
                 n.CreatedAt >= cutoff, ct);
 
             if (alreadyNotified)
             {
-                _logger.LogInformation("Bỏ qua gửi nhắc nhở sắp đến hạn cho sách '{Title}', AccountId {AccountId} (đã thông báo trong 3 ngày qua)", bookTitle, notification.AccountId);
+                _logger.LogInformation("Bỏ qua gửi nhắc nhở sắp đến hạn cho AccountId {AccountId} (đã thông báo trong 5 ngày qua)", notification.AccountId);
                 return;
             }
+
+            // 2. Lấy thông tin bản sao và tên sách từ Catalog Module
+            var copies = await _sender.Send(new GetCopyInfosQuery(new[] { notification.BookCopyId }), ct);
+            var bookTitle = copies.TryGetValue(notification.BookCopyId, out var copy) ? copy.BookTitle : "Sách mượn";
 
             // 3. Lấy thông tin tài khoản qua Identity Contract
             var account = await _sender.Send(new GetAccountContactQuery(notification.AccountId), ct);
@@ -80,7 +80,7 @@ public class LoanDueSoonEmailHandler : INotificationHandler<LoanDueSoonEvent>
             _db.Notifications.Add(notif);
             await _db.SaveChangesAsync(ct);
 
-            // 5. Soạn và gửi email nhắc nhở chuẩn nhận diện thương hiệu Libri
+            // 5. Soạn email nhắc nhở chuẩn nhận diện thương hiệu Libri
             var appUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
             var subject = $"[Libri] Nhắc nhở: Sách '{bookTitle}' sắp đến hạn trả trong {notification.DaysUntilDue} ngày tới";
             var html = EmailTemplates.LoanDueSoon(
@@ -90,13 +90,27 @@ public class LoanDueSoonEmailHandler : INotificationHandler<LoanDueSoonEvent>
                 daysUntilDue: notification.DaysUntilDue,
                 appUrl: appUrl);
 
-            await _emailService.SendEmailAsync(account.Email, subject, html, ct);
-            _logger.LogInformation("Đã gửi email nhắc nhở sắp đến hạn tới {Email} (Sách: {Title}, Hạn: {DueDate:dd/MM/yyyy})", account.Email, bookTitle, notification.DueDate);
+            // 6. Gửi email bất đồng bộ nền (Non-blocking)
+            var toEmail = account.Email;
+            var dueDate = notification.DueDate;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = _scopeFactory.CreateScope();
+                    var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                    await emailService.SendEmailAsync(toEmail, subject, html, CancellationToken.None);
+                    _logger.LogInformation("Background: Đã gửi email nhắc nhở sắp đến hạn tới {Email} (Sách: {Title}, Hạn: {DueDate:dd/MM/yyyy})", toEmail, bookTitle, dueDate);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Background: Lỗi khi gửi email nhắc sắp đến hạn tới {Email}", toEmail);
+                }
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Lỗi xảy ra khi gửi email nhắc sắp đến hạn cho AccountId {AccountId}, CopyId {CopyId}", notification.AccountId, notification.BookCopyId);
+            _logger.LogError(ex, "Lỗi xảy ra trong LoanDueSoonEmailHandler cho AccountId {AccountId}, CopyId {CopyId}", notification.AccountId, notification.BookCopyId);
         }
     }
 }
-

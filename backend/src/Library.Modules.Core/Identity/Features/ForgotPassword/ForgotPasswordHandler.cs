@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using FluentValidation;
 using Library.Modules.Core.Identity.Data;
-using Library.Modules.Core.Identity.Services;
+using Library.Modules.Core.Notifications.Services;
 using Library.Modules.Core.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

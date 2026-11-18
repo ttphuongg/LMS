@@ -60,7 +60,8 @@ builder.Services.AddValidatorsFromAssembly(typeof(UnitOfWork).Assembly);
 
 // ── Identity Services ─────────────────────────────────────────────────────────
 builder.Services.AddSingleton<JwtTokenService>();
-builder.Services.AddScoped<Library.Modules.Core.Identity.Services.IEmailService, Library.Modules.Core.Identity.Services.EmailService>();
+// ── Notifications / Email Services ──────────────────────────────────────────
+builder.Services.AddScoped<Library.Modules.Core.Notifications.Services.IEmailService, Library.Modules.Core.Notifications.Services.EmailService>();
 builder.Services.AddScoped<Library.Modules.Core.Catalog.Services.IStorageService, Library.Modules.Core.Catalog.Services.CloudflareR2StorageService>();
 
 // ── JSON Options: global enum string converter + camelCase ────────────────────
