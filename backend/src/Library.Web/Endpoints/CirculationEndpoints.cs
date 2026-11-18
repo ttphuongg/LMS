@@ -17,6 +17,7 @@ public static class CirculationEndpoints
         Library.Modules.Core.Circulation.Features.GetLoanDetail.GetLoanDetailEndpoint.Map(app);
         Library.Modules.Core.Circulation.Features.GetAllRenewals.GetAllRenewalsEndpoint.Map(app);
         Library.Modules.Core.Circulation.Features.GetMyReservations.GetMyReservationsEndpoint.Map(app);
+        Library.Modules.Core.Circulation.Features.GetCirculationEligibility.GetCirculationEligibilityEndpoint.Map(app);
     }
 }
 

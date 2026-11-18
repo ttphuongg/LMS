@@ -1,8 +1,10 @@
 using FluentValidation;
 using Library.Modules.Core.Identity.Data;
 using Library.Modules.Core.Shared;
+using Library.Modules.Core.Shared.Events;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Library.Modules.Core.Identity.Features.ManageUsers;
 
@@ -14,12 +16,21 @@ public sealed class ManageUsersHandler :
     private readonly IdentityDbContext _db;
     private readonly IValidator<ChangeRoleRequest> _roleValidator;
     private readonly IValidator<ChangeStatusRequest> _statusValidator;
+    private readonly IMediator _mediator;
+    private readonly IMemoryCache _cache;
 
-    public ManageUsersHandler(IdentityDbContext db, IValidator<ChangeRoleRequest> roleValidator, IValidator<ChangeStatusRequest> statusValidator)
+    public ManageUsersHandler(
+        IdentityDbContext db, 
+        IValidator<ChangeRoleRequest> roleValidator, 
+        IValidator<ChangeStatusRequest> statusValidator,
+        IMediator mediator,
+        IMemoryCache cache)
     {
         _db = db;
         _roleValidator = roleValidator;
         _statusValidator = statusValidator;
+        _mediator = mediator;
+        _cache = cache;
     }
 
     public async Task<ApiResponse<GetUsersResult>> Handle(GetUsersRequest request, CancellationToken ct)
@@ -88,13 +99,40 @@ public sealed class ManageUsersHandler :
         if (request.NewStatus == AccountStatus.Inactive || request.NewStatus == AccountStatus.Locked)
         {
             account.DeactivatedAt = DateTime.UtcNow;
+
+            // 1. Thu hồi toàn bộ phiên đăng nhập (refresh token) đang tồn tại
+            var activeSessions = await _db.LoginSessions
+                .Where(s => s.AccountId == account.Id)
+                .ToListAsync(ct);
+            if (activeSessions.Count > 0)
+            {
+                _db.LoginSessions.RemoveRange(activeSessions);
+            }
+
+            // 2. Ghi cờ khóa vào MemoryCache để vô hiệu hóa tức thì cả Access Token đang lưu hành
+            _cache.Set($"account_locked_{account.Id}", true, TimeSpan.FromHours(1));
         }
         else
         {
             account.DeactivatedAt = null;
+            // Xóa cờ khóa khỏi Cache khi kích hoạt lại
+            _cache.Set($"account_locked_{account.Id}", false, TimeSpan.FromHours(1));
         }
 
         await _db.SaveChangesAsync(ct);
+
+        if (request.NewStatus == AccountStatus.Locked)
+        {
+            var reason = !string.IsNullOrWhiteSpace(request.Reason)
+                ? request.Reason
+                : "Tài khoản bị tạm khóa bởi quản trị viên thư viện.";
+
+            await _mediator.Publish(new AccountLockedEvent(
+                account.Id,
+                reason,
+                DateTime.UtcNow), ct);
+        }
+
         return ApiResponse<bool>.Ok(true);
     }
 }

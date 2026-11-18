@@ -32,6 +32,13 @@ public class OverdueCheckWorker : BackgroundService
                 {
                     _logger.LogInformation("Overdue check: {OverdueCount} newly overdue loans processed.", overdueCount);
                 }
+
+                var dueSoonCount = await sender.Send(new ProcessDueSoonLoansCommand(), stoppingToken);
+
+                if (dueSoonCount > 0)
+                {
+                    _logger.LogInformation("Due-soon check: {DueSoonCount} loans approaching due date notified.", dueSoonCount);
+                }
             }
             catch (Exception ex)
             {

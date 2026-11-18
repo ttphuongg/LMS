@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { useAuth } from '@/features/identity'
-import { RenewModal } from '@/features/circulation'
+import { RenewModal, CirculationRestrictionBanner } from '@/features/circulation'
 import type { LoanDetailDto } from '@/features/circulation'
 import '../home.css'
 import { useHomeData } from '../hooks/useHomeData'
@@ -63,6 +63,13 @@ export const HomePage: React.FC = () => {
       )}
 
       <StatusStrip loans={loanSummary} reservations={resSummary} fines={fineSummary} />
+
+      {/* Banner cảnh báo khi bạn đọc bị hạn chế chức năng mượn/đặt trước sách */}
+      {user?.role === 'Reader' && (
+        <div style={{ padding: '0 var(--sp-4)' }}>
+          <CirculationRestrictionBanner />
+        </div>
+      )}
 
       <div className="home-layout">
         <div className="home-main">

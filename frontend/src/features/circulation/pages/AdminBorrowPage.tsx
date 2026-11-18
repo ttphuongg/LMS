@@ -5,6 +5,8 @@ import { BarcodeOutlined, UserOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { circulationApi } from '../api'
+import type { CirculationEligibilityResult } from '../types'
+import { CirculationRestrictionBanner } from '../components/CirculationRestrictionBanner'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { LIBRARY_RULES } from '@/shared/constants/rules'
 import { cardStyle, mutedTextStyle, primaryButtonStyle, radiusStyle } from '@/shared/styles/ui'
@@ -16,6 +18,27 @@ export const AdminBorrowPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [barcodes, setBarcodes] = useState<string[]>([])
   const [currentBarcode, setCurrentBarcode] = useState('')
+  const [readerEligibility, setReaderEligibility] = useState<CirculationEligibilityResult | null>(null)
+  const [checkingEligibility, setCheckingEligibility] = useState(false)
+
+  // Khi Thủ thư nhập xong ID bạn đọc, kiểm tra tình trạng lưu thông
+  const handleAccountIdBlur = async () => {
+    const accountIdStr = form.getFieldValue('accountId')
+    const accountId = Number(accountIdStr)
+    if (!accountId || isNaN(accountId) || accountId <= 0) {
+      setReaderEligibility(null)
+      return
+    }
+    try {
+      setCheckingEligibility(true)
+      const result = await circulationApi.getCirculationEligibility(accountId)
+      setReaderEligibility(result)
+    } catch {
+      setReaderEligibility(null)
+    } finally {
+      setCheckingEligibility(false)
+    }
+  }
 
   const handleAddBarcode = () => {
     const trimmed = currentBarcode.trim()
@@ -89,8 +112,19 @@ export const AdminBorrowPage: React.FC = () => {
               prefix={<UserOutlined style={mutedTextStyle} />}
               placeholder="VD: 1"
               style={radiusStyle}
+              onBlur={handleAccountIdBlur}
             />
           </Form.Item>
+
+          {/* Banner tình trạng lưu thông của bạn đọc — hiện ngay sau khi nhập ID */}
+          {checkingEligibility && (
+            <div style={{ marginBottom: 16, color: 'var(--muted-foreground)', fontSize: 13 }}>
+              🔍 Đang kiểm tra tình trạng bạn đọc...
+            </div>
+          )}
+          {readerEligibility && (
+            <CirculationRestrictionBanner eligibility={readerEligibility} />
+          )}
 
           <Form.Item
             label="Hạn trả tài liệu"

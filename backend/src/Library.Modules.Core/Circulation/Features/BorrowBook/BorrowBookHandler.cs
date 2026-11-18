@@ -48,11 +48,12 @@ public sealed class BorrowBookHandler : IRequestHandler<BorrowBookRequest, ApiRe
             d.Status == LoanDetailStatus.Borrowing &&
             (d.DueDate != null ? d.DueDate < today : d.LoanSlip.DueDate < today), ct);
         if (hasOverdue)
-            return ApiResponse<long>.Fail("Độc giả đang có sách quá hạn, không thể mượn thêm.");
+            return ApiResponse<long>.Fail("Độc giả đang có sách quá hạn trả, chức năng mượn sách tạm thời bị khóa.");
 
-        var hasUnpaidFine = await _sender.Send(new HasUnpaidFinesQuery(request.AccountId), ct);
-        if (hasUnpaidFine)
-            return ApiResponse<long>.Fail("Độc giả còn khoản phạt chưa thanh toán.");
+        // Kiểm tra hóa đơn phạt quá hạn thanh toán (ân hạn 1-3 ngày, mặc định 2 ngày)
+        var fineRestriction = await _sender.Send(new CheckCirculationFineRestrictionQuery(request.AccountId, GraceDays: 2), ct);
+        if (fineRestriction.IsRestricted)
+            return ApiResponse<long>.Fail(fineRestriction.Reason ?? "Chức năng mượn sách của độc giả đang bị khóa do có khoản phạt quá hạn thanh toán.");
 
         var activeCount = await _db.LoanSlipDetails.CountAsync(d =>
             d.LoanSlip.AccountId == request.AccountId &&
