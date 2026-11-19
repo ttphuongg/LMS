@@ -124,6 +124,54 @@ namespace Library.Modules.Core.Identity.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Library.Modules.Core.Identity.Data.EmailVerificationOtp", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("FailedAttempts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("OtpHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("AccountId", "UsedAt");
+
+                    b.ToTable("EmailVerificationOtps", "identity");
+                });
+
             modelBuilder.Entity("Library.Modules.Core.Identity.Data.LoginSession", b =>
                 {
                     b.Property<long>("Id")
@@ -208,6 +256,17 @@ namespace Library.Modules.Core.Identity.Data.Migrations
                     b.HasIndex("AccountId", "TokenHash");
 
                     b.ToTable("PasswordResetTokens", "identity");
+                });
+
+            modelBuilder.Entity("Library.Modules.Core.Identity.Data.EmailVerificationOtp", b =>
+                {
+                    b.HasOne("Library.Modules.Core.Identity.Data.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("Library.Modules.Core.Identity.Data.LoginSession", b =>
