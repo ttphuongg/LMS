@@ -147,12 +147,21 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 400 && error.response.data) {
       const problem = error.response.data as ProblemDetails
       if (problem.errors && Object.keys(problem.errors).length > 0) {
+        // Kiểm tra xem có lỗi liên quan đến ngày sinh không
+        for (const [field, errList] of Object.entries(problem.errors)) {
+          if (field.toLowerCase().includes('dateofbirth') || errList.some((e) => e.includes('DateOnly') || e.includes('DateOfBirth'))) {
+            return Promise.reject(new Error('Ngày sinh không đúng định dạng. Vui lòng kiểm tra lại!'))
+          }
+        }
         const messages = Object.entries(problem.errors)
           .map(([field, errList]) => `${field}: ${errList.join(', ')}`)
           .join('\n')
-        return Promise.reject(new Error(messages || problem.title || 'Dữ liệu không hợp lệ'))
+        return Promise.reject(new Error(messages || problem.title || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại!'))
       }
       if (problem.title || problem.detail) {
+        if (problem.detail?.includes('DateOnly') || problem.detail?.includes('dateOfBirth')) {
+          return Promise.reject(new Error('Ngày sinh không đúng định dạng. Vui lòng kiểm tra lại!'))
+        }
         return Promise.reject(new Error(problem.detail || problem.title || 'Lỗi kiểm tra dữ liệu'))
       }
     }
@@ -160,10 +169,28 @@ apiClient.interceptors.response.use(
     // Lỗi từ envelope error nếu có
     const errData = error.response?.data as ApiResponse<unknown> | undefined
     if (errData?.error) {
+      if (errData.error.includes('Ngày sinh phải trước ngày hiện tại')) {
+        return Promise.reject(new Error('Ngày sinh không được lớn hơn ngày hiện tại!'))
+      }
       return Promise.reject(new Error(errData.error))
     }
 
-    const message = error.message || 'Lỗi kết nối máy chủ'
+    // Kiểm tra lỗi mạng
+    if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+      return Promise.reject(new Error('Không thể kết nối đến máy chủ. Vui lòng thử lại!'))
+    }
+
+    // Lọc bỏ mã lỗi kỹ thuật thô của Axios "Request failed with status code ..."
+    if (error.message && /Request failed with status code/i.test(error.message)) {
+      if (error.response?.status === 400) {
+        return Promise.reject(new Error('Dữ liệu yêu cầu không hợp lệ. Vui lòng kiểm tra lại!'))
+      }
+      if (error.response?.status && error.response.status >= 500) {
+        return Promise.reject(new Error('Lỗi hệ thống máy chủ. Vui lòng thử lại sau!'))
+      }
+    }
+
+    const message = error.message || 'Không thể kết nối đến máy chủ. Vui lòng thử lại!'
     return Promise.reject(new Error(message))
   }
 )

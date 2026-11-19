@@ -187,6 +187,8 @@ small,
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
   margin-bottom: var(--sp-3);
   border-bottom: 1px dashed var(--border);
   padding-bottom: var(--sp-2);
@@ -467,10 +469,211 @@ button:disabled,
   cursor: not-allowed;
 }
 
+/* ==========================================================================
+   CHUẨN HÓA HIỆU ỨNG HOVER BUTTON TRÊN TOÀN HỆ THỐNG LIBRI
+   - Nền xanh lá đậm Header: #1F3A2E (var(--primary))
+   - Chữ và Icon: Trắng (#ffffff)
+   - Viền: Xanh lá đậm (#1F3A2E)
+   - Hiệu ứng chuyển màu mượt mà: 0.25s
+   - Bảo toàn: Primary button (đã có nền xanh lá đậm sẵn),
+     Danger/Delete (đỏ), Warning (vàng/cam), Disabled (mờ, not-allowed).
+   ========================================================================== */
+
+/* Chuyển động mượt mà cho button thông thường */
+.ant-btn:not(.ant-btn-dangerous):not(:disabled):not(.ant-btn-disabled) {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+/* Hover cho button thông thường (default, outline, ghost) */
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-dangerous):not(.ant-btn-text):not(.ant-btn-link):not(:disabled):not(.ant-btn-disabled):hover {
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
+  border-color: var(--primary) !important;
+}
+
+/* Đảm bảo toàn bộ chữ, icon, icon svg bên trong button chuyển sang màu trắng rõ nét */
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-dangerous):not(.ant-btn-text):not(.ant-btn-link):not(:disabled):not(.ant-btn-disabled):hover *,
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-dangerous):not(.ant-btn-text):not(.ant-btn-link):not(:disabled):not(.ant-btn-disabled):hover .anticon,
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-dangerous):not(.ant-btn-text):not(.ant-btn-link):not(:disabled):not(.ant-btn-disabled):hover .anticon svg {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+/* Trạng thái nhấn (active) */
+.ant-btn:not(.ant-btn-primary):not(.ant-btn-dangerous):not(.ant-btn-text):not(.ant-btn-link):not(:disabled):not(.ant-btn-disabled):active {
+  background-color: #183025 !important;
+  color: #ffffff !important;
+  border-color: #183025 !important;
+}
+
+/* Bảo toàn tuyệt đối button vô hiệu hóa (disabled) */
+.ant-btn:disabled,
+.ant-btn.ant-btn-disabled,
+button:disabled {
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+  opacity: 0.55 !important;
+  transition: none !important;
+}
+
 
 /* Responsive Content Layout */
 @media (max-width: 767px) {
   .app-layout-content {
     padding: 16px 12px !important;
   }
+}
+
+/* ==========================================================================
+   TAG SÁCH KIỂU ẢNH BÌA & HOVER TOOLTIP (BOOK COVER CARD & TOOLTIP)
+   - Trạng thái mặc định: Chỉ hiển thị ảnh bìa trước, giữ đúng tỷ lệ 1:1.45
+   - Hover / Focus: Nổi tooltip phía trên với nền tối, tên sách in đậm, năm xuất bản, tác giả
+   - Hiệu ứng nổi nhẹ khi rê chuột (lift on hover)
+   ========================================================================== */
+
+.book-cover-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.45;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 6px rgba(42, 33, 24, 0.08);
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s ease;
+  user-select: none;
+}
+
+.book-cover-card:hover,
+.book-cover-card:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 22px rgba(31, 58, 46, 0.2);
+  border-color: var(--primary);
+}
+
+.book-cover-card:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.book-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.book-cover-card:hover .book-cover-img {
+  transform: scale(1.02);
+}
+
+/* Placeholder khi ảnh chưa tải hoặc không có ảnh */
+.book-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(150deg, #1F3A2E 0%, #15271F 100%);
+  color: #FBF7EC;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  justifyContent: space-between;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  border-left: 5px solid #B08D3C;
+}
+
+.book-cover-placeholder-category {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #DECFAA;
+  font-family: var(--font-mono);
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-cover-placeholder-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-1);
+}
+
+.book-cover-placeholder-icon {
+  font-size: 32px;
+  color: #B08D3C;
+  opacity: 0.9;
+}
+
+.book-cover-placeholder-title {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #FFFFFF;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-cover-placeholder-author {
+  font-size: 11.5px;
+  color: rgba(251, 247, 236, 0.85);
+  font-style: italic;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tooltip giao diện đen/xanh tối chuẩn LIBRI */
+.book-cover-tooltip-overlay .ant-tooltip-inner {
+  background-color: #183025 !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(222, 207, 170, 0.25) !important;
+  max-width: 250px !important;
+  text-align: center !important;
+}
+
+.book-cover-tooltip-overlay .ant-tooltip-arrow::before {
+  background: #183025 !important;
+}
+
+.book-card-tooltip {
+  text-align: center;
+  padding: 1px 2px;
+}
+
+.book-card-tooltip-title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #FFFFFF;
+  line-height: 1.35;
+  word-break: break-word;
+  font-family: var(--font-sans);
+}
+
+.book-card-tooltip-author {
+  font-size: 12px;
+  color: rgba(251, 247, 236, 0.85);
+  margin-top: 3px;
+  line-height: 1.3;
+  word-break: break-word;
+  font-family: var(--font-sans);
 }

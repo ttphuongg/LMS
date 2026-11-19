@@ -44,6 +44,8 @@ services:
       - CloudflareR2__BucketName=${R2_BUCKET_NAME}
       - CloudflareR2__PublicUrl=${R2_PUBLIC_URL:-https://images.libri.id.vn}
       - Cors__AllowedOrigins__0=https://libri.id.vn
+      - Cors__AllowedOrigins__1=http://localhost:5173
+      - Cors__AllowedOrigins__2=http://127.0.0.1:5173
       - Smtp__Host=${SMTP_HOST}
       - Smtp__Port=${SMTP_PORT:-587}
       - Smtp__Username=${SMTP_USERNAME}

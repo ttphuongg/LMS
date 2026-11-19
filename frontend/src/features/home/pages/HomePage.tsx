@@ -20,9 +20,10 @@ import { MyLoansPanel } from '../components/MyLoansPanel'
 import { CategoryGrid } from '../components/CategoryGrid'
 import { BookShelf } from '../components/BookShelf'
 import { LibraryInfoPanel, NotificationsPanel } from '../components/SidePanels'
+import { BannerCarousel } from '../components/BannerCarousel'
 
-// 6 cuốn/kệ: chia hết cho cả lưới 2 và 3 cột nên hàng cuối luôn đầy
-const SHELF_SIZE = 6
+// 8 cuốn/kệ: chia hết cho cả lưới 4 cột (desktop) và 2 cột (tablet/mobile) nên các hàng luôn đầy đủ, không khuyết trống bên phải
+const SHELF_SIZE = 8
 
 export const HomePage: React.FC = () => {
   const { user } = useAuth()
@@ -75,22 +76,27 @@ export const HomePage: React.FC = () => {
         <div className="home-main">
           <MyLoansPanel active={active} onRenew={setRenewTarget} />
 
+          {/* Danh mục sách: Giữ nguyên cấu trúc, vị trí và bố cục ban đầu trong home-main */}
           <CategoryGrid categories={data.categories} counts={counts} />
-
-          <BookShelf
-            title={recommended.personalized ? 'Gợi ý theo lịch sử mượn' : 'Có thể bạn quan tâm'}
-            subtitle={recommended.personalized ? 'Cùng tác giả hoặc cùng danh mục với sách bạn đã mượn' : undefined}
-            books={recommended.items}
-            loading={data.loading}
-          />
-          <BookShelf title="Sách mới" books={newest} loading={data.loading} />
-          <BookShelf title="Sách nổi bật" subtitle="Được bạn đọc mượn nhiều" books={popular} loading={data.loading} />
         </div>
 
         <aside className="home-aside">
           <NotificationsPanel items={data.notifications} />
           <LibraryInfoPanel totalBooks={data.totalBooks} availableTitles={availableTitles} />
+          <BannerCarousel />
         </aside>
+      </div>
+
+      {/* 3 Khu vực kệ sách: Chiếm toàn bộ 100% chiều rộng khả dụng của container trang chủ (1240px) */}
+      <div className="home-shelves-full">
+        <BookShelf
+          title={recommended.personalized ? 'Gợi ý theo lịch sử mượn' : 'Có thể bạn quan tâm'}
+          subtitle={recommended.personalized ? 'Cùng tác giả hoặc cùng danh mục với sách bạn đã mượn' : undefined}
+          books={recommended.items}
+          loading={data.loading}
+        />
+        <BookShelf title="Sách mới" books={newest} loading={data.loading} />
+        <BookShelf title="Sách nổi bật" subtitle="Được bạn đọc mượn nhiều" books={popular} loading={data.loading} />
       </div>
 
       <RenewModal
