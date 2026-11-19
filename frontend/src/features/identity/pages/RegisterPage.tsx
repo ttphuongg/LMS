@@ -200,15 +200,34 @@ export const RegisterPage: React.FC = () => {
 
   // ── Xử lý nhập các ô OTP ──────────────────────────────────────────────────
   const handleOtpChange = (index: number, value: string) => {
-    const digit = value.replace(/\D/g, '').slice(-1)
+    // Lọc chỉ giữ các ký tự số
+    const cleanDigits = value.replace(/\D/g, '')
+
+    if (!cleanDigits) {
+      const newDigits = [...otpDigits]
+      newDigits[index] = ''
+      setOtpDigits(newDigits)
+      return
+    }
+
     const newDigits = [...otpDigits]
-    newDigits[index] = digit
+
+    // Nếu người dùng dán hoặc bộ gõ tiếng Việt (Telex/Unikey) đẩy nhiều số cùng lúc:
+    // Tự động phân phối lần lượt vào các ô tiếp theo
+    let lastFilledIndex = index
+    for (let i = 0; i < cleanDigits.length && index + i < 6; i++) {
+      newDigits[index + i] = cleanDigits[i]
+      lastFilledIndex = index + i
+    }
+
     setOtpDigits(newDigits)
     setOtpError(null)
 
-    // Nếu vừa nhập ký tự số thì tự động focus ô tiếp theo
-    if (digit && index < 5) {
-      otpInputRefs.current[index + 1]?.focus()
+    // Dùng setTimeout nhỏ để giải phóng hàng đợi IME của Unikey/Telex trước khi chuyển focus
+    if (lastFilledIndex < 5) {
+      setTimeout(() => {
+        otpInputRefs.current[lastFilledIndex + 1]?.focus()
+      }, 15)
     }
   }
 
@@ -654,8 +673,10 @@ export const RegisterPage: React.FC = () => {
                       }}
                       type="text"
                       inputMode="numeric"
+                      autoComplete="one-time-code"
+                      spellCheck={false}
                       pattern="[0-9]*"
-                      maxLength={1}
+                      maxLength={index === 5 ? 1 : 6}
                       value={digit}
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
