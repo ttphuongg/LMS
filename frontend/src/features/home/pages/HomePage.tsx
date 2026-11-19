@@ -20,6 +20,7 @@ import { MyLoansPanel } from '../components/MyLoansPanel'
 import { CategoryGrid } from '../components/CategoryGrid'
 import { BookShelf } from '../components/BookShelf'
 import { LibraryInfoPanel, NotificationsPanel } from '../components/SidePanels'
+import { BannerCarousel } from '../components/BannerCarousel'
 
 // 8 cuốn/kệ: chia hết cho cả lưới 4 cột (desktop) và 2 cột (tablet/mobile) nên các hàng luôn đầy đủ, không khuyết trống bên phải
 const SHELF_SIZE = 8
@@ -82,6 +83,7 @@ export const HomePage: React.FC = () => {
         <aside className="home-aside">
           <NotificationsPanel items={data.notifications} />
           <LibraryInfoPanel totalBooks={data.totalBooks} availableTitles={availableTitles} />
+          <BannerCarousel />
         </aside>
       </div>
 
