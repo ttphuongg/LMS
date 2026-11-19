@@ -9,4 +9,4 @@ public record RegisterRequest(
     string Email,
     string Password,
     string? PhoneNumber = null
-) : IRequest<ApiResponse<int>>;
+) : IRequest<ApiResponse<RegisterResponse>>;

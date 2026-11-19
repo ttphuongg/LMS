@@ -43,7 +43,7 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, ApiResponse<Log
             return ApiResponse<LoginResponse>.Fail("Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.");
 
         if (account.Status == AccountStatus.Inactive)
-            return ApiResponse<LoginResponse>.Fail("Tài khoản đã bị vô hiệu hóa.");
+            return ApiResponse<LoginResponse>.Fail("Tài khoản chưa được kích hoạt hoặc chưa xác thực email. Vui lòng xác thực email để đăng nhập.");
 
         // ── Verify password ───────────────────────────────────────────────────
         if (!BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash))

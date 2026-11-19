@@ -5,6 +5,9 @@ import type {
   LoginRequest,
   LoginResponse,
   RegisterRequest,
+  RegisterResponse,
+  VerifyEmailOtpRequest,
+  ResendEmailOtpRequest,
   UpdateProfileRequest,
   ChangePasswordRequest,
   ProfileDto,
@@ -30,7 +33,7 @@ export const identityApi = {
   },
 
   // Đăng ký
-  register: async (data: RegisterRequest): Promise<CurrentUser> => {
+  register: async (data: RegisterRequest): Promise<RegisterResponse> => {
     // BE RegisterRequest(Username, FullName, Email, Password, PhoneNumber)
     const payload = {
       username: data.username,
@@ -39,16 +42,20 @@ export const identityApi = {
       password: data.password,
       phoneNumber: data.phoneNumber || data.phone || null,
     }
-    const res = await apiClient.post<ApiResponse<number>>('/api/identity/register', payload)
-    return {
-      id: res.data.data,
-      username: data.username,
-      email: data.email,
-      fullName: data.fullName,
-      role: 'Reader',
-      phoneNumber: data.phoneNumber || data.phone,
-      phone: data.phoneNumber || data.phone,
-    }
+    const res = await apiClient.post<ApiResponse<RegisterResponse>>('/api/identity/register', payload)
+    return res.data.data
+  },
+
+  // Xác thực mã OTP đăng ký email
+  verifyEmailOtp: async (data: VerifyEmailOtpRequest): Promise<boolean> => {
+    const res = await apiClient.post<ApiResponse<boolean>>('/api/identity/verify-email-otp', data)
+    return res.data.data
+  },
+
+  // Gửi lại mã OTP đăng ký email
+  resendEmailOtp: async (data: ResendEmailOtpRequest): Promise<boolean> => {
+    const res = await apiClient.post<ApiResponse<boolean>>('/api/identity/resend-email-otp', data)
+    return res.data.data
   },
 
   // Lấy hồ sơ cá nhân

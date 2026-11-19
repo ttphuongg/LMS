@@ -25,8 +25,24 @@ export interface RegisterRequest {
   fullName: string
   email: string
   password: string
+  confirmPassword?: string
   phoneNumber?: string
   phone?: string // Tương thích ngược form hiện tại
+}
+
+export interface RegisterResponse {
+  accountId: number
+  email: string
+  message: string
+}
+
+export interface VerifyEmailOtpRequest {
+  email: string
+  otp: string
+}
+
+export interface ResendEmailOtpRequest {
+  email: string
 }
 
 export interface ProfileDto {

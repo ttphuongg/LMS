@@ -402,6 +402,8 @@ app.UseAuthorization();
 
 // ── Identity ──────────────────────────────────────────────────────────────────
 RegisterEndpoint.Map(app);
+Library.Modules.Core.Identity.Features.VerifyEmailOtp.VerifyEmailOtpEndpoint.Map(app);
+Library.Modules.Core.Identity.Features.ResendEmailOtp.ResendEmailOtpEndpoint.Map(app);
 LoginEndpoint.Map(app);
 Library.Modules.Core.Identity.Features.ForgotPassword.ForgotPasswordEndpoint.Map(app);
 Library.Modules.Core.Identity.Features.ResetPassword.ResetPasswordEndpoint.Map(app);

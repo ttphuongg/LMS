@@ -14,5 +14,10 @@ public interface IEmailService
     /// Gửi email đặt lại mật khẩu kèm mã xác thực OTP.
     /// </summary>
     Task SendPasswordResetEmailAsync(string toEmail, string resetToken, string otpCode, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gửi email xác thực tài khoản đăng ký mới kèm mã OTP 6 chữ số.
+    /// </summary>
+    Task SendRegistrationOtpEmailAsync(string toEmail, string otpCode, string? fullName = null, CancellationToken ct = default);
 }
 

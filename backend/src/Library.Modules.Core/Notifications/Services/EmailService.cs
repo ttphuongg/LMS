@@ -161,5 +161,45 @@ public sealed class EmailService : IEmailService
 
         await SendEmailAsync(toEmail, "[Libri] Yêu cầu đặt lại mật khẩu tài khoản", htmlBody, ct);
     }
+
+    public async Task SendRegistrationOtpEmailAsync(string toEmail, string otpCode, string? fullName = null, CancellationToken ct = default)
+    {
+        _logger.LogInformation("Registration verification OTP email prepared for {Email}", toEmail);
+
+        var displayName = !string.IsNullOrWhiteSpace(fullName) ? fullName.Trim() : "Bạn đọc";
+
+        var htmlBody = $"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0d8c8; border-radius: 8px; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <h2 style="color: #003D28; margin: 0; font-family: Georgia, serif;">LIBRI</h2>
+                <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Cổng thông tin & Thư viện điện tử</p>
+            </div>
+
+            <p style="color: #374151; font-size: 15px; line-height: 1.6;">
+                Xin chào <strong>{System.Net.WebUtility.HtmlEncode(displayName)}</strong>,
+            </p>
+            <p style="color: #374151; font-size: 15px; line-height: 1.6;">
+                Cảm ơn bạn đã đăng ký tài khoản thẻ thư viện tại <strong>Libri</strong>. Để kích hoạt tài khoản và hoàn tất đăng ký, vui lòng sử dụng mã xác thực (OTP) bên dưới:
+            </p>
+
+            <div style="background-color: #f9f6f0; border: 1px dashed #d1c7b7; border-radius: 6px; padding: 18px; margin: 24px 0; text-align: center;">
+                <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Mã xác thực đăng ký tài khoản</div>
+                <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #003D28; font-family: monospace;">{otpCode}</div>
+                <div style="font-size: 12px; color: #b45309; font-weight: 500; margin-top: 8px;">(Mã có hiệu lực trong vòng 3 phút)</div>
+            </div>
+
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.6;">
+                * Tuyệt đối không chia sẻ mã này cho bất kỳ ai. Nhân viên thư viện sẽ không bao giờ yêu cầu bạn cung cấp mã xác thực này.
+            </p>
+
+            <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 24px 0;" />
+            <p style="color: #9ca3af; font-size: 12px; line-height: 1.5; margin: 0;">
+                * Nếu bạn không thực hiện đăng ký tài khoản tại Libri, vui lòng bỏ qua email này.
+            </p>
+        </div>
+        """;
+
+        await SendEmailAsync(toEmail, "[Libri] Mã xác thực đăng ký tài khoản", htmlBody, ct);
+    }
 }
 
