@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Form, Input, Button, Card, Alert, Typography } from 'antd'
+import { Form, Input, Button, Card, Alert, Typography, Checkbox } from 'antd'
 import { appMessage as message } from '@/shared/utils/appFeedback'
 import {
   MailOutlined,
@@ -12,7 +12,10 @@ import {
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import { identityApi } from '../api'
+import { useAuth } from '../authStore'
+import { LibraryPolicyModal } from '../components/LibraryPolicyModal'
 import type { RegisterRequest } from '../types'
+import type { CurrentUser, UserRole } from '@/shared/api/types'
 import { mutedTextStyle, radiusStyle } from '@/shared/styles/ui'
 import { getErrorMessage } from '@/shared/utils/format'
 
@@ -52,10 +55,15 @@ interface RegistrationSession {
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate()
+  const { setAuth } = useAuth()
   const [form] = Form.useForm()
 
   // Quản lý bước: 'form' (điền thông tin) | 'verify-otp' (nhập mã xác thực email)
   const [step, setStep] = useState<'form' | 'verify-otp'>('form')
+
+  // Trạng thái đồng ý quy định thư viện & mở modal xem quy định
+  const [agreePolicy, setAgreePolicy] = useState(false)
+  const [policyModalOpen, setPolicyModalOpen] = useState(false)
 
   // Trạng thái phiên đăng ký đang chờ xác thực (lưu lại thông tin để kiểm tra thay đổi & sở hữu phiên)
   const [registrationSession, setRegistrationSession] = useState<RegistrationSession | null>(null)
@@ -112,6 +120,11 @@ export const RegisterPage: React.FC = () => {
 
   // ── Xử lý gửi Form Đăng Ký ────────────────────────────────────────────────
   const handleRegisterSubmit = async (values: RegisterRequest) => {
+    if (!agreePolicy) {
+      message.warning('Vui lòng đọc và đồng ý với quy định của thư viện để tiếp tục.')
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
@@ -290,14 +303,28 @@ export const RegisterPage: React.FC = () => {
       setVerifying(true)
       setOtpError(null)
 
-      await identityApi.verifyEmailOtp({
+      const authData = await identityApi.verifyEmailOtp({
         email: registeredEmail,
         otp: fullOtp,
       })
 
-      setRegistrationSession(null)
-      message.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập.')
-      navigate('/login')
+      if (authData && authData.accessToken) {
+        const user: CurrentUser = {
+          id: authData.accountId,
+          username: authData.username,
+          fullName: authData.fullName,
+          email: authData.email,
+          role: authData.role as UserRole,
+        }
+        setAuth(user, authData.accessToken, authData.refreshToken)
+        setRegistrationSession(null)
+        message.success(`Xác thực thành công! Chào mừng ${authData.fullName || authData.username} đến với Thư viện.`)
+        navigate('/', { replace: true })
+      } else {
+        setRegistrationSession(null)
+        message.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập.')
+        navigate('/login', { replace: true })
+      }
     } catch (err: unknown) {
       setOtpError(getErrorMessage(err, 'Mã xác thực không chính xác hoặc đã hết hạn.'))
     } finally {
@@ -547,16 +574,52 @@ export const RegisterPage: React.FC = () => {
                   />
                 </Form.Item>
 
-                <Form.Item style={{ marginTop: 'var(--sp-6)' }}>
+                {/* Ô tick đồng ý quy định thư viện */}
+                <div style={{ marginTop: 'var(--sp-4)', marginBottom: 'var(--sp-2)' }}>
+                  <Checkbox
+                    checked={agreePolicy}
+                    onChange={(e) => setAgreePolicy(e.target.checked)}
+                    style={{ fontSize: 13.5, lineHeight: 1.5, alignItems: 'flex-start' }}
+                  >
+                    <span>Tôi đã đọc và đồng ý với </span>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setPolicyModalOpen(true)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setPolicyModalOpen(true)
+                        }
+                      }}
+                      style={{
+                        color: 'var(--primary)',
+                        fontWeight: 600,
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      quy định của thư viện
+                    </span>
+                  </Checkbox>
+                </div>
+
+                <Form.Item style={{ marginTop: 'var(--sp-4)' }}>
                   <Button
                     type="primary"
                     htmlType="submit"
                     block
                     size="large"
                     loading={loading}
+                    disabled={!agreePolicy || loading}
                     style={{
-                      background: 'var(--primary)',
-                      borderColor: 'var(--primary)',
+                      background: !agreePolicy || loading ? undefined : 'var(--primary)',
+                      borderColor: !agreePolicy || loading ? undefined : 'var(--primary)',
                       fontWeight: 600,
                       borderRadius: 'var(--radius)',
                     }}
@@ -783,6 +846,16 @@ export const RegisterPage: React.FC = () => {
           )}
         </AnimatePresence>
       </Card>
+
+      {/* Modal hiển thị quy định thư viện Domus Libri */}
+      <LibraryPolicyModal
+        open={policyModalOpen}
+        onClose={() => setPolicyModalOpen(false)}
+        onAgree={() => {
+          setAgreePolicy(true)
+          setPolicyModalOpen(false)
+        }}
+      />
     </div>
   )
 }

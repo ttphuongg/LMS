@@ -7,6 +7,7 @@ import type {
   RegisterRequest,
   RegisterResponse,
   VerifyEmailOtpRequest,
+  VerifyEmailOtpResponse,
   ResendEmailOtpRequest,
   UpdateProfileRequest,
   ChangePasswordRequest,
@@ -48,8 +49,8 @@ export const identityApi = {
   },
 
   // Xác thực mã OTP đăng ký email
-  verifyEmailOtp: async (data: VerifyEmailOtpRequest): Promise<boolean> => {
-    const res = await apiClient.post<ApiResponse<boolean>>('/api/identity/verify-email-otp', data)
+  verifyEmailOtp: async (data: VerifyEmailOtpRequest): Promise<VerifyEmailOtpResponse> => {
+    const res = await apiClient.post<ApiResponse<VerifyEmailOtpResponse>>('/api/identity/verify-email-otp', data)
     return res.data.data
   },
 

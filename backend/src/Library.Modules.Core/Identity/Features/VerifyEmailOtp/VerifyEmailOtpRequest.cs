@@ -6,4 +6,4 @@ namespace Library.Modules.Core.Identity.Features.VerifyEmailOtp;
 public record VerifyEmailOtpRequest(
     string Email,
     string Otp
-) : IRequest<ApiResponse<bool>>;
+) : IRequest<ApiResponse<VerifyEmailOtpResponse>>;

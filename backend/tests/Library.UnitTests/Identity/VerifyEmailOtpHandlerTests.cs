@@ -19,11 +19,27 @@ public class VerifyEmailOtpHandlerTests
     private static string HashSha256(string input) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(input))).ToLowerInvariant();
 
+    private readonly JwtTokenService _jwtService;
+
+    public VerifyEmailOtpHandlerTests()
+    {
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["JwtSettings:SecretKey"] = "SuperSecretKeyForTestingJwtService123456!",
+            ["JwtSettings:Issuer"] = "TestIssuer",
+            ["JwtSettings:Audience"] = "TestAudience",
+            ["JwtSettings:AccessTokenExpiryMinutes"] = "60",
+            ["JwtSettings:RefreshTokenExpiryDays"] = "7"
+        }).Build();
+
+        _jwtService = new JwtTokenService(config);
+    }
+
     [Fact]
     public async Task Verify_Should_Fail_When_Account_Does_Not_Exist()
     {
         using var db = TestDbContextFactory.CreateIdentityDbContext();
-        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator());
+        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator(), _jwtService);
         var request = new VerifyEmailOtpRequest("nonexistent@domain.com", "123456");
 
         var result = await handler.Handle(request, CancellationToken.None);
@@ -47,7 +63,7 @@ public class VerifyEmailOtpHandlerTests
         db.Accounts.Add(account);
         await db.SaveChangesAsync();
 
-        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator());
+        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator(), _jwtService);
         var request = new VerifyEmailOtpRequest("active@domain.com", "123456");
 
         var result = await handler.Handle(request, CancellationToken.None);
@@ -83,7 +99,7 @@ public class VerifyEmailOtpHandlerTests
         db.EmailVerificationOtps.Add(otp);
         await db.SaveChangesAsync();
 
-        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator());
+        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator(), _jwtService);
         var request = new VerifyEmailOtpRequest("unverified@domain.com", "123456");
 
         var result = await handler.Handle(request, CancellationToken.None);
@@ -119,7 +135,7 @@ public class VerifyEmailOtpHandlerTests
         db.EmailVerificationOtps.Add(otp);
         await db.SaveChangesAsync();
 
-        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator());
+        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator(), _jwtService);
         var request = new VerifyEmailOtpRequest("wrong_otp@domain.com", "654321");
 
         var result = await handler.Handle(request, CancellationToken.None);
@@ -158,7 +174,7 @@ public class VerifyEmailOtpHandlerTests
         db.EmailVerificationOtps.Add(otp);
         await db.SaveChangesAsync();
 
-        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator());
+        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator(), _jwtService);
         var request = new VerifyEmailOtpRequest("locked_otp@domain.com", "654321");
 
         var result = await handler.Handle(request, CancellationToken.None);
@@ -195,14 +211,22 @@ public class VerifyEmailOtpHandlerTests
         db.EmailVerificationOtps.Add(otp);
         await db.SaveChangesAsync();
 
-        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator());
+        var handler = new VerifyEmailOtpHandler(db, new VerifyEmailOtpValidator(), _jwtService);
         var request = new VerifyEmailOtpRequest("success@domain.com", "888999");
 
         var result = await handler.Handle(request, CancellationToken.None);
 
         result.Success.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+        result.Data.AccessToken.Should().NotBeNullOrWhiteSpace();
+        result.Data.RefreshToken.Should().NotBeNullOrWhiteSpace();
+        result.Data.AccountId.Should().Be(account.Id);
+        result.Data.Email.Should().Be("success@domain.com");
         account.Status.Should().Be(AccountStatus.Active);
         otp.IsUsed.Should().BeTrue();
+
+        var sessionExists = db.LoginSessions.Any(s => s.AccountId == account.Id);
+        sessionExists.Should().BeTrue();
 
         // Thử lại OTP đã dùng -> Phải báo không thể dùng lại
         var reuseResult = await handler.Handle(request, CancellationToken.None);

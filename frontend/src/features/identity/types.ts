@@ -45,6 +45,8 @@ export interface VerifyEmailOtpRequest {
   otp: string
 }
 
+export type VerifyEmailOtpResponse = LoginResponse
+
 export interface ResendEmailOtpRequest {
   email: string
 }

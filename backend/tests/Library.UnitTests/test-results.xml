@@ -1,117 +1,117 @@
 <testsuites>
-  <testsuite name="Library.UnitTests.dll" tests="104" skipped="0" failures="0" errors="0" time="67.49857830000005" timestamp="2026-11-19T18:17:09" hostname="DESKTOP-D3UT99M" id="0" package="Library.UnitTests.dll">
+  <testsuite name="Library.UnitTests.dll" tests="104" skipped="0" failures="0" errors="0" time="34.750486699999996" timestamp="2026-11-19T20:40:03" hostname="DESKTOP-D3UT99M" id="0" package="Library.UnitTests.dll">
     <properties />
-    <testcase classname="Library.UnitTests.Validation.IssueFineValidatorTests" name="Should_Fail_When_AccountId_Is_Invalid(accountId: 0)" time="2.0583486" />
-    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_PublishedYear_Is_Out_Of_Range(year: 999)" time="0.5379007" />
-    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_PublishedYear_Is_Out_Of_Range(year: 2101)" time="0.0020255" />
-    <testcase classname="Library.UnitTests.Validation.IssueFineValidatorTests" name="Should_Fail_When_AccountId_Is_Invalid(accountId: -1)" time="0.0022979" />
-    <testcase classname="Library.UnitTests.Validation.IssueFineValidatorTests" name="Should_Pass_When_IssueFineRequest_Is_Valid" time="0.0016496" />
-    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_Title_Is_Empty(title: &quot;&quot;)" time="0.0039273" />
-    <testcase classname="Library.UnitTests.Validation.IssueFineValidatorTests" name="Should_Fail_When_Amount_Is_Zero_Or_Negative(amount: 0)" time="0.0029353" />
-    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_Title_Is_Empty(title: &quot;   &quot;)" time="0.0009361" />
-    <testcase classname="Library.UnitTests.Validation.IssueFineValidatorTests" name="Should_Fail_When_Amount_Is_Zero_Or_Negative(amount: -10000)" time="0.0008813" />
-    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_PageCount_Is_Zero_Or_Negative" time="0.0060925" />
-    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Pass_When_AddBookRequest_Is_Valid" time="0.0022642" />
-    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_Isbn_Contains_Invalid_Characters(isbn: &quot;ISBN!@#$&quot;)" time="0.0015010" />
-    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_Isbn_Contains_Invalid_Characters(isbn: &quot;978 604 123 abc&quot;)" time="0.0009162" />
-    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Fail_When_User_Has_Overdue_Fine_Restriction" time="1.1352226" />
-    <testcase classname="Library.UnitTests.Catalog.UpdateBookStatusHandlerTests" name="Should_Fail_When_Book_Does_Not_Exist" time="6.9827932" />
-    <testcase classname="Library.UnitTests.Circulation.ReturnBookHandlerTests" name="Handle_Should_Fail_When_LoanSlip_Not_Found" time="4.9006525" />
-    <testcase classname="Library.UnitTests.Notifications.NotificationHandlerTests" name="SendNotification_Should_Create_Record_And_Return_Id" time="7.0053377" />
-    <testcase classname="Library.UnitTests.Billing.IssueFineHandlerTests" name="Handle_Should_Return_Existing_Fine_When_Incident_Fine_Already_Exists_Preventing_Duplicate" time="7.0171786" />
-    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Fail_When_Book_Is_Not_In_Borrowing_Status" time="3.8074484" />
-    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Fail_When_Otp_Is_Expired" time="6.4636626" />
-    <testcase classname="Library.UnitTests.Billing.IssueFineHandlerTests" name="Handle_Should_Fail_When_Amount_Is_Negative" time="0.0201287" />
-    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Lock_When_FailedAttempts_Reaches_5" time="0.0080424" />
-    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Fail_When_Account_Does_Not_Exist" time="0.0039447" />
-    <testcase classname="Library.UnitTests.Notifications.NotificationHandlerTests" name="MarkAsRead_Should_Succeed_When_Notification_Belongs_To_Account" time="0.0454605" />
-    <testcase classname="Library.UnitTests.Notifications.NotificationHandlerTests" name="MarkAsRead_Should_Fail_When_Notification_Does_Not_Exist_Or_Wrong_Account" time="0.0166938" />
-    <testcase classname="Library.UnitTests.Billing.IssueFineHandlerTests" name="Handle_Should_Create_Fine_And_Publish_Event_When_Valid" time="0.0852762" />
-    <testcase classname="Library.UnitTests.Circulation.ReturnBookHandlerTests" name="Handle_Should_Complete_Loan_When_All_Copies_Are_Returned" time="0.1871708" />
-    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Create_Pending_Renewal_When_Request_Is_Valid" time="0.1466618" />
-    <testcase classname="Library.UnitTests.Billing.PayFineHandlerTests" name="Handle_Should_Fail_When_Fine_Does_Not_Exist" time="0.0556934" />
-    <testcase classname="Library.UnitTests.Circulation.ReturnBookHandlerTests" name="Handle_Should_Keep_LoanSlip_Borrowing_When_Partial_Returned" time="0.0116672" />
-    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Fail_When_User_Does_Not_Own_Loan" time="0.0060780" />
-    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Fail_When_LoanDetail_Does_Not_Exist" time="0.0035829" />
-    <testcase classname="Library.UnitTests.Notifications.LibriEmailTemplatesTests" name="BuildRegistrationOtpEmail_Should_HtmlEncode_User_Inputs" time="0.0036497" />
-    <testcase classname="Library.UnitTests.Notifications.LibriEmailTemplatesTests" name="BuildPasswordResetEmail_Should_Render_Otp_And_Reset_Button" time="0.0016319" />
-    <testcase classname="Library.UnitTests.Notifications.LibriEmailTemplatesTests" name="BuildPasswordResetEmail_Should_HtmlEncode_User_Inputs" time="0.0005751" />
-    <testcase classname="Library.UnitTests.Notifications.LibriEmailTemplatesTests" name="BuildRegistrationOtpEmail_Should_Render_GitHub_Style_And_Libri_Branding" time="0.0010483" />
-    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Fail_When_Maximum_Renewals_Reached" time="0.0102017" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;091234567&quot;)" time="0.0244574" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;0212345678&quot;)" time="0.0017739" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;++++++++++&quot;)" time="0.0008558" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;09123abcde&quot;)" time="0.0008495" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;0412345678&quot;)" time="0.0015944" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;09123456789&quot;)" time="0.0009165" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;12345678&quot;)" time="0.0008738" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;0612345678&quot;)" time="0.0008355" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;0123456789&quot;)" time="0.0011414" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;&quot;)" time="0.0007529" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;0321234567&quot;)" time="0.0006578" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;84912345678&quot;)" time="0.0002210" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;0701234567&quot;)" time="0.0002058" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;+84912345678&quot;)" time="0.0002046" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;0851234567&quot;)" time="0.0002009" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;0912345678&quot;)" time="0.0001867" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;0561234567&quot;)" time="0.0001806" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: null)" time="0.0001856" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Email_Is_Invalid(email: &quot;&quot;)" time="0.0018787" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Email_Is_Invalid(email: &quot;email@@domain..com&quot;)" time="0.0012500" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Email_Is_Invalid(email: &quot;email-sai-dinh-dang&quot;)" time="0.0023823" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Username_Is_Invalid(username: &quot;ab&quot;)" time="0.0020741" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Username_Is_Invalid(username: &quot;&quot;)" time="0.0016249" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Username_Is_Invalid(username: &quot;   &quot;)" time="0.0009393" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Username_Is_Invalid(username: &quot;user@name!&quot;)" time="0.0009796" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Password_Is_Too_Short(password: &quot;12345&quot;)" time="0.0019872" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Password_Is_Too_Short(password: &quot;&quot;)" time="0.0013280" />
-    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Set_Detail_To_Damaged_And_Record_Incident_When_Type_Is_Damaged" time="7.2522097" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_FullName_Is_Empty" time="0.0019851" />
-    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_RegisterRequest_Is_Valid" time="0.0007725" />
-    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Fail_When_LoanDetail_Does_Not_Exist" time="0.0047306" />
-    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Set_Detail_To_Lost_And_Record_Incident_When_Type_Is_Lost" time="0.0096935" />
-    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Complete_LoanSlip_When_All_Details_Resolved" time="0.0082903" />
-    <testcase classname="Library.UnitTests.Circulation.ReserveBookHandlerTests" name="Handle_Should_Fail_When_Account_Is_Locked_Or_Inactive" time="0.0242813" />
-    <testcase classname="Library.UnitTests.Circulation.ReserveBookHandlerTests" name="Handle_Should_Fail_When_Account_Has_Unpaid_Fines" time="0.0187092" />
-    <testcase classname="Library.UnitTests.Circulation.BorrowBookHandlerTests" name="Handle_Should_Succeed_When_Account_And_Copies_Are_Valid" time="0.2245355" />
-    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Fail_When_Incident_Already_Recorded_For_Detail" time="0.0285857" />
-    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Fail_When_Detail_Status_Is_Not_Borrowing" time="0.0059894" />
-    <testcase classname="Library.UnitTests.Circulation.BorrowBookHandlerTests" name="Handle_Should_Fail_When_Copy_Is_Already_Borrowed" time="0.0238443" />
-    <testcase classname="Library.UnitTests.Circulation.BorrowBookHandlerTests" name="Handle_Should_Fail_When_Account_Is_Locked_Or_Inactive" time="0.0049590" />
-    <testcase classname="Library.UnitTests.Billing.PayFineHandlerTests" name="Handle_Should_Pay_Fine_And_Create_Payment_Record_When_Valid" time="0.1516234" />
-    <testcase classname="Library.UnitTests.Circulation.BorrowBookHandlerTests" name="Handle_Should_Fail_When_Account_Has_Unpaid_Fines" time="0.0053120" />
-    <testcase classname="Library.UnitTests.Billing.PayFineHandlerTests" name="Handle_Should_Fail_When_Fine_Is_Already_Paid" time="0.0044696" />
-    <testcase classname="Library.UnitTests.Catalog.UpdateBookStatusHandlerTests" name="Should_Update_Status_To_Inactive_When_No_Copies_Are_Borrowed" time="0.3656996" />
-    <testcase classname="Library.UnitTests.Catalog.UpdateBookStatusHandlerTests" name="Should_Fail_To_Deactivate_When_Book_Has_Borrowed_Copies" time="0.0057963" />
-    <testcase classname="Library.UnitTests.Circulation.ReserveBookHandlerTests" name="Handle_Should_Create_Waiting_Reservation_When_No_Copies_Available" time="0.1771399" />
-    <testcase classname="Library.UnitTests.Circulation.ReserveBookHandlerTests" name="Handle_Should_Fail_When_Already_Has_Active_Reservation_For_Same_Book" time="0.0090701" />
-    <testcase classname="Library.UnitTests.Circulation.ReserveBookHandlerTests" name="Handle_Should_Create_Ready_Reservation_When_Copy_Is_Available" time="0.0192205" />
-    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Login_Should_Fail_When_Account_Is_Inactive" time="1.1868184" />
-    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Activate_Account_When_Otp_Is_Correct" time="0.0063260" />
-    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="ResendOtp_Should_Enforce_60s_Cooldown" time="0.0289969" />
-    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Fail_When_Account_Already_Active" time="0.0031231" />
-    <testcase classname="Library.UnitTests.Identity.LoginHandlerTests" name="Handle_Should_Fail_When_Account_Is_Locked" time="1.0884802" />
-    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="ResendOtp_Should_Issue_New_Otp_After_Cooldown" time="0.0204050" />
-    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Increment_FailedAttempts_When_Otp_Is_Wrong" time="0.0055817" />
-    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Create_Inactive_Account_And_Send_Otp" time="1.1021865" />
-    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Fail_When_Active_Username_Already_Exists" time="0.0043826" />
-    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Fail_When_Active_Email_Already_Exists" time="0.0037727" />
-    <testcase classname="Library.UnitTests.Identity.ResetPasswordHandlerTests" name="Handle_Should_Succeed_And_Update_Password_When_Otp_Is_Valid" time="9.0261967" />
-    <testcase classname="Library.UnitTests.Identity.ResetPasswordHandlerTests" name="Handle_Should_Fail_When_Email_Does_Not_Exist" time="0.0029538" />
-    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Handle_Email_Dispatch_Failure_Gracefully" time="0.8423448" />
-    <testcase classname="Library.UnitTests.Identity.ResetPasswordHandlerTests" name="Handle_Should_Fail_When_Otp_Is_Expired" time="0.8416094" />
-    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Allow_Updating_Pending_Registration_With_Valid_Session_Token" time="0.8027414" />
-    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Not_Allow_Takeover_Of_Inactive_Account_Without_Token" time="0.0179098" />
-    <testcase classname="Library.UnitTests.Identity.LoginHandlerTests" name="Handle_Should_Succeed_And_Return_Tokens_When_Credentials_Are_Valid" time="3.1108378" />
-    <testcase classname="Library.UnitTests.Identity.LoginHandlerTests" name="Handle_Should_Fail_When_Account_Does_Not_Exist" time="0.0021901" />
-    <testcase classname="Library.UnitTests.Identity.LoginHandlerTests" name="Handle_Should_Fail_When_Password_Is_Incorrect" time="0.4627868" />
+    <testcase classname="Library.UnitTests.Validation.IssueFineValidatorTests" name="Should_Fail_When_AccountId_Is_Invalid(accountId: 0)" time="0.1596801" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;091234567&quot;)" time="0.1597286" />
+    <testcase classname="Library.UnitTests.Validation.IssueFineValidatorTests" name="Should_Fail_When_AccountId_Is_Invalid(accountId: -1)" time="0.0037568" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;0212345678&quot;)" time="0.0038840" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;++++++++++&quot;)" time="0.0015682" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;09123abcde&quot;)" time="0.0015778" />
+    <testcase classname="Library.UnitTests.Validation.IssueFineValidatorTests" name="Should_Pass_When_IssueFineRequest_Is_Valid" time="0.0027554" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;0412345678&quot;)" time="0.0015428" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;09123456789&quot;)" time="0.0014178" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;12345678&quot;)" time="0.0013783" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;0612345678&quot;)" time="0.0013123" />
+    <testcase classname="Library.UnitTests.Validation.IssueFineValidatorTests" name="Should_Fail_When_Amount_Is_Zero_Or_Negative(amount: 0)" time="0.0060403" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_PhoneNumber_Is_Invalid_Vietnamese_Format(phone: &quot;0123456789&quot;)" time="0.0012843" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;&quot;)" time="0.0012085" />
+    <testcase classname="Library.UnitTests.Validation.IssueFineValidatorTests" name="Should_Fail_When_Amount_Is_Zero_Or_Negative(amount: -10000)" time="0.0023910" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;0321234567&quot;)" time="0.0010143" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;84912345678&quot;)" time="0.0003958" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;0701234567&quot;)" time="0.0003707" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;+84912345678&quot;)" time="0.0003446" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;0851234567&quot;)" time="0.0003488" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;0912345678&quot;)" time="0.0003035" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: &quot;0561234567&quot;)" time="0.0003272" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_PhoneNumber_Is_Valid_Vietnamese_Format(phone: null)" time="0.0003267" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Email_Is_Invalid(email: &quot;&quot;)" time="0.0051019" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Email_Is_Invalid(email: &quot;email@@domain..com&quot;)" time="0.0021219" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Email_Is_Invalid(email: &quot;email-sai-dinh-dang&quot;)" time="0.0013711" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Username_Is_Invalid(username: &quot;ab&quot;)" time="0.0112164" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Username_Is_Invalid(username: &quot;&quot;)" time="0.0021862" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Username_Is_Invalid(username: &quot;   &quot;)" time="0.0014538" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Username_Is_Invalid(username: &quot;user@name!&quot;)" time="0.0013121" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Password_Is_Too_Short(password: &quot;12345&quot;)" time="0.0025579" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_Password_Is_Too_Short(password: &quot;&quot;)" time="0.0021878" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Fail_When_FullName_Is_Empty" time="0.0028411" />
+    <testcase classname="Library.UnitTests.Validation.RegisterValidatorTests" name="Should_Pass_When_RegisterRequest_Is_Valid" time="0.0041221" />
+    <testcase classname="Library.UnitTests.Circulation.ReturnBookHandlerTests" name="Handle_Should_Fail_When_LoanSlip_Not_Found" time="2.7168937" />
+    <testcase classname="Library.UnitTests.Identity.LoginHandlerTests" name="Handle_Should_Fail_When_Account_Is_Locked" time="3.0678608" />
+    <testcase classname="Library.UnitTests.Notifications.NotificationHandlerTests" name="SendNotification_Should_Create_Record_And_Return_Id" time="2.8366440" />
+    <testcase classname="Library.UnitTests.Notifications.NotificationHandlerTests" name="MarkAsRead_Should_Succeed_When_Notification_Belongs_To_Account" time="0.0414148" />
+    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Fail_When_Otp_Is_Expired" time="3.1166991" />
+    <testcase classname="Library.UnitTests.Notifications.NotificationHandlerTests" name="MarkAsRead_Should_Fail_When_Notification_Does_Not_Exist_Or_Wrong_Account" time="0.0055859" />
+    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Lock_When_FailedAttempts_Reaches_5" time="0.0841462" />
+    <testcase classname="Library.UnitTests.Circulation.ReturnBookHandlerTests" name="Handle_Should_Complete_Loan_When_All_Copies_Are_Returned" time="0.2234393" />
+    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Fail_When_Account_Does_Not_Exist" time="0.0764976" />
+    <testcase classname="Library.UnitTests.Circulation.ReturnBookHandlerTests" name="Handle_Should_Keep_LoanSlip_Borrowing_When_Partial_Returned" time="0.0159791" />
+    <testcase classname="Library.UnitTests.Circulation.BorrowBookHandlerTests" name="Handle_Should_Succeed_When_Account_And_Copies_Are_Valid" time="3.2896071" />
+    <testcase classname="Library.UnitTests.Circulation.BorrowBookHandlerTests" name="Handle_Should_Fail_When_Copy_Is_Already_Borrowed" time="0.0192411" />
+    <testcase classname="Library.UnitTests.Circulation.ReserveBookHandlerTests" name="Handle_Should_Fail_When_Account_Is_Locked_Or_Inactive" time="0.0336011" />
+    <testcase classname="Library.UnitTests.Circulation.BorrowBookHandlerTests" name="Handle_Should_Fail_When_Account_Is_Locked_Or_Inactive" time="0.0109185" />
+    <testcase classname="Library.UnitTests.Circulation.BorrowBookHandlerTests" name="Handle_Should_Fail_When_Account_Has_Unpaid_Fines" time="0.0081055" />
+    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Fail_When_User_Has_Overdue_Fine_Restriction" time="0.0364796" />
+    <testcase classname="Library.UnitTests.Circulation.ReserveBookHandlerTests" name="Handle_Should_Fail_When_Account_Has_Unpaid_Fines" time="0.0466028" />
+    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Fail_When_Book_Is_Not_In_Borrowing_Status" time="0.1615532" />
+    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Set_Detail_To_Damaged_And_Record_Incident_When_Type_Is_Damaged" time="2.3420185" />
+    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Fail_When_LoanDetail_Does_Not_Exist" time="0.0140839" />
+    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Set_Detail_To_Lost_And_Record_Incident_When_Type_Is_Lost" time="0.0131862" />
+    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Complete_LoanSlip_When_All_Details_Resolved" time="0.0091816" />
+    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Fail_When_Incident_Already_Recorded_For_Detail" time="0.0643907" />
+    <testcase classname="Library.UnitTests.Circulation.ReportIncidentHandlerTests" name="Handle_Should_Fail_When_Detail_Status_Is_Not_Borrowing" time="0.0055048" />
+    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Create_Pending_Renewal_When_Request_Is_Valid" time="0.2535239" />
+    <testcase classname="Library.UnitTests.Circulation.ReserveBookHandlerTests" name="Handle_Should_Create_Waiting_Reservation_When_No_Copies_Available" time="0.4147325" />
+    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Fail_When_User_Does_Not_Own_Loan" time="0.0063859" />
+    <testcase classname="Library.UnitTests.Circulation.ReserveBookHandlerTests" name="Handle_Should_Fail_When_Already_Has_Active_Reservation_For_Same_Book" time="0.0111322" />
+    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Fail_When_LoanDetail_Does_Not_Exist" time="0.0076906" />
+    <testcase classname="Library.UnitTests.Circulation.RequestRenewalHandlerTests" name="Handle_Should_Fail_When_Maximum_Renewals_Reached" time="0.0111539" />
+    <testcase classname="Library.UnitTests.Notifications.LibriEmailTemplatesTests" name="BuildRegistrationOtpEmail_Should_HtmlEncode_User_Inputs" time="0.0048868" />
+    <testcase classname="Library.UnitTests.Notifications.LibriEmailTemplatesTests" name="BuildPasswordResetEmail_Should_Render_Otp_And_Reset_Button" time="0.0021888" />
+    <testcase classname="Library.UnitTests.Notifications.LibriEmailTemplatesTests" name="BuildPasswordResetEmail_Should_HtmlEncode_User_Inputs" time="0.0007089" />
+    <testcase classname="Library.UnitTests.Notifications.LibriEmailTemplatesTests" name="BuildRegistrationOtpEmail_Should_Render_GitHub_Style_And_Libri_Branding" time="0.0011708" />
+    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_PublishedYear_Is_Out_Of_Range(year: 999)" time="0.1817919" />
+    <testcase classname="Library.UnitTests.Circulation.ReserveBookHandlerTests" name="Handle_Should_Create_Ready_Reservation_When_Copy_Is_Available" time="0.0391537" />
+    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_PublishedYear_Is_Out_Of_Range(year: 2101)" time="0.0031284" />
+    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_Title_Is_Empty(title: &quot;&quot;)" time="0.0032948" />
+    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_Title_Is_Empty(title: &quot;   &quot;)" time="0.0016986" />
+    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_PageCount_Is_Zero_Or_Negative" time="0.0075110" />
+    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Pass_When_AddBookRequest_Is_Valid" time="0.0145594" />
+    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_Isbn_Contains_Invalid_Characters(isbn: &quot;ISBN!@#$&quot;)" time="0.0030366" />
+    <testcase classname="Library.UnitTests.Validation.AddBookValidatorTests" name="Should_Fail_When_Isbn_Contains_Invalid_Characters(isbn: &quot;978 604 123 abc&quot;)" time="0.0186879" />
+    <testcase classname="Library.UnitTests.Billing.IssueFineHandlerTests" name="Handle_Should_Return_Existing_Fine_When_Incident_Fine_Already_Exists_Preventing_Duplicate" time="0.3745886" />
+    <testcase classname="Library.UnitTests.Billing.PayFineHandlerTests" name="Handle_Should_Fail_When_Fine_Does_Not_Exist" time="0.3354406" />
+    <testcase classname="Library.UnitTests.Billing.IssueFineHandlerTests" name="Handle_Should_Fail_When_Amount_Is_Negative" time="0.0148035" />
+    <testcase classname="Library.UnitTests.Catalog.UpdateBookStatusHandlerTests" name="Should_Fail_When_Book_Does_Not_Exist" time="0.3863508" />
+    <testcase classname="Library.UnitTests.Billing.IssueFineHandlerTests" name="Handle_Should_Create_Fine_And_Publish_Event_When_Valid" time="0.0462152" />
+    <testcase classname="Library.UnitTests.Billing.PayFineHandlerTests" name="Handle_Should_Pay_Fine_And_Create_Payment_Record_When_Valid" time="0.1658774" />
+    <testcase classname="Library.UnitTests.Billing.PayFineHandlerTests" name="Handle_Should_Fail_When_Fine_Is_Already_Paid" time="0.0049714" />
+    <testcase classname="Library.UnitTests.Catalog.UpdateBookStatusHandlerTests" name="Should_Update_Status_To_Inactive_When_No_Copies_Are_Borrowed" time="0.3766672" />
+    <testcase classname="Library.UnitTests.Catalog.UpdateBookStatusHandlerTests" name="Should_Fail_To_Deactivate_When_Book_Has_Borrowed_Copies" time="0.0061732" />
+    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Login_Should_Fail_When_Account_Is_Inactive" time="1.4826001" />
+    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Activate_Account_When_Otp_Is_Correct" time="0.1373005" />
+    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Create_Inactive_Account_And_Send_Otp" time="1.8082433" />
+    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Fail_When_Active_Username_Already_Exists" time="0.0052421" />
+    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="ResendOtp_Should_Enforce_60s_Cooldown" time="0.0393268" />
+    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Fail_When_Account_Already_Active" time="0.0048023" />
+    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Fail_When_Active_Email_Already_Exists" time="0.0057978" />
+    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="ResendOtp_Should_Issue_New_Otp_After_Cooldown" time="0.0079983" />
+    <testcase classname="Library.UnitTests.Identity.VerifyEmailOtpHandlerTests" name="Verify_Should_Increment_FailedAttempts_When_Otp_Is_Wrong" time="0.0053933" />
+    <testcase classname="Library.UnitTests.Identity.ResetPasswordHandlerTests" name="Handle_Should_Succeed_And_Update_Password_When_Otp_Is_Valid" time="5.3834021" />
+    <testcase classname="Library.UnitTests.Identity.ResetPasswordHandlerTests" name="Handle_Should_Fail_When_Email_Does_Not_Exist" time="0.0052238" />
+    <testcase classname="Library.UnitTests.Identity.LoginHandlerTests" name="Handle_Should_Succeed_And_Return_Tokens_When_Credentials_Are_Valid" time="2.3627102" />
+    <testcase classname="Library.UnitTests.Identity.LoginHandlerTests" name="Handle_Should_Fail_When_Account_Does_Not_Exist" time="0.0054454" />
+    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Handle_Email_Dispatch_Failure_Gracefully" time="0.5870331" />
+    <testcase classname="Library.UnitTests.Identity.ResetPasswordHandlerTests" name="Handle_Should_Fail_When_Otp_Is_Expired" time="0.3976208" />
+    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Allow_Updating_Pending_Registration_With_Valid_Session_Token" time="0.4694310" />
+    <testcase classname="Library.UnitTests.Identity.RegisterHandlerTests" name="Register_Should_Not_Allow_Takeover_Of_Inactive_Account_Without_Token" time="0.0256787" />
+    <testcase classname="Library.UnitTests.Identity.LoginHandlerTests" name="Handle_Should_Fail_When_Password_Is_Incorrect" time="0.6906474" />
     <system-out>
 Test Framework Informational Messages:
-[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.0.2+dd36e86129 (64-bit .NET 10.0.5)
-[xUnit.net 00:00:00.83]   Discovering: Library.UnitTests
-[xUnit.net 00:00:00.98]   Discovered:  Library.UnitTests
-[xUnit.net 00:00:01.05]   Starting:    Library.UnitTests
-[xUnit.net 00:00:12.97]   Finished:    Library.UnitTests
+[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.0.2+dd36e86129 (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.53]   Discovering: Library.UnitTests
+[xUnit.net 00:00:00.73]   Discovered:  Library.UnitTests
+[xUnit.net 00:00:00.98]   Starting:    Library.UnitTests
+[xUnit.net 00:00:07.22]   Finished:    Library.UnitTests
 </system-out>
     <system-err></system-err>
   </testsuite>
