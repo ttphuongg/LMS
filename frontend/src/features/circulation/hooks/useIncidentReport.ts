@@ -14,7 +14,7 @@ const DEFAULT_INCIDENT_VALUES = {
 }
 
 /** Trạng thái + hành động của modal "Biên bản sự cố tài liệu". */
-export function useIncidentReport() {
+export function useIncidentReport(onSuccess?: () => void | Promise<void>) {
   const [open, setOpen] = useState(false)
   const [detail, setDetail] = useState<LoanDetailDto | null>(null)
   const [form] = Form.useForm()
@@ -39,6 +39,9 @@ export function useIncidentReport() {
       })
       message.success('Đã lập biên bản sự cố và chuyển kết xuất phí bồi hoàn!')
       setOpen(false)
+      if (onSuccess) {
+        await onSuccess()
+      }
     } catch (err: unknown) {
       message.error(getErrorMessage(err, 'Lỗi khi lập biên bản sự cố'))
     } finally {

@@ -3,6 +3,7 @@ using Library.Modules.Core.Billing.Data;
 using Library.Modules.Core.Shared;
 using Library.Modules.Core.Shared.Events;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Library.Modules.Core.Billing.Features.IssueFine;
 
@@ -23,6 +24,28 @@ public sealed class IssueFineHandler : IRequestHandler<IssueFineRequest, ApiResp
     {
         var val = await _validator.ValidateAsync(request, ct);
         if (!val.IsValid) return ApiResponse<long>.Fail(string.Join("; ", val.Errors.Select(e => e.ErrorMessage)));
+
+        // ── Chống tạo trùng phiếu phạt cho cùng một sự cố (Idempotency) ────────
+        if (request.IncidentId.HasValue && request.IncidentId.Value > 0)
+        {
+            var existingFine = await _db.Fines
+                .FirstOrDefaultAsync(f => f.IncidentId == request.IncidentId.Value, ct);
+            if (existingFine != null)
+            {
+                return ApiResponse<long>.Ok(existingFine.Id);
+            }
+        }
+
+        // ── Chống tạo trùng phiếu phạt quá hạn cho cùng một lượt mượn ─────────
+        if (request.LoanSlipDetailId.HasValue && request.LoanSlipDetailId.Value > 0 && request.FineType == FineType.Overdue)
+        {
+            var existingOverdueFine = await _db.Fines
+                .FirstOrDefaultAsync(f => f.LoanSlipDetailId == request.LoanSlipDetailId.Value && f.FineType == FineType.Overdue, ct);
+            if (existingOverdueFine != null)
+            {
+                return ApiResponse<long>.Ok(existingOverdueFine.Id);
+            }
+        }
 
         var fine = new Fine
         {

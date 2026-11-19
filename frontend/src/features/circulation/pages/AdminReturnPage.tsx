@@ -33,9 +33,6 @@ export const AdminReturnPage: React.FC = () => {
   const searchReqCounter = useRef(0)
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Modal báo cáo sự cố
-  const incident = useIncidentReport()
-
   const fetchLoanDetail = useCallback(async (loanId: string) => {
     const currentReq = ++detailReqCounter.current
     try {
@@ -84,6 +81,16 @@ export const AdminReturnPage: React.FC = () => {
       if (reqId === searchReqCounter.current) setLoansLoading(false)
     }
   }, [fetchLoanDetail])
+
+  const handleReloadAfterIncident = useCallback(async () => {
+    if (selectedLoanId) {
+      await fetchLoanDetail(selectedLoanId)
+      await loadLoans(selectedLoanId)
+    }
+  }, [selectedLoanId, fetchLoanDetail, loadLoans])
+
+  // Modal báo cáo sự cố
+  const incident = useIncidentReport(handleReloadAfterIncident)
 
   useEffect(() => {
     loadLoans(initialLoanId)
@@ -187,6 +194,8 @@ export const AdminReturnPage: React.FC = () => {
       width: 120,
       render: (status: string) => {
         if (status === 'Returned') return <SpineTag variant="neutral">Đã trả</SpineTag>
+        if (status === 'Damaged') return <SpineTag variant="warning">Đã báo hỏng</SpineTag>
+        if (status === 'Lost') return <SpineTag variant="danger">Đã báo mất</SpineTag>
         if (status === 'Overdue') return <SpineTag variant="danger">Quá hạn</SpineTag>
         return <SpineTag variant="primary">Đang mượn</SpineTag>
       },
@@ -195,17 +204,20 @@ export const AdminReturnPage: React.FC = () => {
       title: 'Sự cố tài liệu',
       key: 'incident',
       width: 140,
-      render: (_, r) => (
-        <Button
-          size="small"
-          danger
-          disabled={r.status === 'Returned'}
-          icon={<WarningOutlined />}
-          onClick={() => incident.openFor(r)}
-        >
-          Báo hỏng / Mất
-        </Button>
-      ),
+      render: (_, r) => {
+        const isResolved = r.status === 'Returned' || r.status === 'Damaged' || r.status === 'Lost'
+        return (
+          <Button
+            size="small"
+            danger={!isResolved}
+            disabled={isResolved}
+            icon={<WarningOutlined />}
+            onClick={() => incident.openFor(r)}
+          >
+            {r.status === 'Damaged' ? 'Đã báo hỏng' : r.status === 'Lost' ? 'Đã báo mất' : 'Báo hỏng / Mất'}
+          </Button>
+        )
+      },
     },
   ]
 
@@ -307,7 +319,7 @@ export const AdminReturnPage: React.FC = () => {
                 selectedRowKeys: selectedDetailIds,
                 onChange: (keys) => setSelectedDetailIds(keys),
                 getCheckboxProps: (record) => ({
-                  disabled: record.status === 'Returned',
+                  disabled: record.status !== 'Borrowing' && record.status !== 'Overdue',
                 }),
               }}
               columns={columns}

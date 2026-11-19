@@ -107,6 +107,137 @@ public class ReportIncidentHandlerTests
     }
 
     [Fact]
+    public async Task Handle_Should_Fail_When_Detail_Status_Is_Not_Borrowing()
+    {
+        // Arrange
+        var loanSlip = new LoanSlip
+        {
+            AccountId = 1,
+            DueDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
+            Status = LoanStatus.Returned
+        };
+        var detail = new LoanSlipDetail
+        {
+            LoanSlip = loanSlip,
+            BookCopyId = 102,
+            Status = LoanDetailStatus.Returned // Đã trả rồi
+        };
+        _db.LoanSlips.Add(loanSlip);
+        _db.LoanSlipDetails.Add(detail);
+        await _db.SaveChangesAsync();
+
+        var handler = new ReportIncidentHandler(_db, _sender, _validator, _mediator);
+        var request = new ReportIncidentRequest(
+            LoanSlipDetailId: detail.Id,
+            LibrarianId: 99,
+            IncidentType: IncidentType.Damaged,
+            Severity: IncidentSeverity.Minor,
+            CompensationAmount: 50000,
+            Description: "Cố tình báo hỏng sách đã trả"
+        );
+
+        // Act
+        var result = await handler.Handle(request, CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.Should().Contain("không ở trạng thái đang mượn");
+    }
+
+    [Fact]
+    public async Task Handle_Should_Fail_When_Incident_Already_Recorded_For_Detail()
+    {
+        // Arrange
+        var loanSlip = new LoanSlip
+        {
+            AccountId = 1,
+            DueDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
+            Status = LoanStatus.Borrowing
+        };
+        var detail = new LoanSlipDetail
+        {
+            LoanSlip = loanSlip,
+            BookCopyId = 103,
+            Status = LoanDetailStatus.Borrowing
+        };
+        var incident = new Incident
+        {
+            LoanSlipDetail = detail,
+            IncidentType = IncidentType.Damaged,
+            Severity = IncidentSeverity.Minor,
+            CompensationAmount = 50000,
+            Status = IncidentStatus.Recorded
+        };
+        _db.LoanSlips.Add(loanSlip);
+        _db.LoanSlipDetails.Add(detail);
+        _db.Incidents.Add(incident);
+        await _db.SaveChangesAsync();
+
+        var handler = new ReportIncidentHandler(_db, _sender, _validator, _mediator);
+        var request = new ReportIncidentRequest(
+            LoanSlipDetailId: detail.Id,
+            LibrarianId: 99,
+            IncidentType: IncidentType.Damaged,
+            Severity: IncidentSeverity.Minor,
+            CompensationAmount: 50000,
+            Description: "Báo sự cố lần 2 trùng lặp"
+        );
+
+        // Act
+        var result = await handler.Handle(request, CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.Should().Contain("đã được lập biên bản sự cố trước đó");
+    }
+
+    [Fact]
+    public async Task Handle_Should_Complete_LoanSlip_When_All_Details_Resolved()
+    {
+        // Arrange
+        var loanSlip = new LoanSlip
+        {
+            AccountId = 1,
+            DueDate = DateOnly.FromDateTime(DateTime.Today.AddDays(7)),
+            Status = LoanStatus.Borrowing
+        };
+        var detail1 = new LoanSlipDetail
+        {
+            LoanSlip = loanSlip,
+            BookCopyId = 201,
+            Status = LoanDetailStatus.Returned // Cuốn 1 đã trả
+        };
+        var detail2 = new LoanSlipDetail
+        {
+            LoanSlip = loanSlip,
+            BookCopyId = 202,
+            Status = LoanDetailStatus.Borrowing // Cuốn 2 đang mượn
+        };
+        _db.LoanSlips.Add(loanSlip);
+        _db.LoanSlipDetails.AddRange(detail1, detail2);
+        await _db.SaveChangesAsync();
+
+        var handler = new ReportIncidentHandler(_db, _sender, _validator, _mediator);
+        var request = new ReportIncidentRequest(
+            LoanSlipDetailId: detail2.Id,
+            LibrarianId: 99,
+            IncidentType: IncidentType.Lost,
+            Severity: IncidentSeverity.TotalLoss,
+            CompensationAmount: 250000,
+            Description: "Báo mất cuốn cuối cùng trong phiếu"
+        );
+
+        // Act
+        var result = await handler.Handle(request, CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeTrue();
+
+        var updatedSlip = await _db.LoanSlips.FindAsync(loanSlip.Id);
+        updatedSlip!.Status.Should().Be(LoanStatus.Returned); // Tự động đóng phiếu hoàn tất
+    }
+
+    [Fact]
     public async Task Handle_Should_Fail_When_LoanDetail_Does_Not_Exist()
     {
         // Arrange
@@ -128,4 +259,3 @@ public class ReportIncidentHandlerTests
         result.Error.Should().Contain("Chi tiết phiếu mượn không tồn tại");
     }
 }
-

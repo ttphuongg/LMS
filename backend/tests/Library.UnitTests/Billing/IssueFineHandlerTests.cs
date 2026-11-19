@@ -52,6 +52,42 @@ public class IssueFineHandlerTests
     }
 
     [Fact]
+    public async Task Handle_Should_Return_Existing_Fine_When_Incident_Fine_Already_Exists_Preventing_Duplicate()
+    {
+        // Arrange
+        var existingFine = new Fine
+        {
+            AccountId = 10,
+            IncidentId = 777,
+            FineType = FineType.Compensation,
+            Amount = 150000,
+            Status = FineStatus.Unpaid
+        };
+        _db.Fines.Add(existingFine);
+        await _db.SaveChangesAsync();
+
+        var handler = new IssueFineHandler(_db, _validator, _mediator);
+        var duplicateRequest = new IssueFineRequest(
+            AccountId: 10,
+            LoanSlipDetailId: null,
+            IncidentId: 777, // Trùng IncidentId
+            FineType: FineType.Compensation,
+            Amount: 150000,
+            PaymentDueDate: null
+        );
+
+        // Act
+        var result = await handler.Handle(duplicateRequest, CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.Data.Should().Be(existingFine.Id);
+
+        var totalFines = await _db.Fines.CountAsync(f => f.IncidentId == 777);
+        totalFines.Should().Be(1); // Không tạo thêm phiếu phạt nào
+    }
+
+    [Fact]
     public async Task Handle_Should_Fail_When_Amount_Is_Negative()
     {
         // Arrange

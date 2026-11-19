@@ -469,7 +469,7 @@ export const RegisterPage: React.FC = () => {
                     { required: true, message: 'Vui lòng nhập số điện thoại' },
                     {
                       pattern: /^(0|\+84|84)[35789]\d{8}$/,
-                      message: 'Số điện thoại không hợp lệ (VD: 0912345678 hoặc +84912345678)',
+                      message: 'Số điện thoại không hợp lệ',
                     },
                   ]}
                 >
