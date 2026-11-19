@@ -18,27 +18,21 @@ public sealed class EmailService : IEmailService
     }
 
     /// <summary>
-    /// Gửi email tổng quát qua giao thức SMTP. Nếu chưa cấu hình SMTP, ghi log ra console để phục vụ kiểm thử.
+    /// Gửi email tổng quát qua giao thức SMTP.
+    /// Sử dụng cơ chế xác thực chứng chỉ TLS mặc định của .NET / MailKit.
+    /// Phân biệt rõ lỗi cấu hình, lỗi kết nối, lỗi xác thực và lỗi gửi thư.
     /// </summary>
-    public async Task SendEmailAsync(string toEmail, string subject, string htmlBody, CancellationToken ct = default)
+    public async Task<EmailSendResult> SendEmailAsync(string toEmail, string subject, string htmlBody, CancellationToken ct = default)
     {
-        // Log ra console để tiện kiểm thử ngay lập tức (kể cả khi chưa cấu hình SMTP server)
-        var consoleNotice = $"""
-        ================================================================================
-        [THÔNG BÁO GỬI EMAIL - HỆ THỐNG THƯ VIỆN LIBRI]
-        Gửi đến: {toEmail}
-        Tiêu đề: {subject}
-        Thời gian: {DateTime.UtcNow.AddHours(7):dd/MM/yyyy HH:mm:ss} (UTC+7)
-        ================================================================================
-        """;
-        Console.WriteLine(consoleNotice);
-        _logger.LogInformation("Email dispatch prepared for {Email} with subject '{Subject}'", toEmail, subject);
+        // Ghi log trạng thái chuẩn bị gửi (tuyệt đối không ghi thông tin nhạy cảm / OTP)
+        _logger.LogInformation("Preparing to send email to {Email} with subject '{Subject}'", toEmail, subject);
 
         var smtpHost = _cfg["Smtp:Host"] ?? Environment.GetEnvironmentVariable("SMTP_HOST");
         if (string.IsNullOrWhiteSpace(smtpHost))
         {
-            _logger.LogWarning("SMTP host is not configured. Email to {Email} was logged to console only.", toEmail);
-            return;
+            var msg = "Máy chủ chưa được cấu hình dịch vụ gửi email (thiếu SMTP_HOST). Vui lòng cấu hình SMTP hoặc liên hệ quản trị viên.";
+            _logger.LogWarning("SMTP host is not configured. Email to {Email} was not sent.", toEmail);
+            return EmailSendResult.Failed(msg, EmailFailureType.ConfigurationMissing);
         }
 
         var portString = _cfg["Smtp:Port"] ?? Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587";
@@ -66,8 +60,9 @@ public sealed class EmailService : IEmailService
 
             using var client = new SmtpClient();
 
-            // Chấp nhận chứng chỉ nếu có cảnh báo tên miền SSL trung gian
-            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+            // SỬ DỤNG CƠ CHẾ XÁC THỰC CHỨNG CHỈ TLS MẶC ĐỊNH CỦA MAILKIT / .NET
+            // Loại bỏ hoàn toàn callback chấp nhận mọi chứng chỉ để đảm bảo an toàn kết nối,
+            // không bỏ qua lỗi chứng chỉ không hợp lệ, hết hạn hoặc không khớp hostname.
 
             var secureSocketOptions = port switch
             {
@@ -76,130 +71,94 @@ public sealed class EmailService : IEmailService
                 _ => enableSsl ? SecureSocketOptions.Auto : SecureSocketOptions.None
             };
 
-            await client.ConnectAsync(smtpHost, port, secureSocketOptions, ct);
+            try
+            {
+                await client.ConnectAsync(smtpHost, port, secureSocketOptions, ct);
+            }
+            catch (SslHandshakeException sslEx)
+            {
+                var errDetail = sslEx.InnerException != null ? $"{sslEx.Message} -> {sslEx.InnerException.Message}" : sslEx.Message;
+                _logger.LogError(sslEx, "TLS certificate validation failed when connecting to SMTP host {Host}:{Port}. Detail: {Detail}", smtpHost, port, errDetail);
+                return EmailSendResult.Failed($"Lỗi bảo mật TLS: Chứng chỉ của máy chủ thư ({smtpHost}:{port}) không hợp lệ hoặc không an toàn ({errDetail}).", EmailFailureType.ConnectionFailed);
+            }
+            catch (Exception ex)
+            {
+                var errDetail = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;
+                _logger.LogError(ex, "Failed to connect to SMTP host {Host}:{Port}. Detail: {Detail}", smtpHost, port, errDetail);
+                return EmailSendResult.Failed($"Không thể kết nối đến máy chủ thư ({smtpHost}:{port}): {errDetail}", EmailFailureType.ConnectionFailed);
+            }
 
             if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
             {
                 var cleanPassword = password.Trim().Trim('"', '\'');
-                await client.AuthenticateAsync(username.Trim(), cleanPassword, ct);
+                try
+                {
+                    await client.AuthenticateAsync(username.Trim(), cleanPassword, ct);
+                }
+                catch (Exception ex)
+                {
+                    var errDetail = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;
+                    _logger.LogError(ex, "Failed to authenticate with SMTP server for user {Username}. Detail: {Detail}", username, errDetail);
+                    return EmailSendResult.Failed($"Xác thực tài khoản SMTP thất bại: {errDetail}", EmailFailureType.AuthenticationFailed);
+                }
             }
 
-            await client.SendAsync(FormatOptions.Default, message, ct);
-            await client.DisconnectAsync(true, ct);
+            try
+            {
+                await client.SendAsync(FormatOptions.Default, message, ct);
+                await client.DisconnectAsync(true, ct);
+            }
+            catch (Exception ex)
+            {
+                var errDetail = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;
+                _logger.LogError(ex, "Failed to send email to {Email}. Detail: {Detail}", toEmail, errDetail);
+                return EmailSendResult.Failed($"Lỗi gửi thư tới {toEmail}: {errDetail}", EmailFailureType.SendError);
+            }
 
             _logger.LogInformation("Email sent successfully to {Email} with subject '{Subject}'", toEmail, subject);
-            Console.WriteLine($"[SMTP SUCCESS] Đã gửi email thành công tới {toEmail} qua {smtpHost}:{port} | Tiêu đề: {subject}");
+            return EmailSendResult.Ok();
         }
         catch (Exception ex)
         {
             var errDetail = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;
-            Console.WriteLine($"[SMTP ERROR] Không thể gửi mail tới {toEmail} qua {smtpHost}:{port} (User: {username}): {errDetail}");
-            _logger.LogError(ex, "Failed to send email to {Email}. Detail: {Detail}", toEmail, errDetail);
+            _logger.LogError(ex, "Unexpected failure sending email to {Email}. Detail: {Detail}", toEmail, errDetail);
+            return EmailSendResult.Failed($"Lỗi gửi email: {errDetail}", EmailFailureType.SendError);
         }
     }
 
-    public async Task SendPasswordResetEmailAsync(string toEmail, string resetToken, string otpCode, CancellationToken ct = default)
+    /// <summary>
+    /// Gửi email đặt lại mật khẩu kèm mã OTP và liên kết đặt lại.
+    /// Không ghi OTP hoặc liên kết chứa token bí mật vào log / console.
+    /// </summary>
+    public async Task<EmailSendResult> SendPasswordResetEmailAsync(string toEmail, string resetToken, string otpCode, CancellationToken ct = default)
     {
+        // Ghi log nghiệp vụ KHÔNG chứa OTP hay liên kết chứa mã bí mật
+        _logger.LogInformation("Password reset email dispatch requested for {Email}", toEmail);
+
         var frontendUrl = _cfg["FrontendUrl"]
             ?? _cfg["FRONTEND_URL"]
             ?? _cfg["AppUrl"]
             ?? Environment.GetEnvironmentVariable("FRONTEND_URL")
             ?? "https://libri.id.vn";
 
-        var resetLink = $"{frontendUrl.TrimEnd('/')}/reset-password?email={Uri.EscapeDataString(toEmail)}&otp={otpCode}";
+        var resetLink = $"{frontendUrl.TrimEnd('/')}/reset-password?email={Uri.EscapeDataString(toEmail)}&otp={Uri.EscapeDataString(otpCode)}";
 
-        // In rõ mã OTP và link reset ra Console phục vụ test nhanh ngay trên Terminal / Docker log
-        var resetNotice = $"""
-        ================================================================================
-        [THÔNG BÁO GỬI EMAIL ĐẶT LẠI MẬT KHẨU]
-        Gửi đến: {toEmail}
-        Mã xác thực OTP (6 chữ số): {otpCode}
-        Đường dẫn đặt lại mật khẩu: {resetLink}
-        Thời hạn sử dụng: 15 phút
-        ================================================================================
-        """;
-        Console.WriteLine(resetNotice);
-        _logger.LogInformation("Password reset email prepared for {Email}. OTP: {Otp}, Link: {Link}", toEmail, otpCode, resetLink);
+        var htmlBody = LibriEmailTemplates.BuildPasswordResetEmail(toEmail, otpCode, resetLink);
 
-        var htmlBody = $"""
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0d8c8; border-radius: 8px; background-color: #ffffff;">
-            <div style="text-align: center; margin-bottom: 24px;">
-                <h2 style="color: #003D28; margin: 0; font-family: Georgia, serif;">LIBRI</h2>
-                <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Cổng thông tin & quản lý bạn đọc</p>
-            </div>
-
-            <p style="color: #374151; font-size: 15px; line-height: 1.6;">
-                Xin chào bạn,
-            </p>
-            <p style="color: #374151; font-size: 15px; line-height: 1.6;">
-                Hệ thống vừa nhận được yêu cầu đặt lại mật khẩu cho tài khoản liên kết với địa chỉ email <strong>{System.Net.WebUtility.HtmlEncode(toEmail)}</strong>.
-            </p>
-
-            <div style="background-color: #f9f6f0; border: 1px dashed #d1c7b7; border-radius: 6px; padding: 18px; margin: 24px 0; text-align: center;">
-                <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Mã xác thực OTP của bạn</div>
-                <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #003D28; font-family: monospace;">{otpCode}</div>
-                <div style="font-size: 12px; color: #9ca3af; margin-top: 8px;">(Hiệu lực trong vòng 15 phút)</div>
-            </div>
-
-            <div style="text-align: center; margin: 32px 0;">
-                <a href="{resetLink}" style="display: inline-block; background-color: #003D28; color: #ffffff; text-decoration: none; padding: 12px 28px; font-size: 15px; font-weight: 600; border-radius: 6px;">
-                    Đặt Lại Mật Khẩu Ngay
-                </a>
-            </div>
-
-            <p style="color: #6b7280; font-size: 13px; line-height: 1.5;">
-                Nếu nút trên không hoạt động, bạn có thể sao chép và dán liên kết sau vào trình duyệt:<br/>
-                <a href="{resetLink}" style="color: #003D28; word-break: break-all;">{resetLink}</a>
-            </p>
-
-            <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 24px 0;" />
-            <p style="color: #9ca3af; font-size: 12px; line-height: 1.5; margin: 0;">
-                * Nếu bạn không yêu cầu đặt lại mật khẩu, xin vui lòng bỏ qua email này. Mật khẩu hiện tại của bạn vẫn được an toàn.
-            </p>
-        </div>
-        """;
-
-        await SendEmailAsync(toEmail, "[Libri] Yêu cầu đặt lại mật khẩu tài khoản", htmlBody, ct);
+        return await SendEmailAsync(toEmail, "[Libri] Đặt lại mật khẩu Libri", htmlBody, ct);
     }
 
-    public async Task SendRegistrationOtpEmailAsync(string toEmail, string otpCode, string? fullName = null, CancellationToken ct = default)
+    /// <summary>
+    /// Gửi email xác thực đăng ký tài khoản kèm mã OTP 6 chữ số.
+    /// Không ghi OTP vào log / console.
+    /// </summary>
+    public async Task<EmailSendResult> SendRegistrationOtpEmailAsync(string toEmail, string otpCode, string? fullName = null, CancellationToken ct = default)
     {
-        _logger.LogInformation("Registration verification OTP email prepared for {Email}", toEmail);
+        // Ghi log nghiệp vụ KHÔNG chứa OTP
+        _logger.LogInformation("Registration verification OTP email dispatch requested for {Email}", toEmail);
 
-        var displayName = !string.IsNullOrWhiteSpace(fullName) ? fullName.Trim() : "Bạn đọc";
+        var htmlBody = LibriEmailTemplates.BuildRegistrationOtpEmail(toEmail, otpCode, fullName);
 
-        var htmlBody = $"""
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0d8c8; border-radius: 8px; background-color: #ffffff;">
-            <div style="text-align: center; margin-bottom: 24px;">
-                <h2 style="color: #003D28; margin: 0; font-family: Georgia, serif;">LIBRI</h2>
-                <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Cổng thông tin & Thư viện điện tử</p>
-            </div>
-
-            <p style="color: #374151; font-size: 15px; line-height: 1.6;">
-                Xin chào <strong>{System.Net.WebUtility.HtmlEncode(displayName)}</strong>,
-            </p>
-            <p style="color: #374151; font-size: 15px; line-height: 1.6;">
-                Cảm ơn bạn đã đăng ký tài khoản thẻ thư viện tại <strong>Libri</strong>. Để kích hoạt tài khoản và hoàn tất đăng ký, vui lòng sử dụng mã xác thực (OTP) bên dưới:
-            </p>
-
-            <div style="background-color: #f9f6f0; border: 1px dashed #d1c7b7; border-radius: 6px; padding: 18px; margin: 24px 0; text-align: center;">
-                <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Mã xác thực đăng ký tài khoản</div>
-                <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #003D28; font-family: monospace;">{otpCode}</div>
-                <div style="font-size: 12px; color: #b45309; font-weight: 500; margin-top: 8px;">(Mã có hiệu lực trong vòng 3 phút)</div>
-            </div>
-
-            <p style="color: #4b5563; font-size: 14px; line-height: 1.6;">
-                * Tuyệt đối không chia sẻ mã này cho bất kỳ ai. Nhân viên thư viện sẽ không bao giờ yêu cầu bạn cung cấp mã xác thực này.
-            </p>
-
-            <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 24px 0;" />
-            <p style="color: #9ca3af; font-size: 12px; line-height: 1.5; margin: 0;">
-                * Nếu bạn không thực hiện đăng ký tài khoản tại Libri, vui lòng bỏ qua email này.
-            </p>
-        </div>
-        """;
-
-        await SendEmailAsync(toEmail, "[Libri] Mã xác thực đăng ký tài khoản", htmlBody, ct);
+        return await SendEmailAsync(toEmail, "[Libri] Xác thực tài khoản Libri", htmlBody, ct);
     }
 }
-

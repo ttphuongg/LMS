@@ -3,5 +3,8 @@ namespace Library.Modules.Core.Identity.Features.Register;
 public record RegisterResponse(
     int AccountId,
     string Email,
-    string Message
+    string Message,
+    string? RegistrationToken = null,
+    bool EmailSent = true,
+    string? EmailError = null
 );

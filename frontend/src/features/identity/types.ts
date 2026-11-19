@@ -28,12 +28,16 @@ export interface RegisterRequest {
   confirmPassword?: string
   phoneNumber?: string
   phone?: string // Tương thích ngược form hiện tại
+  registrationToken?: string
 }
 
 export interface RegisterResponse {
   accountId: number
   email: string
   message: string
+  registrationToken?: string
+  emailSent?: boolean
+  emailError?: string
 }
 
 export interface VerifyEmailOtpRequest {

@@ -214,7 +214,16 @@ export const ProfilePage: React.FC = () => {
                 <Input prefix={<UserOutlined style={mutedTextStyle} />} style={radiusStyle} />
               </Form.Item>
 
-              <Form.Item label="Số điện thoại" name="phone">
+              <Form.Item
+                label="Số điện thoại"
+                name="phone"
+                rules={[
+                  {
+                    pattern: /^(0|\+84|84)[35789]\d{8}$/,
+                    message: 'Số điện thoại không hợp lệ (VD: 0912345678 hoặc +84912345678)',
+                  },
+                ]}
+              >
                 <Input prefix={<PhoneOutlined style={mutedTextStyle} />} style={radiusStyle} />
               </Form.Item>
 

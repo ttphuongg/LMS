@@ -41,6 +41,7 @@ export const identityApi = {
       email: data.email,
       password: data.password,
       phoneNumber: data.phoneNumber || data.phone || null,
+      registrationToken: data.registrationToken || null,
     }
     const res = await apiClient.post<ApiResponse<RegisterResponse>>('/api/identity/register', payload)
     return res.data.data

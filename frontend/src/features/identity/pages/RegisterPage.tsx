@@ -36,12 +36,30 @@ const formatTimer = (seconds: number): string => {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
+interface RegistrationSession {
+  token?: string
+  values: {
+    username?: string
+    fullName?: string
+    email?: string
+    phone?: string
+    password?: string
+  }
+  registeredEmail: string
+  otpExpiresAt: number
+  cooldownEndsAt: number
+}
+
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate()
   const [form] = Form.useForm()
 
   // Quản lý bước: 'form' (điền thông tin) | 'verify-otp' (nhập mã xác thực email)
   const [step, setStep] = useState<'form' | 'verify-otp'>('form')
+
+  // Trạng thái phiên đăng ký đang chờ xác thực (lưu lại thông tin để kiểm tra thay đổi & sở hữu phiên)
+  const [registrationSession, setRegistrationSession] = useState<RegistrationSession | null>(null)
+  const [emailWarning, setEmailWarning] = useState<string | null>(null)
 
   // Trạng thái kiểm tra tương tác từng trường (On Blur + On Change validation)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -98,16 +116,69 @@ export const RegisterPage: React.FC = () => {
       setLoading(true)
       setError(null)
 
-      // Gửi yêu cầu đăng ký lên backend (Backend không nhận trường confirmPassword)
-      const res = await identityApi.register(values)
+      // Kiểm tra nếu thông tin form không thay đổi so với phiên đăng ký đang chờ
+      const isUnchanged =
+        registrationSession &&
+        values.username?.trim().toLowerCase() === registrationSession.values.username?.trim().toLowerCase() &&
+        values.email?.trim().toLowerCase() === registrationSession.values.email?.trim().toLowerCase() &&
+        values.fullName?.trim() === registrationSession.values.fullName?.trim() &&
+        (values.phone?.trim() || values.phoneNumber?.trim() || '') === (registrationSession.values.phone?.trim() || '') &&
+        values.password === registrationSession.values.password
 
-      setRegisteredEmail(res.email || values.email.trim())
+      if (isUnchanged) {
+        // Tiếp tục phiên xác thực OTP đang chờ thay vì tạo tài khoản mới hay gửi lại request
+        setStep('verify-otp')
+        const now = Date.now()
+        const remainingOtp = Math.max(0, Math.floor((registrationSession.otpExpiresAt - now) / 1000))
+        const remainingCooldown = Math.max(0, Math.floor((registrationSession.cooldownEndsAt - now) / 1000))
+        setOtpTimeLeft(remainingOtp)
+        setResendCooldown(remainingCooldown)
+
+        if (remainingOtp === 0) {
+          setOtpError('Mã OTP hiện tại đã hết hạn. Vui lòng bấm "Gửi lại mã" để nhận mã mới.')
+        } else {
+          message.info('Tiếp tục phiên xác thực email của bạn.')
+        }
+        return
+      }
+
+      // Có thay đổi thông tin hoặc đăng ký mới lần đầu:
+      // Gửi yêu cầu đăng ký lên backend kèm registrationToken (nếu có để xác thực quyền sở hữu phiên)
+      const res = await identityApi.register({
+        ...values,
+        registrationToken: registrationSession?.token,
+      })
+
+      const now = Date.now()
+      const newSession: RegistrationSession = {
+        token: res.registrationToken,
+        values: {
+          username: values.username,
+          fullName: values.fullName,
+          email: values.email,
+          phone: values.phone || values.phoneNumber,
+          password: values.password,
+        },
+        registeredEmail: res.email || values.email.trim(),
+        otpExpiresAt: now + 180 * 1000,
+        cooldownEndsAt: now + 60 * 1000,
+      }
+
+      setRegistrationSession(newSession)
+      setRegisteredEmail(newSession.registeredEmail)
       setStep('verify-otp')
       setOtpDigits(['', '', '', '', '', ''])
       setOtpError(null)
       setOtpTimeLeft(180) // 3 phút
       setResendCooldown(60) // 60 giây
-      message.success(res.message || 'Mã xác thực OTP đã được gửi đến email của bạn.')
+
+      if (res.emailSent === false) {
+        setEmailWarning(res.emailError || 'Máy chủ chưa gửi được email OTP. Vui lòng bấm "Gửi lại mã" hoặc kiểm tra cấu hình SMTP.')
+        message.warning(res.message || 'Khởi tạo tài khoản thành công nhưng gửi email OTP gặp sự cố.')
+      } else {
+        setEmailWarning(null)
+        message.success(res.message || 'Mã xác thực OTP đã được gửi đến email của bạn.')
+      }
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Đăng ký không thành công. Vui lòng thử lại.'))
     } finally {
@@ -205,6 +276,7 @@ export const RegisterPage: React.FC = () => {
         otp: fullOtp,
       })
 
+      setRegistrationSession(null)
       message.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập.')
       navigate('/login')
     } catch (err: unknown) {
@@ -224,10 +296,21 @@ export const RegisterPage: React.FC = () => {
 
       await identityApi.resendEmailOtp({ email: registeredEmail })
 
+      setEmailWarning(null)
       message.success('Mã xác thực mới đã được gửi đến email của bạn.')
       setOtpDigits(['', '', '', '', '', ''])
+      const now = Date.now()
       setOtpTimeLeft(180) // Reset 3 phút
       setResendCooldown(60) // Reset cooldown 60 giây
+
+      if (registrationSession) {
+        setRegistrationSession({
+          ...registrationSession,
+          otpExpiresAt: now + 180 * 1000,
+          cooldownEndsAt: now + 60 * 1000,
+        })
+      }
+
       otpInputRefs.current[0]?.focus()
     } catch (err: unknown) {
       setOtpError(getErrorMessage(err, 'Không thể gửi lại mã OTP. Vui lòng thử lại sau.'))
@@ -385,8 +468,8 @@ export const RegisterPage: React.FC = () => {
                   rules={[
                     { required: true, message: 'Vui lòng nhập số điện thoại' },
                     {
-                      pattern: /^[0-9+-\s]{8,15}$/,
-                      message: 'Số điện thoại không hợp lệ (8 - 15 chữ số)',
+                      pattern: /^(0|\+84|84)[35789]\d{8}$/,
+                      message: 'Số điện thoại không hợp lệ (VD: 0912345678 hoặc +84912345678)',
                     },
                   ]}
                 >
@@ -527,9 +610,26 @@ export const RegisterPage: React.FC = () => {
                 </div>
               </div>
 
+              {emailWarning && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 'var(--sp-4)', borderRadius: 'var(--radius)' }}
+                  message="Lưu ý về gửi email mã xác thực"
+                  description={
+                    <div>
+                      <div>{emailWarning}</div>
+                      <div style={{ marginTop: 4, fontSize: 12 }}>
+                        Bạn có thể kiểm tra hộp thư rác (Spam) hoặc bấm <strong>"Gửi lại mã"</strong> sau khi hết thời gian chờ. Nếu sai địa chỉ email, hãy bấm <strong>"Quay lại chỉnh sửa thông tin"</strong>.
+                      </div>
+                    </div>
+                  }
+                />
+              )}
+
               {otpError && (
                 <Alert
-                  title={otpError}
+                  message={otpError}
                   type="error"
                   showIcon
                   style={{ marginBottom: 'var(--sp-4)', borderRadius: 'var(--radius)' }}

@@ -83,7 +83,12 @@ public sealed class ResendEmailOtpHandler : IRequestHandler<ResendEmailOtpReques
         await _db.SaveChangesAsync(ct);
 
         // Gửi email chứa mã mới (Không log OTP ra logger)
-        await _emailService.SendRegistrationOtpEmailAsync(account.Email, otpCode, account.FullName, ct);
+        var emailResult = await _emailService.SendRegistrationOtpEmailAsync(account.Email, otpCode, account.FullName, ct);
+
+        if (emailResult != null && !emailResult.Success)
+        {
+            return ApiResponse<bool>.Fail($"Không thể gửi email mã xác thực: {emailResult.ErrorMessage}");
+        }
 
         return ApiResponse<bool>.Ok(true);
     }

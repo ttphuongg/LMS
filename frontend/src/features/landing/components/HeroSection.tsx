@@ -91,7 +91,7 @@ export const HeroSection: React.FC = () => {
             textShadow: "0 2px 4px rgba(0,0,0,0.5)",
           }}
         >
-          Where Every Story Begins.
+          Where Every Story Begins
         </p>
 
         {/* Nút hành động */}

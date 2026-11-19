@@ -8,5 +8,6 @@ public record RegisterRequest(
     string FullName,
     string Email,
     string Password,
-    string? PhoneNumber = null
+    string? PhoneNumber = null,
+    string? RegistrationToken = null
 ) : IRequest<ApiResponse<RegisterResponse>>;

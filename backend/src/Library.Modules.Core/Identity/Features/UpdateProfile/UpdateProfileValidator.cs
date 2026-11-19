@@ -15,7 +15,7 @@ public sealed class UpdateProfileValidator : AbstractValidator<UpdateProfileRequ
 
         RuleFor(x => x.PhoneNumber)
             .MaximumLength(20).WithMessage("Số điện thoại tối đa 20 ký tự.")
-            .Matches(@"^[\d\+\-\s]*$").WithMessage("Số điện thoại không hợp lệ.")
+            .Matches(@"^(?:0|84|\+84)[35789]\d{8}$").WithMessage("Số điện thoại không hợp lệ (VD: 0912345678 hoặc +84912345678).")
             .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
 
         RuleFor(x => x.Address)
