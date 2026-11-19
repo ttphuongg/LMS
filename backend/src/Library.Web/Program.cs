@@ -295,7 +295,11 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[Database Migration Warning] {ex.Message}");
+        app.Logger.LogCritical(
+            ex,
+            "Database migration failed. Application startup aborted.");
+
+        throw;
     }
 
     var sender = scope.ServiceProvider.GetRequiredService<ISender>();
