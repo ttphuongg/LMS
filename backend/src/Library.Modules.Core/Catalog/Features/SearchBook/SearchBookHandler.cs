@@ -26,6 +26,7 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
                 string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)));
 
         // ── Build base query (public sees Active only; staff can filter/include Inactive) ──
+        var isPostgres = _db.Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL";
         IQueryable<Book> query = _db.Books.AsNoTracking();
         if (request.Status.HasValue)
         {
@@ -36,15 +37,27 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
             query = query.Where(b => b.Status == BookStatus.Active);
         }
 
-        // ── Apply filters (sử dụng EF.Functions.Like để SQL Server dùng được index) ─────
+        // ── Apply filters (Hybrid Search: PostgreSQL Full-Text Search + ILIKE, InMemory fallback) ──
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();
-            query = query.Where(b =>
-                EF.Functions.Like(b.Title, $"%{keyword}%") ||
-                (b.Isbn != null && EF.Functions.Like(b.Isbn, $"%{keyword}%")) ||
-                (b.Description != null && EF.Functions.Like(b.Description, $"%{keyword}%")) ||
-                b.BookAuthors.Any(ba => EF.Functions.Like(ba.Author.Name, $"%{keyword}%")));
+            if (isPostgres)
+            {
+                query = query.Where(b =>
+                    (b.SearchVector != null && b.SearchVector.Matches(EF.Functions.PlainToTsQuery("simple", keyword))) ||
+                    EF.Functions.ILike(b.Title, $"%{keyword}%") ||
+                    (b.Isbn != null && EF.Functions.ILike(b.Isbn, $"%{keyword}%")) ||
+                    (b.Description != null && EF.Functions.ILike(b.Description, $"%{keyword}%")) ||
+                    b.BookAuthors.Any(ba => EF.Functions.ILike(ba.Author.Name, $"%{keyword}%")));
+            }
+            else
+            {
+                query = query.Where(b =>
+                    EF.Functions.Like(b.Title, $"%{keyword}%") ||
+                    (b.Isbn != null && EF.Functions.Like(b.Isbn, $"%{keyword}%")) ||
+                    (b.Description != null && EF.Functions.Like(b.Description, $"%{keyword}%")) ||
+                    b.BookAuthors.Any(ba => EF.Functions.Like(ba.Author.Name, $"%{keyword}%")));
+            }
         }
 
         if (request.AuthorId.HasValue)
@@ -62,7 +75,14 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
         if (!string.IsNullOrWhiteSpace(request.Language))
         {
             var lang = request.Language.Trim();
-            query = query.Where(b => b.Language != null && EF.Functions.Like(b.Language, lang));
+            if (isPostgres)
+            {
+                query = query.Where(b => b.Language != null && EF.Functions.ILike(b.Language, lang));
+            }
+            else
+            {
+                query = query.Where(b => b.Language != null && EF.Functions.Like(b.Language, lang));
+            }
         }
 
         if (request.PublishedYear.HasValue)
@@ -73,10 +93,24 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
         // ── Count total before pagination ─────────────────────────────────────
         var totalCount = await query.CountAsync(ct);
 
-        // ── Project + paginate ────────────────────────────────────────────────
-        var items = await query
-            .OrderByDescending(b => b.CreatedAt)
-            .ThenBy(b => b.Title)
+        // ── Project + paginate (Relevance ranking when searching by keyword in PostgreSQL) ──
+        IOrderedQueryable<Book> orderedQuery;
+        if (isPostgres && !string.IsNullOrWhiteSpace(request.Keyword))
+        {
+            var keyword = request.Keyword.Trim();
+            orderedQuery = query
+                .OrderByDescending(b => b.SearchVector!.Rank(EF.Functions.PlainToTsQuery("simple", keyword)))
+                .ThenByDescending(b => b.CreatedAt)
+                .ThenBy(b => b.Title);
+        }
+        else
+        {
+            orderedQuery = query
+                .OrderByDescending(b => b.CreatedAt)
+                .ThenBy(b => b.Title);
+        }
+
+        var items = await orderedQuery
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(b => new BookSummary(
