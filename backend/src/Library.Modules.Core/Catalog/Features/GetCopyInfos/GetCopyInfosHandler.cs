@@ -30,7 +30,8 @@ public sealed class GetCopyInfosHandler : IRequestHandler<GetCopyInfosQuery, IRe
                 c.Status,
                 c.Location != null
                     ? c.Location.Aisle + " - " + c.Location.Shelf + " - Tầng " + c.Location.RowLevel
-                    : null))
+                    : null,
+                c.Book.BookValue))
             .ToDictionaryAsync(c => c.CopyId, c => c, ct);
 
         return copies;

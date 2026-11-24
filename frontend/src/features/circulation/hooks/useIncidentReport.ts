@@ -4,14 +4,7 @@ import { appMessage as message } from '@/shared/utils/appFeedback'
 import { circulationApi } from '../api'
 import type { LoanDetailDto } from '../types'
 import { getErrorMessage } from '@/shared/utils/format'
-
-/** Giá trị điền sẵn khi mở biên bản sự cố. */
-const DEFAULT_INCIDENT_VALUES = {
-  incidentType: 'Damaged',
-  severity: 'Minor',
-  description: 'Sách bị rách một số trang nội dung',
-  compensationAmount: 50000,
-}
+import { calculateIncidentCompensation } from '@/features/billing/utils/fineCalculation'
 
 /** Trạng thái + hành động của modal "Biên bản sự cố tài liệu". */
 export function useIncidentReport(onSuccess?: () => void | Promise<void>) {
@@ -22,7 +15,14 @@ export function useIncidentReport(onSuccess?: () => void | Promise<void>) {
 
   const openFor = (dtl: LoanDetailDto) => {
     setDetail(dtl)
-    form.setFieldsValue(DEFAULT_INCIDENT_VALUES)
+    // Tự động tính toán số tiền bồi thường ban đầu theo Điều 8 Quy chế
+    const calc = calculateIncidentCompensation('Damaged', 'Minor', dtl.bookValue)
+    form.setFieldsValue({
+      incidentType: 'Damaged',
+      severity: 'Minor',
+      description: 'Sách bị xước bìa, sờn mép hoặc vết bẩn nhẹ',
+      compensationAmount: calc.amount,
+    })
     setOpen(true)
   }
 
@@ -37,7 +37,7 @@ export function useIncidentReport(onSuccess?: () => void | Promise<void>) {
         loanSlipDetailId: detail.id,
         ...values,
       })
-      message.success('Đã lập biên bản sự cố và chuyển kết xuất phí bồi hoàn!')
+      message.success('Đã lập biên bản sự cố và chuyển kết xuất phí bồi hoàn theo quy định!')
       setOpen(false)
       if (onSuccess) {
         await onSuccess()

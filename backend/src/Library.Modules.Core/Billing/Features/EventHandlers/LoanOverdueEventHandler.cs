@@ -1,5 +1,6 @@
 using Library.Modules.Core.Billing.Data;
 using Library.Modules.Core.Billing.Features.IssueFine;
+using Library.Modules.Core.Catalog.Contracts;
 using Library.Modules.Core.Shared;
 using Library.Modules.Core.Shared.Events;
 using MediatR;
@@ -24,7 +25,18 @@ public class LoanOverdueEventHandler : INotificationHandler<LoanOverdueEvent>
         var daysLate = (int)(today.DayNumber - notification.DueDate.DayNumber);
         if (daysLate <= 0) return;
 
-        var fineAmount = daysLate * 5000m; // 5.000 VND / ngày quá hạn
+        var fineAmount = daysLate * 5000m; // 5.000 VND / ngày quá hạn (Điều 7)
+
+        // Tra cứu giá sách để áp dụng trần phạt tối đa 150% giá trị cuốn sách (Điều 7 Quy chế)
+        if (notification.BookCopyId > 0)
+        {
+            var copies = await _sender.Send(new GetCopyInfosQuery(new[] { (int)notification.BookCopyId }), ct);
+            if (copies.TryGetValue((int)notification.BookCopyId, out var copy) && copy.BookValue.HasValue && copy.BookValue.Value > 0)
+            {
+                var maxCap = copy.BookValue.Value * 1.5m;
+                fineAmount = Math.Min(fineAmount, maxCap);
+            }
+        }
 
         var existingFine = await _db.Fines.FirstOrDefaultAsync(
             f => f.LoanSlipDetailId == notification.LoanSlipDetailId && f.FineType == FineType.Overdue, ct);

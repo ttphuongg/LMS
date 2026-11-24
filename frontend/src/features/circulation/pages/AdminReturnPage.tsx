@@ -13,6 +13,7 @@ import { SpineTag } from '@/shared/components/SpineTag'
 import { BookTitleCell } from '@/shared/components/BookTitleCell'
 import { formatDate, getErrorMessage } from '@/shared/utils/format'
 import { cardStyle, mutedText13Style, primaryButtonStyle, radiusStyle } from '@/shared/styles/ui'
+import { calculateOverdueFine } from '@/features/billing/utils/fineCalculation'
 
 export const AdminReturnPage: React.FC = () => {
   const navigate = useNavigate()
@@ -188,15 +189,39 @@ export const AdminReturnPage: React.FC = () => {
       render: (date: string) => formatDate(date),
     },
     {
+      title: 'Giá bìa',
+      dataIndex: 'bookValue',
+      key: 'bookValue',
+      width: 110,
+      render: (val?: number) => (
+        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--muted-foreground)' }}>
+          {val != null && val > 0 ? `${val.toLocaleString('vi-VN')} đ` : '—'}
+        </span>
+      ),
+    },
+    {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      width: 120,
-      render: (status: string) => {
+      width: 150,
+      render: (status: string, record: LoanDetailDto) => {
         if (status === 'Returned') return <SpineTag variant="neutral">Đã trả</SpineTag>
         if (status === 'Damaged') return <SpineTag variant="warning">Đã báo hỏng</SpineTag>
         if (status === 'Lost') return <SpineTag variant="danger">Đã báo mất</SpineTag>
-        if (status === 'Overdue') return <SpineTag variant="danger">Quá hạn</SpineTag>
+        if (status === 'Overdue') {
+          const due = new Date(record.dueDate)
+          const now = new Date()
+          const diffDays = Math.max(1, Math.ceil((now.getTime() - due.getTime()) / (1000 * 60 * 60 * 24)))
+          const calc = calculateOverdueFine(diffDays, record.bookValue)
+          return (
+            <div>
+              <SpineTag variant="danger">Quá hạn {diffDays} ngày</SpineTag>
+              <div style={{ fontSize: 11, color: 'var(--destructive)', marginTop: 2, fontWeight: 600 }}>
+                Phạt: {calc.amount.toLocaleString('vi-VN')}đ {calc.isCapped ? '(Trần 150%)' : ''}
+              </div>
+            </div>
+          )
+        }
         return <SpineTag variant="primary">Đang mượn</SpineTag>
       },
     },

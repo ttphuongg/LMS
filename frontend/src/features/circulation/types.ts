@@ -17,6 +17,7 @@ export interface LoanDetailDto {
   bookCopyIdInt?: number
   barcode: string
   bookTitle: string
+  bookValue?: number
   dueDate: string
   returnDate?: string
   returnedDate?: string

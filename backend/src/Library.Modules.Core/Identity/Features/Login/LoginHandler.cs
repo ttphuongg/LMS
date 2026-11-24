@@ -30,12 +30,16 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, ApiResponse<Log
             return ApiResponse<LoginResponse>.Fail(
                 string.Join("; ", validation.Errors.Select(e => e.ErrorMessage)));
 
-        // ── Find account ──────────────────────────────────────────────────────
-        var normalizedUsername = request.Username.Trim().ToLowerInvariant();
+        // ── Find account by username OR email ────────────────────────────────
+        var normalizedIdentifier = request.Username.Trim().ToLowerInvariant();
         var account = await _db.Accounts
-            .FirstOrDefaultAsync(a => a.Username == normalizedUsername, ct);
+            .FirstOrDefaultAsync(a => a.Username == normalizedIdentifier || a.Email == normalizedIdentifier, ct);
 
         if (account is null)
+            return ApiResponse<LoginResponse>.Fail("Tên đăng nhập hoặc mật khẩu không đúng.");
+
+        // ── Verify password FIRST (ensure ownership before revealing status) ──
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash))
             return ApiResponse<LoginResponse>.Fail("Tên đăng nhập hoặc mật khẩu không đúng.");
 
         // ── Check status ──────────────────────────────────────────────────────
@@ -43,11 +47,8 @@ public sealed class LoginHandler : IRequestHandler<LoginRequest, ApiResponse<Log
             return ApiResponse<LoginResponse>.Fail("Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.");
 
         if (account.Status == AccountStatus.Inactive)
-            return ApiResponse<LoginResponse>.Fail("Tài khoản chưa được kích hoạt hoặc chưa xác thực email. Vui lòng xác thực email để đăng nhập.");
-
-        // ── Verify password ───────────────────────────────────────────────────
-        if (!BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash))
-            return ApiResponse<LoginResponse>.Fail("Tên đăng nhập hoặc mật khẩu không đúng.");
+            return ApiResponse<LoginResponse>.Fail(
+                $"Tài khoản chưa được kích hoạt hoặc chưa xác thực email. Vui lòng xác thực email để đăng nhập.|{account.Email}");
 
         // ── Generate tokens ───────────────────────────────────────────────────
         var accessToken = _jwt.GenerateAccessToken(account);

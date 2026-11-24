@@ -47,7 +47,8 @@ public sealed class GetLoanDetailHandler : IRequestHandler<GetLoanDetailRequest,
                     d.Status.ToString(),
                     d.ActualReturnDate,
                     d.Notes,
-                    d.Renewals.Count);
+                    d.Renewals.Count,
+                    copy?.BookValue);
             })
             .ToList();
 

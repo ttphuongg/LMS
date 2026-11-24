@@ -13,7 +13,8 @@ public record CopyInfo(
     bool IsBookActive,
     CopyCondition Condition,
     CopyStatus Status,
-    string? LocationLabel = null);
+    string? LocationLabel = null,
+    decimal? BookValue = null);
 public record GetCopyInfosQuery(IReadOnlyCollection<int> CopyIds) : IRequest<IReadOnlyDictionary<int, CopyInfo>>;
 public record SearchCopyIdsByBarcodeQuery(string Keyword) : IRequest<List<int>>;
 public record FindAvailableCopyQuery(int BookId, int? PreferredCopyId = null) : IRequest<CopyInfo?>;

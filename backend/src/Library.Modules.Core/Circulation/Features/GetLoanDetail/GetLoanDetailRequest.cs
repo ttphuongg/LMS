@@ -28,5 +28,6 @@ public record LoanItemDto(
     string Status,
     DateOnly? ActualReturnDate,
     string? Notes,
-    int RenewalsCount
+    int RenewalsCount,
+    decimal? BookValue = null
 );

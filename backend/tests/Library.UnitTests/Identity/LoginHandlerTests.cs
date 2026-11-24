@@ -130,5 +130,63 @@ public class LoginHandlerTests
         var session = db.LoginSessions.FirstOrDefault(s => s.AccountId == account.Id);
         session.Should().NotBeNull();
     }
+
+    [Fact]
+    public async Task Handle_Should_Fail_And_Return_Email_When_Account_Is_Inactive()
+    {
+        // Arrange
+        using var db = TestDbContextFactory.CreateIdentityDbContext();
+        var account = new Account
+        {
+            Username = "inactive_reader",
+            Email = "inactive@library.vn",
+            FullName = "Inactive Reader",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("SecretPassword123!"),
+            Role = AccountRole.Reader,
+            Status = AccountStatus.Inactive
+        };
+        db.Accounts.Add(account);
+        await db.SaveChangesAsync();
+
+        var handler = new LoginHandler(db, new LoginValidator(), _jwt);
+        var request = new LoginRequest("inactive_reader", "SecretPassword123!");
+
+        // Act
+        var result = await handler.Handle(request, CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Error.Should().Contain("Tài khoản chưa được kích hoạt");
+        result.Error.Should().Contain("inactive@library.vn");
+    }
+
+    [Fact]
+    public async Task Handle_Should_Succeed_When_Logging_In_With_Email()
+    {
+        // Arrange
+        using var db = TestDbContextFactory.CreateIdentityDbContext();
+        var account = new Account
+        {
+            Username = "email_login_reader",
+            Email = "email_user@library.vn",
+            FullName = "Email Login Reader",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("SecretPassword123!"),
+            Role = AccountRole.Reader,
+            Status = AccountStatus.Active
+        };
+        db.Accounts.Add(account);
+        await db.SaveChangesAsync();
+
+        var handler = new LoginHandler(db, new LoginValidator(), _jwt);
+        var request = new LoginRequest("email_user@library.vn", "SecretPassword123!");
+
+        // Act
+        var result = await handler.Handle(request, CancellationToken.None);
+
+        // Assert
+        result.Success.Should().BeTrue();
+        result.Data.Should().NotBeNull();
+        result.Data!.Username.Should().Be("email_login_reader");
+    }
 }
 
