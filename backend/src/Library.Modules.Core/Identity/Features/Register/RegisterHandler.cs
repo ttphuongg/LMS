@@ -84,7 +84,7 @@ public sealed class RegisterHandler : IRequestHandler<RegisterRequest, ApiRespon
                 return ApiResponse<RegisterResponse>.Fail("Tên đăng nhập đã tồn tại.");
 
             if (await _db.Accounts.AnyAsync(a => a.Email == normalizedEmail, ct))
-                return ApiResponse<RegisterResponse>.Fail("Email đã được sử dụng.");
+                return ApiResponse<RegisterResponse>.Fail("Email đã được sử dụng. Nếu bạn đã có tài khoản nhưng chưa kích hoạt, vui lòng chuyển sang trang Đăng nhập để kích hoạt tài khoản.");
         }
         else
         {
