@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Card, Form, Input, Button, Select, InputNumber, DatePicker, Space, Alert, Typography, Divider, Radio } from 'antd'
+import { Card, Form, Input, Button, Select, InputNumber, DatePicker, Space, Alert, Typography, Divider, Radio, Tag } from 'antd'
 import { appMessage as message } from '@/shared/utils/appFeedback'
 import { CalculatorOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
@@ -9,6 +9,8 @@ import type { FineType } from '../types'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { cardStyle, primaryButtonStyle, radiusStyle } from '@/shared/styles/ui'
 import { getErrorMessage } from '@/shared/utils/format'
+import { ReaderSelect } from '@/shared/components/ReaderSelect'
+import type { UserManagementItem } from '@/features/identity/types'
 import {
   calculateOverdueFine,
   calculateIncidentCompensation,
@@ -32,6 +34,7 @@ export const AdminCreateFinePage: React.FC = () => {
   const navigate = useNavigate()
   const [form] = Form.useForm<FineFormValues>()
   const [loading, setLoading] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<UserManagementItem | null>(null)
 
   // Theo dõi loại xử phạt và các tham số tính toán
   const watchedReason = Form.useWatch('reason', form) || 'Overdue'
@@ -126,14 +129,69 @@ export const AdminCreateFinePage: React.FC = () => {
             amount: 5000,
           }}
         >
+          {/* TÌM KIẾM BẠN ĐỌC QUA THẺ / TÊN / SĐT / EMAIL */}
           <Form.Item
-            label="Mã số thẻ bạn đọc (ID tài khoản)"
+            label="Bạn đọc bị lập phiếu phạt"
             name="accountId"
-            rules={[{ required: true, message: 'Vui lòng nhập ID bạn đọc' }]}
-            extra="Nhập ID số nguyên của bạn đọc (ví dụ: 1, 2, 3...)"
+            rules={[{ required: true, message: 'Vui lòng chọn bạn đọc' }]}
+            extra="Thủ thư có thể gõ Tên bạn đọc, Username, Số điện thoại, Email hoặc quét/nhập Mã số thẻ thư viện"
           >
-            <Input placeholder="VD: 1" style={radiusStyle} />
+            <ReaderSelect
+              placeholder="Tìm bạn đọc theo Tên, SĐT, Email, Username hoặc Mã thẻ..."
+              onSelectUser={(u) => setSelectedUser(u)}
+              onClear={() => setSelectedUser(null)}
+            />
           </Form.Item>
+
+          {/* THẺ TÓM TẮT THÔNG TIN BẠN ĐỌC ĐÃ CHỌN */}
+          {selectedUser && (
+            <div
+              style={{
+                background: 'var(--muted)',
+                padding: 'var(--sp-3) var(--sp-4)',
+                borderRadius: 'var(--radius)',
+                border: '1px solid var(--border)',
+                marginBottom: 'var(--sp-4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 8,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    background: 'var(--primary)',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                  }}
+                >
+                  {selectedUser.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+                    {selectedUser.fullName || selectedUser.username}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
+                    @{selectedUser.username} {selectedUser.phoneNumber ? `• SĐT: ${selectedUser.phoneNumber}` : ''} • Email: {selectedUser.email}
+                  </div>
+                </div>
+              </div>
+              <Space>
+                <Tag color="cyan">Thẻ thư viện: #{selectedUser.id}</Tag>
+                <Tag color={selectedUser.status === 'Active' ? 'green' : 'red'}>
+                  {selectedUser.status === 'Active' ? 'Đang hoạt động' : 'Tạm khóa'}
+                </Tag>
+              </Space>
+            </div>
+          )}
 
           <Form.Item
             label="Loại xử phạt"

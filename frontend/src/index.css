@@ -677,3 +677,68 @@ button:disabled {
   word-break: break-word;
   font-family: var(--font-sans);
 }
+
+/* ==========================================================================
+   Ant Design Alert - High-Contrast Light Theme Overrides
+   Đảm bảo tất cả các thông báo Alert luôn có nền sáng, tương phản cao, dễ đọc
+   ========================================================================== */
+.ant-alert-info {
+  background-color: #F0F9F4 !important;
+  border: 1px solid #B8E2CB !important;
+}
+.ant-alert-info .ant-alert-message {
+  color: #143224 !important;
+  font-weight: 600 !important;
+}
+.ant-alert-info .ant-alert-description {
+  color: #2D4C3C !important;
+}
+.ant-alert-info .ant-alert-icon {
+  color: #1F3A2E !important;
+}
+
+.ant-alert-success {
+  background-color: #F0F9F4 !important;
+  border: 1px solid #B8E2CB !important;
+}
+.ant-alert-success .ant-alert-message {
+  color: #143224 !important;
+  font-weight: 600 !important;
+}
+.ant-alert-success .ant-alert-description {
+  color: #2D4C3C !important;
+}
+.ant-alert-success .ant-alert-icon {
+  color: #1F3A2E !important;
+}
+
+.ant-alert-warning {
+  background-color: #FDF9EE !important;
+  border: 1px solid #EEDCB8 !important;
+}
+.ant-alert-warning .ant-alert-message {
+  color: #5C4308 !important;
+  font-weight: 600 !important;
+}
+.ant-alert-warning .ant-alert-description {
+  color: #6E5316 !important;
+}
+.ant-alert-warning .ant-alert-icon {
+  color: #B08D3C !important;
+}
+
+.ant-alert-error {
+  background-color: #FDF3F2 !important;
+  border: 1px solid #F3C7C4 !important;
+}
+.ant-alert-error .ant-alert-message {
+  color: #631B18 !important;
+  font-weight: 600 !important;
+}
+.ant-alert-error .ant-alert-description {
+  color: #7A2E2B !important;
+}
+.ant-alert-error .ant-alert-icon {
+  color: #7A2E2B !important;
+}
+

@@ -1,16 +1,20 @@
 import React, { useState } from 'react'
-import { Card, Form, Input, Button, DatePicker, Space, Tag } from 'antd'
+import { Card, Form, Input, Button, DatePicker, Space, Tag, Typography } from 'antd'
 import { appMessage as message } from '@/shared/utils/appFeedback'
-import { BarcodeOutlined, UserOutlined } from '@ant-design/icons'
+import { BarcodeOutlined, UserOutlined, PhoneOutlined, MailOutlined, IdcardOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import { circulationApi } from '../api'
 import type { CirculationEligibilityResult } from '../types'
+import type { UserManagementItem } from '@/features/notifications/types'
 import { CirculationRestrictionBanner } from '../components/CirculationRestrictionBanner'
+import { ReaderSelect } from '@/shared/components/ReaderSelect'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { LIBRARY_RULES } from '@/shared/constants/rules'
 import { cardStyle, mutedTextStyle, primaryButtonStyle, radiusStyle } from '@/shared/styles/ui'
 import { getErrorMessage } from '@/shared/utils/format'
+
+const { Text } = Typography
 
 export const AdminBorrowPage: React.FC = () => {
   const navigate = useNavigate()
@@ -18,13 +22,12 @@ export const AdminBorrowPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [barcodes, setBarcodes] = useState<string[]>([])
   const [currentBarcode, setCurrentBarcode] = useState('')
+  const [selectedUser, setSelectedUser] = useState<UserManagementItem | null>(null)
   const [readerEligibility, setReaderEligibility] = useState<CirculationEligibilityResult | null>(null)
   const [checkingEligibility, setCheckingEligibility] = useState(false)
 
-  // Khi Thủ thư nhập xong ID bạn đọc, kiểm tra tình trạng lưu thông
-  const handleAccountIdBlur = async () => {
-    const accountIdStr = form.getFieldValue('accountId')
-    const accountId = Number(accountIdStr)
+  // Kiểm tra tình trạng lưu thông của bạn đọc khi được chọn
+  const handleCheckEligibility = async (accountId: number) => {
     if (!accountId || isNaN(accountId) || accountId <= 0) {
       setReaderEligibility(null)
       return
@@ -64,6 +67,13 @@ export const AdminBorrowPage: React.FC = () => {
       message.error('Vui lòng quét hoặc nhập ít nhất một mã bản sao sách')
       return
     }
+
+    // Cảnh báo nếu bạn đọc đang bị hạn chế mượn sách
+    if (readerEligibility && !readerEligibility.isEligible) {
+      message.error(readerEligibility.restrictionReason || 'Bạn đọc này đang bị hạn chế mượn sách.')
+      return
+    }
+
     try {
       setLoading(true)
       await circulationApi.createLoan({
@@ -85,7 +95,7 @@ export const AdminBorrowPage: React.FC = () => {
     <div>
       <PageHeader
         title="Lập Phiếu Mượn Tại Quầy"
-        subtitle="Quét mã thẻ bạn đọc và mã vạch các bản sao tài liệu để kích hoạt quyền mượn"
+        subtitle="Tìm kiếm bạn đọc bằng thẻ, tên, email, SĐT và quét mã vạch tài liệu để kích hoạt quyền mượn"
         breadcrumbs={[
           { title: 'Quản trị', href: '/admin/dashboard' },
           { title: 'Sổ mượn trả', href: '/admin/loans' },
@@ -93,7 +103,7 @@ export const AdminBorrowPage: React.FC = () => {
         ]}
       />
 
-      <Card className="catalog-card" style={{ ...cardStyle, maxWidth: 720 }}>
+      <Card className="catalog-card" style={{ ...cardStyle, maxWidth: 760 }}>
         <Form
           form={form}
           layout="vertical"
@@ -102,24 +112,91 @@ export const AdminBorrowPage: React.FC = () => {
             dueDate: dayjs().add(LIBRARY_RULES.standardBorrowDays, 'day'),
           }}
         >
+          {/* Ô TÌM KIẾM BẠN ĐỌC THÔNG MINH */}
           <Form.Item
-            label="Mã số thẻ bạn đọc (ID tài khoản)"
+            label="Bạn đọc mượn tài liệu"
             name="accountId"
-            rules={[{ required: true, message: 'Vui lòng nhập ID bạn đọc' }]}
-            extra="Nhập ID tài khoản của bạn đọc (số nguyên, ví dụ: 1, 2, 3...)"
+            rules={[{ required: true, message: 'Vui lòng chọn bạn đọc' }]}
+            extra="Thủ thư có thể gõ Tên bạn đọc, Username, Số điện thoại, Email hoặc quét Mã số thẻ"
           >
-            <Input
-              prefix={<UserOutlined style={mutedTextStyle} />}
-              placeholder="VD: 1"
-              style={radiusStyle}
-              onBlur={handleAccountIdBlur}
+            <ReaderSelect
+              onSelectUser={(u) => {
+                setSelectedUser(u)
+                if (u) {
+                  handleCheckEligibility(Number(u.id))
+                } else {
+                  setReaderEligibility(null)
+                }
+              }}
+              onClear={() => {
+                setSelectedUser(null)
+                setReaderEligibility(null)
+              }}
             />
           </Form.Item>
 
-          {/* Banner tình trạng lưu thông của bạn đọc — hiện ngay sau khi nhập ID */}
+          {/* THẺ TÓM TẮT THÔNG TIN BẠN ĐỌC ĐÃ CHỌN */}
+          {selectedUser && (
+            <div
+              style={{
+                background: 'var(--muted)',
+                padding: 'var(--sp-3) var(--sp-4)',
+                borderRadius: 'var(--radius)',
+                border: '1px solid var(--border)',
+                marginBottom: 'var(--sp-4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 8,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    background: 'var(--primary)',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                  }}
+                >
+                  {selectedUser.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+                    {selectedUser.fullName}{' '}
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      (@{selectedUser.username})
+                    </Text>
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--muted-foreground)', display: 'flex', gap: 12 }}>
+                    {selectedUser.phone && <span><PhoneOutlined /> {selectedUser.phone}</span>}
+                    {selectedUser.email && <span><MailOutlined /> {selectedUser.email}</span>}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <Tag color="blue">
+                  <IdcardOutlined /> ID Thẻ: {selectedUser.id}
+                </Tag>
+                {selectedUser.status === 'Locked' ? (
+                  <Tag color="error">Tài khoản bị khóa</Tag>
+                ) : (
+                  <Tag color="success">Hoạt động</Tag>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Banner tình trạng lưu thông của bạn đọc — hiện ngay sau khi chọn bạn đọc */}
           {checkingEligibility && (
             <div style={{ marginBottom: 16, color: 'var(--muted-foreground)', fontSize: 13 }}>
-              🔍 Đang kiểm tra tình trạng bạn đọc...
+              🔍 Đang kiểm tra điều kiện lưu thông của bạn đọc...
             </div>
           )}
           {readerEligibility && (
@@ -127,7 +204,7 @@ export const AdminBorrowPage: React.FC = () => {
           )}
 
           <Form.Item
-            label="Hạn trả tài liệu"
+            label="Hạn trả tài liệu (Mặc định 14 ngày theo Điều 4)"
             name="dueDate"
             rules={[{ required: true, message: 'Vui lòng chọn ngày trả' }]}
           >
@@ -137,12 +214,12 @@ export const AdminBorrowPage: React.FC = () => {
           {/* Nhập mã vạch bản sao */}
           <div style={{ marginBottom: 'var(--sp-5)' }}>
             <label style={{ display: 'block', marginBottom: 'var(--sp-1)', fontWeight: 500, color: 'var(--foreground)' }}>
-              Quét mã vạch bản sao sách (Tối đa {LIBRARY_RULES.maxConcurrentLoans} cuốn):
+              Quét mã vạch bản sao sách (Tối đa {LIBRARY_RULES.maxConcurrentLoans} cuốn theo Điều 4):
             </label>
             <Space.Compact style={{ width: '100%' }}>
               <Input
                 prefix={<BarcodeOutlined style={mutedTextStyle} />}
-                placeholder="Nhập mã vạch (VD: BC-0051-01)..."
+                placeholder="Nhập hoặc quét mã vạch (VD: BC-0051-01)..."
                 value={currentBarcode}
                 onChange={(e) => setCurrentBarcode(e.target.value)}
                 onPressEnter={(e) => {
@@ -151,7 +228,15 @@ export const AdminBorrowPage: React.FC = () => {
                 }}
                 style={{ borderRadius: 'var(--radius) 0 0 var(--radius)' }}
               />
-              <Button type="primary" onClick={handleAddBarcode} style={{ background: 'var(--primary)', borderColor: 'var(--primary)', borderRadius: '0 var(--radius) var(--radius) 0' }}>
+              <Button
+                type="primary"
+                onClick={handleAddBarcode}
+                style={{
+                  background: 'var(--primary)',
+                  borderColor: 'var(--primary)',
+                  borderRadius: '0 var(--radius) var(--radius) 0',
+                }}
+              >
                 Thêm vào phiếu
               </Button>
             </Space.Compact>
@@ -186,7 +271,7 @@ export const AdminBorrowPage: React.FC = () => {
           </div>
 
           <Form.Item label="Ghi chú nghiệp vụ" name="notes">
-            <Input.TextArea rows={3} placeholder="Tình trạng sách khi giao, lưu ý..." style={radiusStyle} />
+            <Input.TextArea rows={2} placeholder="Tình trạng sách khi giao, lưu ý đặc biệt..." style={radiusStyle} />
           </Form.Item>
 
           <Form.Item style={{ marginTop: 'var(--sp-6)' }}>
@@ -195,6 +280,7 @@ export const AdminBorrowPage: React.FC = () => {
                 type="primary"
                 htmlType="submit"
                 loading={loading}
+                disabled={readerEligibility ? !readerEligibility.isEligible : false}
                 style={primaryButtonStyle}
               >
                 Hoàn tất & Cấp sách

@@ -40,9 +40,12 @@ public sealed class ManageUsersHandler :
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var kw = request.Keyword.ToLower().Trim();
+            var isNumeric = int.TryParse(kw, out var searchId);
             query = query.Where(a => a.Username.ToLower().Contains(kw) || 
                                      a.FullName.ToLower().Contains(kw) || 
-                                     a.Email.ToLower().Contains(kw));
+                                     a.Email.ToLower().Contains(kw) ||
+                                     (a.PhoneNumber != null && a.PhoneNumber.Contains(kw)) ||
+                                     (isNumeric && a.Id == searchId));
         }
 
         if (request.Role.HasValue && Enum.IsDefined(typeof(AccountRole), request.Role.Value))
