@@ -119,12 +119,17 @@ export const IncidentModal: React.FC<{ incident: IncidentReportState }> = ({ inc
               <Alert
                 type="info"
                 showIcon
+                style={{
+                  backgroundColor: '#F3F9F5',
+                  border: '1px solid #C2DFCF',
+                  borderRadius: 'var(--radius)',
+                }}
                 message={
                   <div>
-                    <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+                    <div style={{ fontWeight: 600, color: '#1A382B', fontSize: 13 }}>
                       Quy chuẩn tính phạt: {calc.ruleName}
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
+                    <div style={{ fontSize: 12, color: '#3E5C4E', marginTop: 2 }}>
                       {calc.formula}
                     </div>
                   </div>

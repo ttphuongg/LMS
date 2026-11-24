@@ -130,6 +130,20 @@ export const libraryTheme: ThemeConfig = {
       borderRadiusSM: 4,
     },
 
+    Alert: {
+      colorInfoBg: '#F3F9F5',
+      colorInfoBorder: '#C2DFCF',
+      colorSuccessBg: '#F3F9F5',
+      colorSuccessBorder: '#C2DFCF',
+      colorWarningBg: '#FCF8EE',
+      colorWarningBorder: '#EEDCB8',
+      colorErrorBg: '#FDF2F0',
+      colorErrorBorder: '#F0C7C4',
+      colorText: '#2A2118',
+      colorTextHeading: '#1F3A2E',
+      borderRadiusLG: 6,
+    },
+
     Pagination: {
       borderRadius: 6,
     },

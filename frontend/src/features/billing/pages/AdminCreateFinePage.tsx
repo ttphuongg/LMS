@@ -195,9 +195,18 @@ export const AdminCreateFinePage: React.FC = () => {
                   <Alert
                     type={overdueCalc.isCapped ? 'warning' : 'success'}
                     showIcon
+                    style={{
+                      backgroundColor: overdueCalc.isCapped ? '#FCF8EE' : '#F3F9F5',
+                      border: overdueCalc.isCapped ? '1px solid #EEDCB8' : '1px solid #C2DFCF',
+                      borderRadius: 'var(--radius)',
+                    }}
                     message={
                       <div>
-                        <strong>Diễn giải công thức: </strong>{overdueCalc.formula}
+                        <strong style={{ color: overdueCalc.isCapped ? '#8B6A20' : '#1A382B' }}>
+                          Diễn giải công thức: </strong>
+                        <span style={{ color: overdueCalc.isCapped ? '#705315' : '#2D4B3C' }}>
+                          {overdueCalc.formula}
+                        </span>
                         {overdueCalc.isCapped && (
                           <div style={{ fontSize: 12, marginTop: 2, color: 'var(--destructive)' }}>
                             * Đã áp dụng trần phạt tối đa 150% giá trị sách ({overdueCalc.capAmount?.toLocaleString('vi-VN')}đ) theo Điều 7.
@@ -231,9 +240,15 @@ export const AdminCreateFinePage: React.FC = () => {
                   <Alert
                     type="info"
                     showIcon
+                    style={{
+                      backgroundColor: '#F3F9F5',
+                      border: '1px solid #C2DFCF',
+                      borderRadius: 'var(--radius)',
+                    }}
                     message={
                       <div>
-                        <strong>Công thức: </strong>{incidentCalc.formula}
+                        <strong style={{ color: '#1A382B' }}>Công thức: </strong>
+                        <span style={{ color: '#2D4B3C' }}>{incidentCalc.formula}</span>
                       </div>
                     }
                   />
