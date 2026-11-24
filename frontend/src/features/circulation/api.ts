@@ -249,6 +249,7 @@ export const circulationApi = {
           bookCopyIdInt: item.bookCopyId,
           barcode: item.barcode || `BC-${item.bookCopyId}`,
           bookTitle: item.bookTitle || 'Tài liệu mượn',
+          bookValue: item.bookValue != null ? Number(item.bookValue) : undefined,
           dueDate: String(d.dueDate),
           returnDate: item.actualReturnDate ? String(item.actualReturnDate) : undefined,
           actualReturnDate: item.actualReturnDate ? String(item.actualReturnDate) : undefined,
