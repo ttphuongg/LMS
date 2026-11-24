@@ -12,7 +12,6 @@ public class Book
     public int? PageCount { get; set; }
     public decimal? BookValue { get; set; }
     public string? CoverImageUrl { get; set; }
-    public NpgsqlTypes.NpgsqlTsVector? SearchVector { get; set; }
 
     public BookStatus Status { get; set; } = BookStatus.Active;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -10,7 +10,7 @@ public sealed class SearchBookValidator : AbstractValidator<SearchBookRequest>
             .GreaterThanOrEqualTo(1).WithMessage("Số trang phải >= 1.");
 
         RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, 100).WithMessage("Kích thước trang phải từ 1 đến 100.");
+            .InclusiveBetween(1, 1000).WithMessage("Kích thước trang phải từ 1 đến 1000.");
 
         RuleFor(x => x.PublishedYear)
             .InclusiveBetween((short)1000, (short)2100)

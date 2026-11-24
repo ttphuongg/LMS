@@ -84,6 +84,7 @@ export const catalogApi = {
       categoryName: b.categoryName || (Array.isArray(b.categories) && b.categories.length > 0 ? b.categories.join(', ') : 'Chung'),
       authors: Array.isArray(b.authors) ? b.authors : undefined,
       categories: Array.isArray(b.categories) ? b.categories : undefined,
+      categoryIds: Array.isArray(b.categoryIds) ? b.categoryIds : undefined,
       publisher: b.publisher,
       publishedYear: b.publishedYear,
       description: b.description,

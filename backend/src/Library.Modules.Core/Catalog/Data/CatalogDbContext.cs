@@ -18,12 +18,6 @@ public class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbCo
     {
         modelBuilder.HasDefaultSchema(Schema);
 
-        // Bỏ qua SearchVector (kiểu NpgsqlTsVector của PostgreSQL) nếu chạy trong môi trường kiểm thử InMemory
-        if (Database.ProviderName != "Npgsql.EntityFrameworkCore.PostgreSQL")
-        {
-            modelBuilder.Entity<Book>().Ignore(b => b.SearchVector);
-        }
-
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(CatalogDbContext).Assembly,
             t => t.Namespace?.StartsWith("Library.Modules.Core.Catalog") == true);
     }

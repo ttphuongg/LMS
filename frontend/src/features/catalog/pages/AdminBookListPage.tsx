@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Table, Button } from 'antd'
 import { appMessage as message } from '@/shared/utils/appFeedback'
 import { PlusOutlined } from '@ant-design/icons'
@@ -11,17 +11,17 @@ import { BookSearchBar } from '../components/BookSearchBar'
 import { buildAdminBookColumns } from '../components/adminBookColumns'
 import { useAddCopies } from '../hooks/useAddCopies'
 import { PageHeader } from '@/shared/components/PageHeader'
-import { useStableCallback, useRequestGuard } from '@/shared/hooks'
+import { useStableCallback } from '@/shared/hooks'
 import { primaryButtonStyle } from '@/shared/styles/ui'
 import { getErrorMessage } from '@/shared/utils/format'
+import { createBookFuse, filterBooksByKeyword } from '../utils/bookSearch'
 
 export const AdminBookListPage: React.FC = () => {
   const navigate = useNavigate()
-  const [books, setBooks] = useState<BookDto[]>([])
+  const [allBooks, setAllBooks] = useState<BookDto[]>([])
   const [loading, setLoading] = useState(true)
   const [keyword, setKeyword] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
-  const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
@@ -29,40 +29,50 @@ export const AdminBookListPage: React.FC = () => {
   const [drawerRefreshKey, setDrawerRefreshKey] = useState(0)
   const [togglingBookId, setTogglingBookId] = useState<string | null>(null)
 
-  const guard = useRequestGuard()
-
   const fetchBooks = useStableCallback(async () => {
-    const reqId = guard.next()
     try {
       setLoading(true)
+      // Tải toàn bộ sách (bao gồm cả Inactive) để tìm kiếm tức thì ở Client
       const res = await catalogApi.getBooks({
-        keyword: keyword.trim() || undefined,
-        status: statusFilter,
         includeInactive: true,
-        page,
-        pageSize,
+        page: 1,
+        pageSize: 1000,
       })
-      if (!guard.isLatest(reqId)) return
-      setBooks(res.items)
-      setTotalCount(res.totalCount)
+      setAllBooks(res.items)
     } catch (err: unknown) {
-      if (guard.isLatest(reqId)) message.error(getErrorMessage(err, 'Lỗi khi tải danh sách sách'))
+      message.error(getErrorMessage(err, 'Lỗi khi tải danh sách sách'))
     } finally {
-      if (guard.isLatest(reqId)) setLoading(false)
+      setLoading(false)
     }
   })
 
   useEffect(() => {
     fetchBooks()
-  }, [page, pageSize, statusFilter, fetchBooks])
+  }, [fetchBooks])
 
-  const applyFilter = () => {
-    if (page === 1) fetchBooks()
-    else setPage(1)
-  }
+  // Cấu hình Fuse.js trên RAM
+  const fuse = useMemo(() => createBookFuse(allBooks), [allBooks])
+
+  // Lọc sách theo từ khóa (Fuse.js + Khớp chính xác) và theo Trạng thái
+  const filteredBooks = useMemo(() => {
+    let result = filterBooksByKeyword(allBooks, fuse, keyword)
+
+    if (statusFilter && statusFilter !== 'ALL') {
+      result = result.filter((b) => b.status === statusFilter)
+    }
+
+    return result
+  }, [allBooks, fuse, keyword, statusFilter])
+
+  const totalCount = filteredBooks.length
 
   const handleStatusFilterChange = (val: string) => {
     setStatusFilter(val)
+    setPage(1)
+  }
+
+  const handleKeywordChange = (val: string) => {
+    setKeyword(val)
     setPage(1)
   }
 
@@ -121,8 +131,8 @@ export const AdminBookListPage: React.FC = () => {
 
       <BookSearchBar
         keyword={keyword}
-        onKeywordChange={setKeyword}
-        onSearch={applyFilter}
+        onKeywordChange={handleKeywordChange}
+        onSearch={() => setPage(1)}
         totalCount={totalCount}
         selectedCount={selectedRowKeys.length}
         statusFilter={statusFilter}
@@ -140,7 +150,7 @@ export const AdminBookListPage: React.FC = () => {
           onChange: (keys) => setSelectedRowKeys(keys),
         }}
         columns={columns}
-        dataSource={books}
+        dataSource={filteredBooks}
         rowKey="id"
         loading={loading}
         scroll={{ x: 1050 }}

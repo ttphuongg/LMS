@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Row, Col, Input, Select, Pagination, Space } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { useSearchParams } from 'react-router-dom'
 import { catalogApi } from '../api'
 import type { BookDto, CategoryDto } from '../types'
 import { BookCard } from '../components/BookCard'
+import { createBookFuse, filterBooksByKeyword } from '../utils/bookSearch'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { LoadingState } from '@/shared/components/LoadingState'
 import { EmptyState } from '@/shared/components/EmptyState'
 import { ErrorState } from '@/shared/components/ErrorState'
-import { useStableCallback, useRequestGuard } from '@/shared/hooks'
+import { useStableCallback } from '@/shared/hooks'
 import { mutedTextStyle } from '@/shared/styles/ui'
 import { getErrorMessage } from '@/shared/utils/format'
 
@@ -21,61 +22,86 @@ export const BookListPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
     searchParams.get('categoryId') || searchParams.get('category') || undefined,
   )
-  const [reloadTick, setReloadTick] = useState(0)
   const [categories, setCategories] = useState<CategoryDto[]>([])
-  const [books, setBooks] = useState<BookDto[]>([])
-  const [totalCount, setTotalCount] = useState(0)
+  const [allBooks, setAllBooks] = useState<BookDto[]>([])
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(8)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    catalogApi.getCategories().then(setCategories).catch(() => {})
-  }, [])
-
-  const guard = useRequestGuard()
-
-  const fetchBooks = useStableCallback(async () => {
-    const reqId = guard.next()
+  // Tải danh mục và toàn bộ sách (1 lần) để phục vụ tìm kiếm tức thì ở Client
+  const fetchAllData = useStableCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const res = await catalogApi.getBooks({
-        keyword: keyword.trim() || undefined,
-        categoryId: selectedCategory,
-        page,
-        pageSize,
-      })
-      if (!guard.isLatest(reqId)) return
-      setBooks(res.items)
-      setTotalCount(res.totalCount)
+      const [cats, booksRes] = await Promise.all([
+        catalogApi.getCategories().catch(() => [] as CategoryDto[]),
+        catalogApi.getBooks({ page: 1, pageSize: 1000 }),
+      ])
+      setCategories(cats)
+      setAllBooks(booksRes.items)
     } catch (err: unknown) {
-      if (!guard.isLatest(reqId)) return
       setError(getErrorMessage(err, 'Lỗi khi tải danh mục sách'))
     } finally {
-      if (guard.isLatest(reqId)) setLoading(false)
+      setLoading(false)
     }
   })
 
   useEffect(() => {
-    fetchBooks()
-  }, [page, pageSize, selectedCategory, reloadTick, fetchBooks])
+    fetchAllData()
+  }, [fetchAllData])
 
-  // Đồng bộ khi URL đổi từ bên ngoài (ô tìm trên Header, danh mục ở trang chủ)
+  // Cấu hình Fuse.js để tìm kiếm mờ (Fuzzy Search) siêu tốc trên RAM
+  const fuse = useMemo(() => createBookFuse(allBooks), [allBooks])
+
+  // Lọc sách: Ưu tiên khớp tuyệt đối (ISBN, Tên đầy đủ) trước khi dùng Fuse.js
+  const filteredBooks = useMemo(() => {
+    let result = filterBooksByKeyword(allBooks, fuse, keyword)
+
+    // Lọc theo thể loại nếu được chọn
+    if (selectedCategory) {
+      const catIdNum = Number(selectedCategory)
+      const selectedCatObj = categories.find((c) => c.id === selectedCategory)
+      const catName = selectedCatObj?.name?.toLowerCase()
+
+      result = result.filter((b) => {
+        if (!isNaN(catIdNum) && b.categoryIds && b.categoryIds.includes(catIdNum)) {
+          return true
+        }
+        if (
+          catName &&
+          (b.categoryName.toLowerCase().includes(catName) ||
+            b.categories?.some((c) => c.toLowerCase().includes(catName)))
+        ) {
+          return true
+        }
+        return false
+      })
+    }
+
+    return result
+  }, [allBooks, keyword, selectedCategory, fuse, categories])
+
+  // Phân trang tại Client (Client-side Pagination)
+  const totalCount = filteredBooks.length
+  const displayedBooks = useMemo(() => {
+    const start = (page - 1) * pageSize
+    return filteredBooks.slice(start, start + pageSize)
+  }, [filteredBooks, page, pageSize])
+
+  // Đồng bộ khi URL đổi từ bên ngoài (ô tìm trên Header, trang chủ)
   const urlKeyword = searchParams.get('keyword') || ''
   const urlCategory = searchParams.get('categoryId') || searchParams.get('category') || undefined
-  const syncFromUrl = useStableCallback(() => {
-    if (urlKeyword === keyword.trim() && urlCategory === selectedCategory) return
-    setKeyword(urlKeyword)
-    setSelectedCategory(urlCategory)
-    setPage(1)
-    setReloadTick((t) => t + 1)
-  })
-
   useEffect(() => {
-    syncFromUrl()
-  }, [urlKeyword, urlCategory, syncFromUrl])
+    if (urlKeyword !== keyword.trim()) {
+      setKeyword(urlKeyword)
+      setPage(1)
+    }
+    if (urlCategory !== selectedCategory) {
+      setSelectedCategory(urlCategory)
+      setPage(1)
+    }
+  }, [urlKeyword, urlCategory])
 
   const writeUrl = (kw: string, cat?: string) => {
     const next: Record<string, string> = {}
@@ -86,10 +112,7 @@ export const BookListPage: React.FC = () => {
 
   const handleSearch = () => {
     writeUrl(keyword, selectedCategory)
-    // Về trang 1 rồi để effect tự tải; nếu đã ở trang 1 thì tải ngay
-    // (tránh gọi API hai lần, lần đầu với `page` cũ)
-    if (page === 1) fetchBooks()
-    else setPage(1)
+    setPage(1)
   }
 
   return (
@@ -120,7 +143,10 @@ export const BookListPage: React.FC = () => {
             placeholder="Tìm theo tên sách, tác giả, ISBN..."
             prefix={<SearchOutlined style={mutedTextStyle} />}
             value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
+            onChange={(e) => {
+              setKeyword(e.target.value)
+              setPage(1)
+            }}
             onPressEnter={handleSearch}
             allowClear
             style={{ width: 320, borderRadius: 'var(--radius)' }}
@@ -169,8 +195,8 @@ export const BookListPage: React.FC = () => {
       {loading ? (
         <LoadingState tip="Đang tra cứu thẻ mục lục..." />
       ) : error ? (
-        <ErrorState title="Không thể tải mục lục" subTitle={error} onRetry={fetchBooks} />
-      ) : books.length === 0 ? (
+        <ErrorState title="Không thể tải mục lục" subTitle={error} onRetry={fetchAllData} />
+      ) : displayedBooks.length === 0 ? (
         <EmptyState
           title="Không tìm thấy tài liệu phù hợp"
           description="Hãy thử thay đổi từ khóa tìm kiếm hoặc chọn lại thể loại khác."
@@ -179,13 +205,13 @@ export const BookListPage: React.FC = () => {
             setKeyword('')
             setSelectedCategory(undefined)
             setSearchParams({})
-            setReloadTick((t) => t + 1)
+            setPage(1)
           }}
         />
       ) : (
         <>
           <Row gutter={[20, 20]}>
-            {books.map((book) => (
+            {displayedBooks.map((book) => (
               <Col xs={12} sm={8} md={6} lg={6} key={book.id}>
                 <BookCard book={book} />
               </Col>

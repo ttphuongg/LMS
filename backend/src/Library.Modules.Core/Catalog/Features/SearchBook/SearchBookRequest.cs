@@ -30,5 +30,6 @@ public record BookSummary(
     List<string>? Authors = null,
     List<string>? Categories = null,
     string? Description = null,
-    string Status = "Active"
+    string Status = "Active",
+    List<int>? CategoryIds = null
 );

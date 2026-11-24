@@ -37,14 +37,13 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
             query = query.Where(b => b.Status == BookStatus.Active);
         }
 
-        // ── Apply filters (Hybrid Search: PostgreSQL Full-Text Search + ILIKE, InMemory fallback) ──
+        // ── Apply filters (Không phân biệt hoa thường với ILIKE trên PostgreSQL) ─────
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();
             if (isPostgres)
             {
                 query = query.Where(b =>
-                    (b.SearchVector != null && b.SearchVector.Matches(EF.Functions.PlainToTsQuery("simple", keyword))) ||
                     EF.Functions.ILike(b.Title, $"%{keyword}%") ||
                     (b.Isbn != null && EF.Functions.ILike(b.Isbn, $"%{keyword}%")) ||
                     (b.Description != null && EF.Functions.ILike(b.Description, $"%{keyword}%")) ||
@@ -93,24 +92,10 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
         // ── Count total before pagination ─────────────────────────────────────
         var totalCount = await query.CountAsync(ct);
 
-        // ── Project + paginate (Relevance ranking when searching by keyword in PostgreSQL) ──
-        IOrderedQueryable<Book> orderedQuery;
-        if (isPostgres && !string.IsNullOrWhiteSpace(request.Keyword))
-        {
-            var keyword = request.Keyword.Trim();
-            orderedQuery = query
-                .OrderByDescending(b => b.SearchVector!.Rank(EF.Functions.PlainToTsQuery("simple", keyword)))
-                .ThenByDescending(b => b.CreatedAt)
-                .ThenBy(b => b.Title);
-        }
-        else
-        {
-            orderedQuery = query
-                .OrderByDescending(b => b.CreatedAt)
-                .ThenBy(b => b.Title);
-        }
-
-        var items = await orderedQuery
+        // ── Project + paginate ────────────────────────────────────────────────
+        var items = await query
+            .OrderByDescending(b => b.CreatedAt)
+            .ThenBy(b => b.Title)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .Select(b => new BookSummary(
@@ -125,7 +110,8 @@ public sealed class SearchBookHandler : IRequestHandler<SearchBookRequest, ApiRe
                 b.BookAuthors.Select(ba => ba.Author.Name).ToList(),
                 b.BookCategories.Select(bc => bc.Category.Name).ToList(),
                 b.Description,
-                b.Status.ToString()
+                b.Status.ToString(),
+                b.BookCategories.Select(bc => bc.CategoryId).ToList()
             ))
             .ToListAsync(ct);
 
